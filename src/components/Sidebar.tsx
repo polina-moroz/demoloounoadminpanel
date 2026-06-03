@@ -79,9 +79,9 @@ export default function Sidebar() {
 
       <div className="sidebar-footer">
         <div className="sidebar-footer-user">
-          <div className="sidebar-footer-avatar">P</div>
+          <div className="sidebar-footer-avatar">C</div>
           <div className="sidebar-footer-info">
-            <div className="name">Paulina</div>
+            <div className="name">Cyrus</div>
             <div className="role">Super Admin</div>
           </div>
         </div>
