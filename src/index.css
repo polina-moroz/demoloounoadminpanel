@@ -1431,3 +1431,124 @@ tbody td {
   color: var(--text-muted);
   font-size: 14px;
 }
+
+/* ===================================================
+   Mobile hamburger + sidebar responsive
+   =================================================== */
+
+.topbar-hamburger {
+  display: none;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color var(--transition), border-color var(--transition);
+  flex-shrink: 0;
+}
+
+.topbar-hamburger:hover {
+  color: var(--text-primary);
+  border-color: var(--border-gold);
+}
+
+.topbar-hamburger svg { width: 18px; height: 18px; }
+
+.topbar-left {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-close-btn {
+  display: none;
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: color var(--transition);
+}
+
+.sidebar-close-btn:hover { color: var(--text-primary); }
+.sidebar-close-btn svg { width: 14px; height: 14px; }
+
+.sidebar-mobile-overlay {
+  display: none;
+}
+
+@media (max-width: 820px) {
+  :root { --sidebar-width: 0px; }
+
+  .layout-content { margin-left: 0; }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: none;
+    --sidebar-width: 240px;
+    width: 240px;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.6);
+  }
+
+  .topbar-hamburger { display: flex; }
+
+  .sidebar-close-btn { display: flex; }
+
+  .sidebar-mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 99;
+    backdrop-filter: blur(2px);
+  }
+
+  .page-content { padding: 20px 16px; }
+
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .platform-status-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .economy-stats { grid-template-columns: repeat(2, 1fr); }
+
+  .settings-grid { grid-template-columns: 1fr; }
+
+  .two-col-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+
+  .topbar { padding: 0 16px; }
+
+  .topbar-phase-badge { display: none; }
+}
+
+/* Top Streamer badge */
+.badge-top-streamer {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+/* IP Banned badge */
+.badge-ip-banned {
+  background: rgba(155, 17, 30, 0.15);
+  color: #E05C6A;
+  border: 1px solid rgba(155, 17, 30, 0.35);
+}

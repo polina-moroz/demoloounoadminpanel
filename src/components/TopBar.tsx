@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom'
-import { Bell, Search } from 'lucide-react'
+import { Bell, Search, Menu } from 'lucide-react'
 
 const pageMeta: Record<string, { title: string; subtitle: string }> = {
   '/dashboard': { title: 'Dashboard', subtitle: 'Platform overview' },
@@ -16,15 +16,20 @@ const pageMeta: Record<string, { title: string; subtitle: string }> = {
   '/settings': { title: 'Settings', subtitle: 'Platform configuration and policies' },
 }
 
-export default function TopBar() {
+export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
   const location = useLocation()
   const meta = pageMeta[location.pathname] ?? { title: 'Loouno Admin', subtitle: '' }
 
   return (
     <header className="topbar">
       <div className="topbar-left">
-        <span className="topbar-title">{meta.title}</span>
-        {meta.subtitle && <span className="topbar-subtitle">{meta.subtitle}</span>}
+        <button className="topbar-hamburger" onClick={onMenuClick} title="Menu" aria-label="Open navigation">
+          <Menu size={18} />
+        </button>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span className="topbar-title">{meta.title}</span>
+          {meta.subtitle && <span className="topbar-subtitle">{meta.subtitle}</span>}
+        </div>
       </div>
       <div className="topbar-right">
         <div className="topbar-phase-badge">

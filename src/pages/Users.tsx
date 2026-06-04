@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw } from 'lucide-react'
+import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, WifiOff } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import type { User, UserStatus } from '../types'
@@ -21,9 +21,12 @@ interface SlideOverProps {
   onSuspend: (id: string) => void
   onBan: (id: string) => void
   onReinstate: (id: string) => void
+  onPromote: (id: string) => void
+  onDemote: (id: string) => void
+  onIPBan: (id: string) => void
 }
 
-function UserSlideOver({ user, onClose, onWarn, onSuspend, onBan, onReinstate }: SlideOverProps) {
+function UserSlideOver({ user, onClose, onWarn, onSuspend, onBan, onReinstate, onPromote, onDemote, onIPBan }: SlideOverProps) {
   const { streams, reports } = useStore()
   if (!user) return null
   const userStreams = streams.filter(s => s.streamerHandle === user.handle)
@@ -53,6 +56,12 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onBan, onReinstate }:
                 <Badge variant={user.status} dot>{statusLabel(user.status)}</Badge>
                 <Badge variant={user.role} dot={false}>{user.role}</Badge>
                 <Badge variant={user.kyc} dot>{statusLabel(user.kyc)}</Badge>
+                {user.isTopStreamer && (
+                  <span className="badge badge-top-streamer">⭐ Top Streamer</span>
+                )}
+                {user.isIPBanned && (
+                  <span className="badge badge-ip-banned">🚫 IP Banned</span>
+                )}
               </div>
             </div>
           </div>
@@ -128,12 +137,37 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onBan, onReinstate }:
                 <Ban size={12} /> Ban
               </button>
             )}
+            {!user.isIPBanned && (
+              <button className="btn btn-danger btn-sm" onClick={() => { onIPBan(user.id); onClose() }}
+                title="Permanently block this device from the platform">
+                <WifiOff size={12} /> IP Ban
+              </button>
+            )}
             {canReinstate && (
               <button className="btn btn-success btn-sm" onClick={() => { onReinstate(user.id); onClose() }}>
                 <RotateCcw size={12} /> Reinstate
               </button>
             )}
           </div>
+
+          {/* Top Streamer promotion */}
+          {user.role === 'creator' && (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 600, marginBottom: 8 }}>Trending Promotion</div>
+              {user.isTopStreamer ? (
+                <button className="btn btn-secondary btn-sm" onClick={() => { onDemote(user.id); onClose() }}>
+                  <Star size={12} /> Remove Top Streamer Badge
+                </button>
+              ) : (
+                <button className="btn btn-primary btn-sm" onClick={() => { onPromote(user.id); onClose() }}>
+                  <Star size={12} /> Promote to Top Streamer
+                </button>
+              )}
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
+                Top Streamers appear first on the trending page and receive a ⭐ badge.
+              </div>
+            </div>
+          )}
         </div>
       </aside>
     </>
@@ -141,7 +175,7 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onBan, onReinstate }:
 }
 
 export default function Users() {
-  const { users, warnUser, setUserStatus } = useStore()
+  const { users, warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser } = useStore()
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterTab>('all')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -208,6 +242,7 @@ export default function Users() {
                 <th>Joined</th>
                 <th>Followers</th>
                 <th>KYC</th>
+                <th>Badge</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -231,6 +266,21 @@ export default function Users() {
                   <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{u.joined}</td>
                   <td style={{ color: 'var(--text-secondary)' }}>{u.followers.toLocaleString()}</td>
                   <td><Badge variant={u.kyc} dot>{statusLabel(u.kyc)}</Badge></td>
+                  <td>
+                    {u.isTopStreamer ? (
+                      <span className="badge badge-top-streamer" style={{ cursor: 'pointer' }}
+                        title="Remove Top Streamer badge"
+                        onClick={() => demoteTopStreamer(u.id)}>
+                        ⭐ Top
+                      </span>
+                    ) : u.role === 'creator' ? (
+                      <button className="btn btn-ghost btn-sm" title="Promote to Top Streamer"
+                        onClick={() => promoteTopStreamer(u.id)}
+                        style={{ fontSize: 10, padding: '3px 8px' }}>
+                        <Star size={11} /> Promote
+                      </button>
+                    ) : <span style={{ color: 'var(--text-subtle)', fontSize: 12 }}>—</span>}
+                  </td>
                   <td>
                     <div style={{ display: 'flex', gap: 4 }}>
                       <button className="btn btn-ghost btn-icon" title="View" onClick={() => setSelectedUser(u)}>
@@ -257,6 +307,12 @@ export default function Users() {
                           <RotateCcw size={13} />
                         </button>
                       )}
+                      {!u.isIPBanned && (
+                        <button className="btn btn-danger btn-icon" title="IP Ban — permanently block device"
+                          onClick={() => ipBanUser(u.id)}>
+                          <WifiOff size={13} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -273,6 +329,9 @@ export default function Users() {
         onSuspend={id => setUserStatus(id, 'suspended')}
         onBan={id => setUserStatus(id, 'banned')}
         onReinstate={id => setUserStatus(id, 'active')}
+        onPromote={promoteTopStreamer}
+        onDemote={demoteTopStreamer}
+        onIPBan={ipBanUser}
       />
     </div>
   )

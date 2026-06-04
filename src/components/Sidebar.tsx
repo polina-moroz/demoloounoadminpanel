@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, Radio, Flag, Coins, BadgeCheck,
-  Gift, Package, Trophy, Star, Bell, Settings, Zap
+  Gift, Package, Trophy, Star, Bell, Settings, X
 } from 'lucide-react'
 
 const sections = [
@@ -44,9 +44,9 @@ const sections = [
   },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${isOpen ? ' mobile-open' : ''}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-ring">
           <span>L</span>
@@ -55,6 +55,9 @@ export default function Sidebar() {
           <span className="name">Loouno</span>
           <span className="label">Admin</span>
         </div>
+        <button className="sidebar-close-btn" onClick={onClose} title="Close menu" aria-label="Close navigation">
+          <X size={14} />
+        </button>
       </div>
 
       <nav className="sidebar-nav">

@@ -24,6 +24,8 @@ export interface User {
   totalEarned: number;
   totalStreams: number;
   avatarColor: string;
+  isTopStreamer?: boolean;
+  isIPBanned?: boolean;
 }
 
 export interface Stream {

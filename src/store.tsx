@@ -32,6 +32,9 @@ interface StoreCtx {
   // user actions
   warnUser: (id: string) => void
   setUserStatus: (id: string, status: UserStatus) => void
+  promoteTopStreamer: (id: string) => void
+  demoteTopStreamer: (id: string) => void
+  ipBanUser: (id: string) => void
 
   // stream actions
   terminateStream: (id: string) => void
@@ -103,6 +106,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const label = status === 'active' ? 'reinstated' : status
     toast(`@${u?.handle ?? id} has been ${label}`,
       status === 'banned' ? 'error' : status === 'suspended' ? 'warn' : 'success')
+  }, [users, toast])
+
+  const promoteTopStreamer = useCallback((id: string) => {
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, isTopStreamer: true } : u))
+    const u = users.find(u => u.id === id)
+    toast(`@${u?.handle ?? id} promoted to Top Streamer ⭐`, 'success')
+  }, [users, toast])
+
+  const demoteTopStreamer = useCallback((id: string) => {
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, isTopStreamer: false } : u))
+    const u = users.find(u => u.id === id)
+    toast(`Top Streamer badge removed from @${u?.handle ?? id}`, 'info')
+  }, [users, toast])
+
+  const ipBanUser = useCallback((id: string) => {
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, isIPBanned: true, status: 'banned' } : u))
+    const u = users.find(u => u.id === id)
+    toast(`@${u?.handle ?? id} has been IP banned`, 'error')
   }, [users, toast])
 
   /* ── stream helpers ── */
@@ -212,7 +233,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{
       users, streams, reports, withdrawals, kyc, notifications,
-      warnUser, setUserStatus,
+      warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser,
       terminateStream, warnStreamer,
       resolveReport, dismissReport, banReportTarget, warnReportTarget,
       approveWithdrawal, rejectWithdrawal, holdWithdrawal,
