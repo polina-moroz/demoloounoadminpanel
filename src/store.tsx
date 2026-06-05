@@ -1,12 +1,19 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import {
   mockUsers, mockStreams, mockReports, mockWithdrawals,
-  mockKYC, mockNotifications,
+  mockKYC, mockNotifications, mockAdminTeam,
 } from './mockData'
 import type {
   User, Stream, Report, WithdrawalRequest, KYCEntry,
   Notification, UserStatus, WithdrawalStatus, KYCStatus, NotificationTarget,
+  AdminMember, AdminRole,
 } from './types'
+
+function generateInviteCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  const seg = () => Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+  return `LOOO-${seg()}-${seg()}`
+}
 
 /* ── Toast ─────────────────────────────────────────────────────── */
 
@@ -35,6 +42,7 @@ interface StoreCtx {
   promoteTopStreamer: (id: string) => void
   demoteTopStreamer: (id: string) => void
   ipBanUser: (id: string) => void
+  adjustWalletBalance: (id: string, delta: number, reason: string) => void
 
   // stream actions
   terminateStream: (id: string) => void
@@ -59,6 +67,21 @@ interface StoreCtx {
   // notification actions
   sendNotification: (title: string, body: string, target: NotificationTarget) => void
 
+  // auth
+  isAuthenticated: boolean
+  currentAdmin: AdminMember | null
+  login: (email: string, password: string) => boolean
+  logout: () => void
+
+  // admin team
+  adminTeam: AdminMember[]
+  inviteAdmin: (email: string, role: AdminRole) => string
+  updateAdminRole: (id: string, role: AdminRole) => void
+  suspendAdmin: (id: string) => void
+  reinstateAdmin: (id: string) => void
+  removeAdmin: (id: string) => void
+  acceptInvite: (code: string) => boolean
+
   // toast
   toasts: ToastItem[]
   toast: (message: string, variant?: ToastVariant) => void
@@ -76,6 +99,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [toastId, setToastId] = useState(0)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [currentAdmin, setCurrentAdmin] = useState<AdminMember | null>(null)
+  const [adminTeam, setAdminTeam] = useState<AdminMember[]>(mockAdminTeam)
 
   const toast = useCallback((message: string, variant: ToastVariant = 'info') => {
     const id = toastId + 1
@@ -124,6 +150,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, isIPBanned: true, status: 'banned' } : u))
     const u = users.find(u => u.id === id)
     toast(`@${u?.handle ?? id} has been IP banned`, 'error')
+  }, [users, toast])
+
+  const adjustWalletBalance = useCallback((id: string, delta: number, reason: string) => {
+    const u = users.find(u => u.id === id)
+    if (!u) return
+    const newBalance = Math.max(0, u.walletBalance + delta)
+    setUsers(prev => prev.map(usr => usr.id === id ? { ...usr, walletBalance: newBalance } : usr))
+    const sign = delta >= 0 ? '+' : ''
+    const note = reason ? ` (${reason})` : ''
+    toast(`@${u.handle}: balance ${sign}${delta.toLocaleString()} 💎${note}`, delta >= 0 ? 'success' : 'warn')
   }, [users, toast])
 
   /* ── stream helpers ── */
@@ -215,6 +251,76 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     toast(`More info requested from @${k?.userHandle ?? id}`, 'warn')
   }, [kyc, toast])
 
+  /* ── auth helpers ── */
+  const login = useCallback((email: string, password: string): boolean => {
+    if (!email.trim() || !password.trim()) return false
+    const match = adminTeam.find(m =>
+      m.email.toLowerCase() === email.toLowerCase().trim() && m.status === 'active'
+    )
+    const fallback = adminTeam.find(m => m.role === 'super_admin') ?? adminTeam[0]
+    const admin = match ?? fallback ?? null
+    setCurrentAdmin(admin)
+    setIsAuthenticated(true)
+    return true
+  }, [adminTeam])
+
+  const logout = useCallback(() => {
+    setIsAuthenticated(false)
+    setCurrentAdmin(null)
+  }, [])
+
+  /* ── admin team helpers ── */
+  const inviteAdmin = useCallback((email: string, role: AdminRole): string => {
+    const code = generateInviteCode()
+    const newMember: AdminMember = {
+      id: `a${Date.now()}`,
+      displayName: '—',
+      email,
+      role,
+      status: 'invited',
+      invitedAt: new Date().toISOString(),
+      inviteCode: code,
+      avatarColor: '#48484A',
+    }
+    setAdminTeam(prev => [...prev, newMember])
+    toast(`Invite sent to ${email} (mocked — no email actually sent)`, 'success')
+    return code
+  }, [toast])
+
+  const updateAdminRole = useCallback((id: string, role: AdminRole) => {
+    setAdminTeam(prev => prev.map(a => a.id === id ? { ...a, role } : a))
+    toast('Role updated', 'success')
+  }, [toast])
+
+  const suspendAdmin = useCallback((id: string) => {
+    const a = adminTeam.find(a => a.id === id)
+    setAdminTeam(prev => prev.map(a => a.id === id ? { ...a, status: 'suspended' } : a))
+    toast(`${a?.displayName ?? 'Member'} suspended`, 'warn')
+  }, [adminTeam, toast])
+
+  const reinstateAdmin = useCallback((id: string) => {
+    const a = adminTeam.find(a => a.id === id)
+    setAdminTeam(prev => prev.map(a => a.id === id ? { ...a, status: 'active' } : a))
+    toast(`${a?.displayName ?? 'Member'} reinstated`, 'success')
+  }, [adminTeam, toast])
+
+  const removeAdmin = useCallback((id: string) => {
+    const a = adminTeam.find(a => a.id === id)
+    setAdminTeam(prev => prev.filter(a => a.id !== id))
+    toast(`${a?.displayName ?? 'Member'} removed from team`, 'info')
+  }, [adminTeam, toast])
+
+  const acceptInvite = useCallback((code: string): boolean => {
+    const member = adminTeam.find(m => m.inviteCode === code && m.status === 'invited')
+    if (!member) return false
+    setAdminTeam(prev => prev.map(m =>
+      m.id === member.id
+        ? { ...m, status: 'active', inviteCode: undefined, joinedAt: new Date().toISOString() }
+        : m
+    ))
+    return true
+  }, [adminTeam])
+
   /* ── notification helpers ── */
   const sendNotification = useCallback((title: string, body: string, target: NotificationTarget) => {
     const newNotif: Notification = {
@@ -233,12 +339,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{
       users, streams, reports, withdrawals, kyc, notifications,
-      warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser,
+      warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser, adjustWalletBalance,
       terminateStream, warnStreamer,
       resolveReport, dismissReport, banReportTarget, warnReportTarget,
       approveWithdrawal, rejectWithdrawal, holdWithdrawal,
       approveKYC, rejectKYC, requestMoreInfoKYC,
       sendNotification,
+      isAuthenticated, currentAdmin, login, logout,
+      adminTeam, inviteAdmin, updateAdminRole, suspendAdmin, reinstateAdmin, removeAdmin, acceptInvite,
       toasts, toast, dismissToast,
     }}>
       {children}

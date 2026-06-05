@@ -164,6 +164,21 @@ export interface VIPLevel {
   perks: string;
 }
 
+export type AdminRole = 'super_admin' | 'admin' | 'moderator' | 'support' | 'viewer';
+export type AdminStatus = 'active' | 'invited' | 'suspended';
+
+export interface AdminMember {
+  id: string;
+  displayName: string;
+  email: string;
+  role: AdminRole;
+  status: AdminStatus;
+  invitedAt: string;
+  joinedAt?: string;
+  inviteCode?: string;
+  avatarColor: string;
+}
+
 export type WheelPrizeType = 'coins' | 'diamonds' | 'multiplier' | 'miss';
 
 export interface FortuneWheelPrize {

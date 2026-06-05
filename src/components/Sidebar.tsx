@@ -1,8 +1,18 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, Radio, Flag, Coins, BadgeCheck,
-  Gift, Package, Trophy, Star, Bell, Settings, X, Dices
+  Gift, Package, Trophy, Star, Bell, Settings, X, Dices,
+  Shield, LogOut,
 } from 'lucide-react'
+import { useStore } from '../store'
+
+const roleLabel: Record<string, string> = {
+  super_admin: 'Super Admin',
+  admin: 'Admin',
+  moderator: 'Moderator',
+  support: 'Support',
+  viewer: 'Viewer',
+}
 
 const sections = [
   {
@@ -40,12 +50,20 @@ const sections = [
     label: 'System',
     items: [
       { to: '/notifications', icon: Bell, label: 'Notifications' },
+      { to: '/admin-team', icon: Shield, label: 'Admin Team' },
       { to: '/settings', icon: Settings, label: 'Settings' },
     ],
   },
 ]
 
 export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const { currentAdmin, logout } = useStore()
+
+  const displayName = currentAdmin?.displayName ?? 'Admin'
+  const displayRole = roleLabel[currentAdmin?.role ?? 'admin'] ?? 'Admin'
+  const avatarLetter = displayName[0]?.toUpperCase() ?? 'A'
+  const avatarColor = currentAdmin?.avatarColor ?? 'var(--gold)'
+
   return (
     <aside className={`sidebar${isOpen ? ' mobile-open' : ''}`}>
       <div className="sidebar-logo">
@@ -83,11 +101,30 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
 
       <div className="sidebar-footer">
         <div className="sidebar-footer-user">
-          <div className="sidebar-footer-avatar">C</div>
-          <div className="sidebar-footer-info">
-            <div className="name">Cyrus</div>
-            <div className="role">Super Admin</div>
+          <div
+            className="sidebar-footer-avatar"
+            style={{ background: avatarColor, color: avatarColor === '#D4AF37' ? '#000' : '#fff' }}
+          >
+            {avatarLetter}
           </div>
+          <div className="sidebar-footer-info">
+            <div className="name">{displayName}</div>
+            <div className="role">{displayRole}</div>
+          </div>
+          <button
+            onClick={logout}
+            title="Sign out"
+            style={{
+              marginLeft: 'auto', background: 'none', border: 'none',
+              cursor: 'pointer', color: 'var(--text-muted)', padding: '4px',
+              borderRadius: 6, display: 'flex', alignItems: 'center',
+              flexShrink: 0, transition: 'color 0.15s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#E74C3C')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+          >
+            <LogOut size={14} />
+          </button>
         </div>
       </div>
     </aside>
