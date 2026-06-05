@@ -179,6 +179,13 @@ export interface AdminMember {
   avatarColor: string;
 }
 
+export interface ReportReason {
+  id: string;
+  label: string;
+  appliesTo: ReportType | 'all';
+  enabled: boolean;
+}
+
 export type WheelPrizeType = 'coins' | 'diamonds' | 'multiplier' | 'miss';
 
 export interface FortuneWheelPrize {

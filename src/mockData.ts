@@ -1,7 +1,7 @@
 import type {
   User, Stream, Report, WithdrawalRequest, Transaction,
   KYCEntry, Gift, CompetitionEntry, PrizeTier, CoinPackage,
-  Notification, PrestigeXPLevel, PrestigeSPTier, VIPLevel, FortuneWheelPrize, AdminMember
+  Notification, PrestigeXPLevel, PrestigeSPTier, VIPLevel, FortuneWheelPrize, AdminMember, ReportReason
 } from './types';
 
 export const mockUsers: User[] = [
@@ -206,6 +206,21 @@ export const mockVIPLevels: VIPLevel[] = [
   { level: 3, name: 'VIP Platinum', monthlySpend: 5000, badgeColor: '#A0B2C6', perks: '+ Platinum badge, animated entrance, chat sparkles' },
   { level: 4, name: 'VIP Diamond', monthlySpend: 15000, badgeColor: '#B9F2FF', perks: '+ Diamond badge, full-screen entrance, private lounge' },
   { level: 5, name: 'Boss VIP Cosmic', monthlySpend: 0, badgeColor: '#9966CC', perks: 'Top monthly spender — cosmic animated badge + custom platform recognition' },
+];
+
+export const mockReportReasons: ReportReason[] = [
+  { id: 'rr1',  label: 'Explicit sexual content',        appliesTo: 'all',     enabled: true },
+  { id: 'rr2',  label: 'Nudity or adult content',        appliesTo: 'stream',  enabled: true },
+  { id: 'rr3',  label: 'Harassment or bullying',         appliesTo: 'all',     enabled: true },
+  { id: 'rr4',  label: 'Hate speech or discrimination',  appliesTo: 'all',     enabled: true },
+  { id: 'rr5',  label: 'Spam or self-promotion',         appliesTo: 'message', enabled: true },
+  { id: 'rr6',  label: 'Copyright infringement',         appliesTo: 'stream',  enabled: true },
+  { id: 'rr7',  label: 'Misleading stream title',        appliesTo: 'stream',  enabled: true },
+  { id: 'rr8',  label: 'Underage user suspicion',        appliesTo: 'user',    enabled: true },
+  { id: 'rr9',  label: 'Impersonation',                  appliesTo: 'user',    enabled: true },
+  { id: 'rr10', label: 'Violence or dangerous content',  appliesTo: 'all',     enabled: true },
+  { id: 'rr11', label: 'Inappropriate username',         appliesTo: 'user',    enabled: true },
+  { id: 'rr12', label: 'Soliciting in chat',             appliesTo: 'message', enabled: false },
 ];
 
 export const mockAdminTeam: AdminMember[] = [

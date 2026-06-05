@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import {
   mockUsers, mockStreams, mockReports, mockWithdrawals,
-  mockKYC, mockNotifications, mockAdminTeam,
+  mockKYC, mockNotifications, mockAdminTeam, mockReportReasons,
 } from './mockData'
 import type {
   User, Stream, Report, WithdrawalRequest, KYCEntry,
   Notification, UserStatus, WithdrawalStatus, KYCStatus, NotificationTarget,
-  AdminMember, AdminRole,
+  AdminMember, AdminRole, ReportReason, ReportType,
 } from './types'
 
 function generateInviteCode(): string {
@@ -54,6 +54,12 @@ interface StoreCtx {
   banReportTarget: (id: string) => void
   warnReportTarget: (id: string) => void
 
+  // report reasons
+  reportReasons: ReportReason[]
+  addReportReason: (label: string, appliesTo: ReportType | 'all') => void
+  updateReportReason: (id: string, updates: Partial<ReportReason>) => void
+  removeReportReason: (id: string) => void
+
   // withdrawal actions
   approveWithdrawal: (id: string) => void
   rejectWithdrawal: (id: string) => void
@@ -97,6 +103,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>(mockWithdrawals)
   const [kyc, setKyc] = useState<KYCEntry[]>(mockKYC)
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
+  const [reportReasons, setReportReasons] = useState<ReportReason[]>(mockReportReasons)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [toastId, setToastId] = useState(0)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -205,6 +212,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       toast(`Warning sent to @${r.targetHandle}`, 'warn')
     }
   }, [reports, toast])
+
+  /* ── report reason helpers ── */
+  const addReportReason = useCallback((label: string, appliesTo: ReportType | 'all') => {
+    const trimmed = label.trim()
+    if (!trimmed) return
+    setReportReasons(prev => [...prev, { id: `rr${Date.now()}`, label: trimmed, appliesTo, enabled: true }])
+    toast(`Reason "${trimmed}" added`, 'success')
+  }, [toast])
+
+  const updateReportReason = useCallback((id: string, updates: Partial<ReportReason>) => {
+    setReportReasons(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r))
+  }, [])
+
+  const removeReportReason = useCallback((id: string) => {
+    const r = reportReasons.find(r => r.id === id)
+    setReportReasons(prev => prev.filter(r => r.id !== id))
+    toast(`Reason "${r?.label ?? ''}" removed`, 'info')
+  }, [reportReasons, toast])
 
   /* ── withdrawal helpers ── */
   const setWithdrawalStatus = (id: string, status: WithdrawalStatus) => {
@@ -342,6 +367,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser, adjustWalletBalance,
       terminateStream, warnStreamer,
       resolveReport, dismissReport, banReportTarget, warnReportTarget,
+      reportReasons, addReportReason, updateReportReason, removeReportReason,
       approveWithdrawal, rejectWithdrawal, holdWithdrawal,
       approveKYC, rejectKYC, requestMoreInfoKYC,
       sendNotification,
