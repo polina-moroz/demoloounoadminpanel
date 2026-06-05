@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, Radio, Flag, Coins, BadgeCheck,
-  Gift, Package, Trophy, Star, Bell, Settings, X
+  Gift, Package, Trophy, Star, Bell, Settings, X, Dices
 } from 'lucide-react'
 
 const sections = [
@@ -33,6 +33,7 @@ const sections = [
     items: [
       { to: '/competitions', icon: Trophy, label: 'Competitions' },
       { to: '/prestige', icon: Star, label: 'Prestige' },
+      { to: '/fortune-wheel', icon: Dices, label: 'Fortune Wheel' },
     ],
   },
   {

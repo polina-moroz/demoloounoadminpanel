@@ -1,7 +1,7 @@
 import type {
   User, Stream, Report, WithdrawalRequest, Transaction,
   KYCEntry, Gift, CompetitionEntry, PrizeTier, CoinPackage,
-  Notification, PrestigeXPLevel, PrestigeSPTier, VIPLevel
+  Notification, PrestigeXPLevel, PrestigeSPTier, VIPLevel, FortuneWheelPrize
 } from './types';
 
 export const mockUsers: User[] = [
@@ -206,6 +206,19 @@ export const mockVIPLevels: VIPLevel[] = [
   { level: 3, name: 'VIP Platinum', monthlySpend: 5000, badgeColor: '#A0B2C6', perks: '+ Platinum badge, animated entrance, chat sparkles' },
   { level: 4, name: 'VIP Diamond', monthlySpend: 15000, badgeColor: '#B9F2FF', perks: '+ Diamond badge, full-screen entrance, private lounge' },
   { level: 5, name: 'Boss VIP Cosmic', monthlySpend: 0, badgeColor: '#9966CC', perks: 'Top monthly spender — cosmic animated badge + custom platform recognition' },
+];
+
+export const mockWheelPrizes: FortuneWheelPrize[] = [
+  { id: 'wp1', label: 'Try Again',     emoji: '💨', type: 'miss',       reward: 0,     probability: 25, color: '#48484A', enabled: true },
+  { id: 'wp2', label: '50 Coins',      emoji: '🪙', type: 'coins',      reward: 50,    probability: 20, color: '#3498DB', enabled: true },
+  { id: 'wp3', label: '100 Coins',     emoji: '🪙', type: 'coins',      reward: 100,   probability: 15, color: '#2ECC8A', enabled: true },
+  { id: 'wp4', label: '250 Coins',     emoji: '🪙', type: 'coins',      reward: 250,   probability: 12, color: '#1ABC9C', enabled: true },
+  { id: 'wp5', label: '500 Coins',     emoji: '🪙', type: 'coins',      reward: 500,   probability: 10, color: '#F39C12', enabled: true },
+  { id: 'wp6', label: '1,000 Coins',   emoji: '🪙', type: 'coins',      reward: 1000,  probability: 8,  color: '#E67E22', enabled: true },
+  { id: 'wp7', label: '2× Multiplier', emoji: '✨', type: 'multiplier', reward: 2,     probability: 4,  color: '#9966CC', enabled: true },
+  { id: 'wp8', label: '5,000 Coins',   emoji: '💰', type: 'coins',      reward: 5000,  probability: 3,  color: '#C0392B', enabled: true },
+  { id: 'wp9', label: '50 Diamonds',   emoji: '💎', type: 'diamonds',   reward: 50,    probability: 2,  color: '#D4AF37', enabled: true },
+  { id: 'wp10', label: '10,000 Coins', emoji: '💰', type: 'coins',      reward: 10000, probability: 1,  color: '#9B111E', enabled: true },
 ];
 
 export const revenueData = [

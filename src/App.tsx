@@ -14,6 +14,7 @@ import Competitions from './pages/Competitions'
 import Prestige from './pages/Prestige'
 import Notifications from './pages/Notifications'
 import Settings from './pages/Settings'
+import FortuneWheel from './pages/FortuneWheel'
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="coin-packages" element={<CoinPackages />} />
           <Route path="competitions" element={<Competitions />} />
           <Route path="prestige" element={<Prestige />} />
+          <Route path="fortune-wheel" element={<FortuneWheel />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="settings" element={<Settings />} />
         </Route>

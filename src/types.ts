@@ -163,3 +163,16 @@ export interface VIPLevel {
   badgeColor: string;
   perks: string;
 }
+
+export type WheelPrizeType = 'coins' | 'diamonds' | 'multiplier' | 'miss';
+
+export interface FortuneWheelPrize {
+  id: string;
+  label: string;
+  emoji: string;
+  type: WheelPrizeType;
+  reward: number;
+  probability: number;
+  color: string;
+  enabled: boolean;
+}
