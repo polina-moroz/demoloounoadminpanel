@@ -1,14 +1,33 @@
 import { useState } from 'react'
-import { XCircle, AlertTriangle } from 'lucide-react'
+import { XCircle, AlertTriangle, ExternalLink } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
+import type { StreamStatus } from '../types'
+
+const STATUS_OPTIONS: { key: StreamStatus; label: string }[] = [
+  { key: 'live',       label: 'Live Now' },
+  { key: 'ended',      label: 'Ended' },
+  { key: 'terminated', label: 'Terminated' },
+]
+
+function toggle<T>(arr: T[], value: T): T[] {
+  return arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value]
+}
 
 export default function Streams() {
   const { streams, terminateStream, warnStreamer } = useStore()
-  const [tab, setTab] = useState<'live' | 'past'>('live')
 
-  const liveStreams = streams.filter(s => s.status === 'live')
-  const pastStreams = streams.filter(s => s.status !== 'live')
+  const [selectedStatuses, setSelectedStatuses] = useState<StreamStatus[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+
+  const liveCount = streams.filter(s => s.status === 'live').length
+  const allCategories = Array.from(new Set(streams.map(s => s.category))).sort()
+
+  const visible = streams.filter(s => {
+    const statusOk = selectedStatuses.length === 0 || selectedStatuses.includes(s.status)
+    const catOk    = selectedCategories.length === 0 || selectedCategories.includes(s.category)
+    return statusOk && catOk
+  })
 
   return (
     <div>
@@ -20,115 +39,92 @@ export default function Streams() {
         <div className="page-header-actions">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#E05C6A', display: 'inline-block', animation: 'pulse 1.5s infinite' }} />
-            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{liveStreams.length} live now</span>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{liveCount} live now</span>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="filter-tabs mb-20" style={{ display: 'inline-flex' }}>
-        <button className={`filter-tab${tab === 'live' ? ' active' : ''}`} onClick={() => setTab('live')}>
-          Live Now ({liveStreams.length})
-        </button>
-        <button className={`filter-tab${tab === 'past' ? ' active' : ''}`} onClick={() => setTab('past')}>
-          Past Streams ({pastStreams.length})
-        </button>
-      </div>
-
-      {tab === 'live' && (
-        <div className="table-wrapper">
-          <div className="table-header">
-            <div>
-              <div className="table-title">Live Now</div>
-              <div className="table-subtitle">Currently active streams</div>
-            </div>
-          </div>
-          <div style={{ overflowX: 'auto' }}>
-            {liveStreams.length === 0 ? (
-              <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                No live streams at the moment.
-              </div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Streamer</th>
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th>Viewers</th>
-                    <th>Duration</th>
-                    <th>Diamonds Earned</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {liveStreams.map(s => (
-                    <tr key={s.id}>
-                      <td>
-                        <div className="avatar-row">
-                          <div className="avatar" style={{ background: s.avatarColor }}>{s.streamer[0]}</div>
-                          <div>
-                            <div className="user-name">{s.streamer}</div>
-                            <div className="user-handle">@{s.streamerHandle}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{s.title}</span>
-                          <Badge variant="live" dot>Live</Badge>
-                        </div>
-                      </td>
-                      <td>
-                        <span style={{ background: 'var(--bg-surface-2)', padding: '3px 8px', borderRadius: 20, fontSize: 12, color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>
-                          {s.category}
-                        </span>
-                      </td>
-                      <td><span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{s.viewers.toLocaleString()}</span></td>
-                      <td style={{ color: 'var(--text-muted)' }}>{s.duration}</td>
-                      <td><span style={{ color: 'var(--gold)', fontWeight: 600 }}>{s.diamondsEarned.toLocaleString()} 💎</span></td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button className="btn btn-danger btn-sm" onClick={() => terminateStream(s.id)}>
-                            <XCircle size={12} /> Terminate
-                          </button>
-                          <button className="btn btn-warn btn-sm" onClick={() => warnStreamer(s.id)}>
-                            <AlertTriangle size={12} /> Warn
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+      {/* Multi-picker filters */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20, alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</span>
+          <div className="filter-tabs" style={{ display: 'inline-flex' }}>
+            {STATUS_OPTIONS.map(({ key, label }) => (
+              <button
+                key={key}
+                className={`filter-tab${selectedStatuses.includes(key) ? ' active' : ''}`}
+                onClick={() => setSelectedStatuses(prev => toggle(prev, key))}
+              >
+                {key === 'live' && (
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: selectedStatuses.includes(key) ? '#fff' : '#E05C6A', display: 'inline-block', marginRight: 5, flexShrink: 0, animation: 'pulse 1.5s infinite' }} />
+                )}
+                {label}
+              </button>
+            ))}
           </div>
         </div>
-      )}
 
-      {tab === 'past' && (
-        <div className="table-wrapper">
-          <div className="table-header">
-            <div>
-              <div className="table-title">Past Streams</div>
-              <div className="table-subtitle">Ended and terminated streams (no VOD — clips uploaded manually)</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Category</span>
+          <div className="filter-tabs" style={{ display: 'inline-flex', flexWrap: 'wrap' }}>
+            {allCategories.map(cat => (
+              <button
+                key={cat}
+                className={`filter-tab${selectedCategories.includes(cat) ? ' active' : ''}`}
+                onClick={() => setSelectedCategories(prev => toggle(prev, cat))}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {(selectedStatuses.length > 0 || selectedCategories.length > 0) && (
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ alignSelf: 'flex-end', marginBottom: 2 }}
+            onClick={() => { setSelectedStatuses([]); setSelectedCategories([]) }}
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+
+      <div className="table-wrapper">
+        <div className="table-header">
+          <div>
+            <div className="table-title">Streams ({visible.length})</div>
+            <div className="table-subtitle">
+              {selectedStatuses.length === 0 && selectedCategories.length === 0
+                ? 'All streams'
+                : [
+                    selectedStatuses.length > 0 && selectedStatuses.map(s => STATUS_OPTIONS.find(o => o.key === s)?.label).join(', '),
+                    selectedCategories.length > 0 && selectedCategories.join(', '),
+                  ].filter(Boolean).join(' · ')}
             </div>
           </div>
-          <div style={{ overflowX: 'auto' }}>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          {visible.length === 0 ? (
+            <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              No streams match the selected filters.
+            </div>
+          ) : (
             <table>
               <thead>
                 <tr>
                   <th>Streamer</th>
                   <th>Title</th>
-                  <th>Date</th>
-                  <th>Peak Viewers</th>
+                  <th>Category</th>
+                  <th>Viewers</th>
                   <th>Duration</th>
                   <th>Diamonds</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {pastStreams.map(s => (
+                {visible.map(s => (
                   <tr key={s.id}>
                     <td>
                       <div className="avatar-row">
@@ -139,19 +135,58 @@ export default function Streams() {
                         </div>
                       </div>
                     </td>
-                    <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{s.title}</td>
-                    <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{new Date(s.startedAt).toLocaleDateString()}</td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{s.peakViewers.toLocaleString()}</td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{s.title}</span>
+                        {s.status === 'live' && <Badge variant="live" dot>Live</Badge>}
+                      </div>
+                    </td>
+                    <td>
+                      <span style={{ background: 'var(--bg-surface-2)', padding: '3px 8px', borderRadius: 20, fontSize: 12, color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>
+                        {s.category}
+                      </span>
+                    </td>
+                    <td><span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{s.viewers.toLocaleString()}</span></td>
                     <td style={{ color: 'var(--text-muted)' }}>{s.duration}</td>
-                    <td style={{ color: 'var(--gold)', fontWeight: 600 }}>{s.diamondsEarned.toLocaleString()} 💎</td>
+                    <td>
+                      <span style={{ color: 'var(--gold)', fontWeight: 600 }}>{s.diamondsEarned.toLocaleString()} 💎</span>
+                      {s.status !== 'live' && (
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                          {new Date(s.startedAt).toLocaleDateString()}
+                        </div>
+                      )}
+                    </td>
                     <td><Badge variant={s.status} dot>{statusLabel(s.status)}</Badge></td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                        <a
+                          href={`https://loouno.com/live/${s.streamerHandle}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-ghost btn-sm"
+                          title="Open stream"
+                        >
+                          <ExternalLink size={12} /> View
+                        </a>
+                        {s.status === 'live' && (
+                          <>
+                            <button className="btn btn-danger btn-sm" onClick={() => terminateStream(s.id)}>
+                              <XCircle size={12} /> Terminate
+                            </button>
+                            <button className="btn btn-warn btn-sm" onClick={() => warnStreamer(s.id)}>
+                              <AlertTriangle size={12} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

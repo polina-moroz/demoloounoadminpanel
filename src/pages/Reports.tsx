@@ -1,19 +1,23 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, AlertTriangle, Ban, CheckCircle, Plus, Trash2 } from 'lucide-react'
+import { X, AlertTriangle, Ban, CheckCircle, Plus, Trash2, ExternalLink } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import type { ReportType, ReportStatus, ReportReason } from '../types'
 
-type FilterTab = 'all' | ReportType | ReportStatus
-
-const filterTabs: { key: FilterTab; label: string }[] = [
-  { key: 'all',      label: 'All' },
-  { key: 'stream',   label: 'Stream' },
-  { key: 'user',     label: 'User' },
-  { key: 'message',  label: 'Message' },
-  { key: 'pending',  label: 'Pending' },
-  { key: 'resolved', label: 'Resolved' },
+const TYPE_OPTIONS:   { key: ReportType;   label: string }[] = [
+  { key: 'stream',  label: 'Stream'  },
+  { key: 'user',    label: 'User'    },
+  { key: 'message', label: 'Message' },
 ]
+const STATUS_OPTIONS: { key: ReportStatus; label: string }[] = [
+  { key: 'pending',   label: 'Pending'   },
+  { key: 'resolved',  label: 'Resolved'  },
+  { key: 'dismissed', label: 'Dismissed' },
+]
+
+function toggle<T>(arr: T[], value: T): T[] {
+  return arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value]
+}
 
 const appliesToColors: Record<ReportReason['appliesTo'], string> = {
   all:     '#8A8A8E',
@@ -129,12 +133,14 @@ export default function Reports() {
     reportReasons, updateReportReason, removeReportReason,
   } = useStore()
 
-  const [filter, setFilter] = useState<FilterTab>('all')
+  const [selectedTypes,    setSelectedTypes]    = useState<ReportType[]>([])
+  const [selectedStatuses, setSelectedStatuses] = useState<ReportStatus[]>([])
   const [showAddReason, setShowAddReason] = useState(false)
 
   const filtered = reports.filter(r => {
-    if (filter === 'all') return true
-    return r.type === filter || r.status === filter
+    const typeOk   = selectedTypes.length   === 0 || selectedTypes.includes(r.type)
+    const statusOk = selectedStatuses.length === 0 || selectedStatuses.includes(r.status)
+    return typeOk && statusOk
   })
 
   const pending  = reports.filter(r => r.status === 'pending').length
@@ -158,13 +164,46 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="filter-tabs mb-20" style={{ display: 'inline-flex' }}>
-        {filterTabs.map(t => (
-          <button key={t.key} className={`filter-tab${filter === t.key ? ' active' : ''}`} onClick={() => setFilter(t.key)}>
-            {t.label}
+      {/* Multi-picker filters */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20, alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Type</span>
+          <div className="filter-tabs" style={{ display: 'inline-flex' }}>
+            {TYPE_OPTIONS.map(({ key, label }) => (
+              <button
+                key={key}
+                className={`filter-tab${selectedTypes.includes(key) ? ' active' : ''}`}
+                onClick={() => setSelectedTypes(prev => toggle(prev, key))}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</span>
+          <div className="filter-tabs" style={{ display: 'inline-flex' }}>
+            {STATUS_OPTIONS.map(({ key, label }) => (
+              <button
+                key={key}
+                className={`filter-tab${selectedStatuses.includes(key) ? ' active' : ''}`}
+                onClick={() => setSelectedStatuses(prev => toggle(prev, key))}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {(selectedTypes.length > 0 || selectedStatuses.length > 0) && (
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => { setSelectedTypes([]); setSelectedStatuses([]) }}
+          >
+            Clear
           </button>
-        ))}
+        )}
       </div>
 
       {/* Reports table */}
@@ -208,28 +247,41 @@ export default function Reports() {
                   </td>
                   <td><Badge variant={r.status} dot>{statusLabel(r.status)}</Badge></td>
                   <td>
-                    {r.status === 'pending' ? (
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        <button className="btn btn-ghost btn-sm" title="Dismiss" onClick={() => dismissReport(r.id)}>
-                          <X size={12} /> Dismiss
-                        </button>
-                        <button className="btn btn-warn btn-sm" title="Warn target" onClick={() => warnReportTarget(r.id)}>
-                          <AlertTriangle size={12} />
-                        </button>
-                        <button className="btn btn-danger btn-sm" title="Ban target" onClick={() => banReportTarget(r.id)}>
-                          <Ban size={12} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        <span style={{ fontSize: 12, color: 'var(--text-muted)', padding: '0 4px' }}>
-                          {r.status === 'resolved' ? '✓ Resolved' : '— Dismissed'}
-                        </span>
-                        <button className="btn btn-ghost btn-icon" title="Re-open" onClick={() => resolveReport(r.id)}>
-                          <CheckCircle size={12} />
-                        </button>
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                      {r.type === 'stream' && (
+                        <a
+                          href={`https://loouno.com/live/${r.targetHandle}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-ghost btn-sm"
+                          title="Open stream"
+                        >
+                          <ExternalLink size={12} /> Stream
+                        </a>
+                      )}
+                      {r.status === 'pending' ? (
+                        <>
+                          <button className="btn btn-ghost btn-sm" title="Dismiss" onClick={() => dismissReport(r.id)}>
+                            <X size={12} /> Dismiss
+                          </button>
+                          <button className="btn btn-warn btn-sm" title="Warn target" onClick={() => warnReportTarget(r.id)}>
+                            <AlertTriangle size={12} />
+                          </button>
+                          <button className="btn btn-danger btn-sm" title="Ban target" onClick={() => banReportTarget(r.id)}>
+                            <Ban size={12} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)', padding: '0 4px', alignSelf: 'center' }}>
+                            {r.status === 'resolved' ? '✓ Resolved' : '— Dismissed'}
+                          </span>
+                          <button className="btn btn-ghost btn-icon" title="Re-open" onClick={() => resolveReport(r.id)}>
+                            <CheckCircle size={12} />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
