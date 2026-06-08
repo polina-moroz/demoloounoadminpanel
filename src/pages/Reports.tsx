@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, AlertTriangle, Ban, CheckCircle, Plus, Trash2, ExternalLink } from 'lucide-react'
+import { X, AlertTriangle, Ban, RotateCcw, Plus, Trash2, ExternalLink } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import type { ReportType, ReportStatus, ReportReason } from '../types'
@@ -129,7 +129,7 @@ function AddReasonModal({ onClose }: { onClose: () => void }) {
 
 export default function Reports() {
   const {
-    reports, resolveReport, dismissReport, banReportTarget, warnReportTarget,
+    reports, dismissReport, reopenReport, banReportTarget, warnReportTarget,
     reportReasons, updateReportReason, removeReportReason,
   } = useStore()
 
@@ -272,14 +272,9 @@ export default function Reports() {
                           </button>
                         </>
                       ) : (
-                        <>
-                          <span style={{ fontSize: 12, color: 'var(--text-muted)', padding: '0 4px', alignSelf: 'center' }}>
-                            {r.status === 'resolved' ? '✓ Resolved' : '— Dismissed'}
-                          </span>
-                          <button className="btn btn-ghost btn-icon" title="Re-open" onClick={() => resolveReport(r.id)}>
-                            <CheckCircle size={12} />
-                          </button>
-                        </>
+                        <button className="btn btn-ghost btn-sm" title="Reopen report" onClick={() => reopenReport(r.id)}>
+                          <RotateCcw size={12} /> Reopen
+                        </button>
                       )}
                     </div>
                   </td>

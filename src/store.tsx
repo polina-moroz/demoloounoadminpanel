@@ -51,6 +51,7 @@ interface StoreCtx {
   // report actions
   resolveReport: (id: string) => void
   dismissReport: (id: string) => void
+  reopenReport: (id: string) => void
   banReportTarget: (id: string) => void
   warnReportTarget: (id: string) => void
 
@@ -201,6 +202,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const dismissReport = useCallback((id: string) => {
     setReports(prev => prev.map(r => r.id === id ? { ...r, status: 'dismissed' } : r))
     toast('Report dismissed', 'info')
+  }, [toast])
+
+  const reopenReport = useCallback((id: string) => {
+    setReports(prev => prev.map(r => r.id === id ? { ...r, status: 'pending' } : r))
+    toast('Report reopened', 'info')
   }, [toast])
 
   const banReportTarget = useCallback((id: string) => {
@@ -399,7 +405,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       users, streams, reports, withdrawals, kyc, notifications,
       warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser, adjustWalletBalance,
       terminateStream, warnStreamer,
-      resolveReport, dismissReport, banReportTarget, warnReportTarget,
+      resolveReport, dismissReport, reopenReport, banReportTarget, warnReportTarget,
       reportReasons, addReportReason, updateReportReason, removeReportReason,
       approveWithdrawal, rejectWithdrawal, holdWithdrawal,
       fraudAlerts, fraudThresholdUSD, approveFraudAlert, rejectFraudAlert, setFraudThreshold,
