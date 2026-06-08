@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X, Copy, Check, Mail, ShieldOff, ShieldCheck, Trash2, Users } from 'lucide-react'
+import { Plus, X, Copy, Check, Mail, ShieldCheck, ShieldOff, Trash2, Users } from 'lucide-react'
 import StatCard from '../components/StatCard'
 import { useStore } from '../store'
 import type { AdminRole, AdminMember } from '../types'
@@ -234,7 +234,7 @@ function ConfirmRemoveModal({ member, onConfirm, onClose }: {
 /* ── Main Page ────────────────────────────────────────────────── */
 
 export default function AdminTeam() {
-  const { adminTeam, updateAdminRole, suspendAdmin, reinstateAdmin, removeAdmin, currentAdmin } = useStore()
+  const { adminTeam, updateAdminRole, removeAdmin, currentAdmin } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState<AdminMember | null>(null)
 
@@ -353,34 +353,14 @@ export default function AdminTeam() {
                       {isSelf || isSuper ? (
                         <span style={{ fontSize: 12, color: 'var(--text-subtle)' }}>—</span>
                       ) : (
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          {member.status === 'active' && (
-                            <button
-                              className="btn btn-secondary btn-sm"
-                              onClick={() => suspendAdmin(member.id)}
-                              title="Suspend access"
-                            >
-                              <ShieldOff size={12} /> Suspend
-                            </button>
-                          )}
-                          {member.status === 'suspended' && (
-                            <button
-                              className="btn btn-success btn-sm"
-                              onClick={() => reinstateAdmin(member.id)}
-                              title="Reinstate access"
-                            >
-                              <ShieldCheck size={12} /> Reinstate
-                            </button>
-                          )}
-                          <button
-                            className="btn btn-ghost btn-icon"
-                            onClick={() => setConfirmRemove(member)}
-                            title="Remove from team"
-                            style={{ color: 'var(--text-muted)' }}
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
+                        <button
+                          className="btn btn-ghost btn-icon"
+                          onClick={() => setConfirmRemove(member)}
+                          title="Remove from team"
+                          style={{ color: 'var(--text-muted)' }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -391,7 +371,7 @@ export default function AdminTeam() {
         </div>
 
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', fontSize: 12, color: 'var(--text-muted)' }}>
-          Role changes and suspensions take effect immediately. Removed members lose access at next page load.
+          Role changes take effect immediately. Removed members lose access at next page load.
         </div>
       </div>
 

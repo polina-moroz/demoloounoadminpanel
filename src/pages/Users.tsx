@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, WifiOff, PlusCircle, MinusCircle, Receipt } from 'lucide-react'
+import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, PlusCircle, MinusCircle, Receipt } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
@@ -101,7 +101,6 @@ interface SlideOverProps {
   onClose: () => void
   onWarn: (id: string) => void
   onSuspend: (id: string) => void
-  onBan: (id: string) => void
   onReinstate: (id: string) => void
   onPromote: (id: string) => void
   onDemote: (id: string) => void
@@ -109,7 +108,7 @@ interface SlideOverProps {
   onAdjustBalance: (id: string, delta: number, reason: string) => void
 }
 
-function UserSlideOver({ user, onClose, onWarn, onSuspend, onBan, onReinstate, onPromote, onDemote, onIPBan, onAdjustBalance }: SlideOverProps) {
+function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromote, onDemote, onIPBan, onAdjustBalance }: SlideOverProps) {
   const { streams, reports } = useStore()
   const [balanceAmount, setBalanceAmount] = useState('')
   const [balanceReason, setBalanceReason] = useState('')
@@ -279,14 +278,8 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onBan, onReinstate, o
               </button>
             )}
             {user.status !== 'banned' && (
-              <button className="btn btn-danger btn-sm" onClick={() => { onBan(user.id); onClose() }}>
+              <button className="btn btn-danger btn-sm" onClick={() => { onIPBan(user.id); onClose() }}>
                 <Ban size={12} /> Ban
-              </button>
-            )}
-            {!user.isIPBanned && (
-              <button className="btn btn-danger btn-sm" onClick={() => { onIPBan(user.id); onClose() }}
-                title="Permanently block this device from the platform">
-                <WifiOff size={12} /> IP Ban
               </button>
             )}
             {canReinstate && (
@@ -445,18 +438,12 @@ export default function Users() {
                         </button>
                       ) : null}
                       {u.status !== 'banned' ? (
-                        <button className="btn btn-danger btn-icon" title="Ban" onClick={() => setUserStatus(u.id, 'banned')}>
+                        <button className="btn btn-danger btn-icon" title="Ban" onClick={() => ipBanUser(u.id)}>
                           <Ban size={13} />
                         </button>
                       ) : (
                         <button className="btn btn-success btn-icon" title="Unban" onClick={() => setUserStatus(u.id, 'active')}>
                           <RotateCcw size={13} />
-                        </button>
-                      )}
-                      {!u.isIPBanned && (
-                        <button className="btn btn-danger btn-icon" title="IP Ban — permanently block device"
-                          onClick={() => ipBanUser(u.id)}>
-                          <WifiOff size={13} />
                         </button>
                       )}
                     </div>
@@ -473,7 +460,6 @@ export default function Users() {
         onClose={() => setSelectedUser(null)}
         onWarn={warnUser}
         onSuspend={id => setUserStatus(id, 'suspended')}
-        onBan={id => setUserStatus(id, 'banned')}
         onReinstate={id => setUserStatus(id, 'active')}
         onPromote={promoteTopStreamer}
         onDemote={demoteTopStreamer}

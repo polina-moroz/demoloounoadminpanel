@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { XCircle, AlertTriangle, ExternalLink } from 'lucide-react'
+import { XCircle, AlertTriangle, ExternalLink, RefreshCw } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import type { StreamStatus } from '../types'
@@ -19,6 +19,7 @@ export default function Streams() {
 
   const [selectedStatuses, setSelectedStatuses] = useState<StreamStatus[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
 
   const liveCount = streams.filter(s => s.status === 'live').length
   const allCategories = Array.from(new Set(streams.map(s => s.category))).sort()
@@ -37,9 +38,24 @@ export default function Streams() {
           <div className="subtitle">Monitor live and past streaming activity</div>
         </div>
         <div className="page-header-actions">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#E05C6A', display: 'inline-block', animation: 'pulse 1.5s infinite' }} />
-            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{liveCount} live now</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#E05C6A', display: 'inline-block', animation: 'pulse 1.5s infinite' }} />
+              <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{liveCount} live now</span>
+            </div>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => setRefreshedAt(new Date())}
+              title="Refresh stream list"
+            >
+              <RefreshCw size={13} />
+              Refresh
+            </button>
+            {refreshedAt && (
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                Updated {refreshedAt.toLocaleTimeString()}
+              </span>
+            )}
           </div>
         </div>
       </div>
