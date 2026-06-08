@@ -223,7 +223,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const warnReportTarget = useCallback((id: string) => {
     const r = reports.find(r => r.id === id)
     if (r) {
-      setReports(prev => prev.map(rep => rep.id === id ? { ...rep, status: 'resolved' } : rep))
       toast(`Warning sent to @${r.targetHandle}`, 'warn')
     }
   }, [reports, toast])
