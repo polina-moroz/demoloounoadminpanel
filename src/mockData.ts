@@ -1,7 +1,7 @@
 import type {
   User, Stream, Report, WithdrawalRequest, Transaction,
   KYCEntry, Gift, CompetitionEntry, PrizeTier, CoinPackage,
-  Notification, PrestigeXPLevel, PrestigeSPTier, VIPLevel, FortuneWheelPrize, AdminMember, ReportReason, FraudAlert
+  Notification, PrestigeXPLevel, PrestigeSPTier, VIPLevel, FortuneWheelPrize, AdminMember, ReportReason, FraudAlert, WarnMessage
 } from './types';
 
 export const mockUsers: User[] = [
@@ -346,4 +346,14 @@ export const mockFraudAlerts: FraudAlert[] = [
     followers: 22100,
     walletBalance: 88000,
   },
+];
+
+export const mockWarnMessages: WarnMessage[] = [
+  { id: 'wm1', label: 'Your content violates our community guidelines. Please review them before streaming again.' },
+  { id: 'wm2', label: 'Explicit or adult content is not permitted on this platform.' },
+  { id: 'wm3', label: 'Harassment and bullying are strictly prohibited. Further violations may result in a ban.' },
+  { id: 'wm4', label: 'Your stream title or description was found to be misleading. Please ensure accuracy.' },
+  { id: 'wm5', label: 'Spam or self-promotional content in chat is not allowed.' },
+  { id: 'wm6', label: 'Hate speech or discriminatory language will not be tolerated on this platform.' },
+  { id: 'wm7', label: 'Soliciting other users is prohibited. This is your final warning before account action.' },
 ];

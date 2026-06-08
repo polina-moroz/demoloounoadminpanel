@@ -186,6 +186,11 @@ export interface ReportReason {
   enabled: boolean;
 }
 
+export interface WarnMessage {
+  id: string;
+  label: string;
+}
+
 export type WheelPrizeType = 'coins' | 'diamonds' | 'multiplier' | 'miss';
 
 export interface FortuneWheelPrize {

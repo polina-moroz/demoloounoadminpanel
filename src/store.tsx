@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import {
   mockUsers, mockStreams, mockReports, mockWithdrawals,
-  mockKYC, mockNotifications, mockAdminTeam, mockReportReasons, mockFraudAlerts,
+  mockKYC, mockNotifications, mockAdminTeam, mockReportReasons, mockFraudAlerts, mockWarnMessages,
 } from './mockData'
 import type {
   User, Stream, Report, WithdrawalRequest, KYCEntry,
   Notification, UserStatus, WithdrawalStatus, KYCStatus, NotificationTarget,
-  AdminMember, AdminRole, ReportReason, ReportType, FraudAlert,
+  AdminMember, AdminRole, ReportReason, ReportType, FraudAlert, WarnMessage,
 } from './types'
 
 function generateInviteCode(): string {
@@ -53,7 +53,10 @@ interface StoreCtx {
   dismissReport: (id: string) => void
   reopenReport: (id: string) => void
   banReportTarget: (id: string) => void
-  warnReportTarget: (id: string) => void
+  warnReportTarget: (id: string, message?: string) => void
+
+  // warn messages
+  warnMessages: WarnMessage[]
 
   // report reasons
   reportReasons: ReportReason[]
@@ -114,6 +117,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [kyc, setKyc] = useState<KYCEntry[]>(mockKYC)
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
   const [reportReasons, setReportReasons] = useState<ReportReason[]>(mockReportReasons)
+  const [warnMessages] = useState<WarnMessage[]>(mockWarnMessages)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [toastId, setToastId] = useState(0)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -220,9 +224,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, [reports, toast])
 
-  const warnReportTarget = useCallback((id: string) => {
+  const warnReportTarget = useCallback((id: string, _message?: string) => {
     const r = reports.find(r => r.id === id)
     if (r) {
+      setReports(prev => prev.map(rep => rep.id === id ? { ...rep, status: 'resolved' } : rep))
       toast(`Warning sent to @${r.targetHandle}`, 'warn')
     }
   }, [reports, toast])
@@ -405,6 +410,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser, adjustWalletBalance,
       terminateStream, warnStreamer,
       resolveReport, dismissReport, reopenReport, banReportTarget, warnReportTarget,
+      warnMessages,
       reportReasons, addReportReason, updateReportReason, removeReportReason,
       approveWithdrawal, rejectWithdrawal, holdWithdrawal,
       fraudAlerts, fraudThresholdUSD, approveFraudAlert, rejectFraudAlert, setFraudThreshold,

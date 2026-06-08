@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, AlertTriangle, Ban, RotateCcw, Plus, Trash2, ExternalLink } from 'lucide-react'
+import { X, AlertTriangle, Ban, RotateCcw, Plus, Trash2, ExternalLink, Send } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
-import type { ReportType, ReportStatus, ReportReason } from '../types'
+import type { ReportType, ReportStatus, ReportReason, WarnMessage } from '../types'
 
 const TYPE_OPTIONS:   { key: ReportType;   label: string }[] = [
   { key: 'stream',  label: 'Stream'  },
@@ -125,17 +125,85 @@ function AddReasonModal({ onClose }: { onClose: () => void }) {
   )
 }
 
+/* ── Warn Picker Modal ────────────────────────────────────────── */
+
+function WarnPickerModal({
+  targetHandle,
+  messages,
+  onSend,
+  onClose,
+}: {
+  targetHandle: string
+  messages: WarnMessage[]
+  onSend: (message: string) => void
+  onClose: () => void
+}) {
+  const [selected, setSelected] = useState<string | null>(null)
+
+  return (
+    <>
+      <div className="modal-backdrop" onClick={onClose} />
+      <div className="modal-dialog" style={{ maxWidth: 480 }}>
+        <div className="modal-header">
+          <span className="modal-title">Send Warning to @{targetHandle}</span>
+          <button className="modal-close" onClick={onClose}><X size={14} /></button>
+        </div>
+        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {messages.map(m => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => setSelected(m.id)}
+              style={{
+                padding: '10px 14px',
+                borderRadius: 10,
+                cursor: 'pointer',
+                textAlign: 'left',
+                background: selected === m.id ? 'rgba(243,156,18,0.08)' : 'var(--bg-surface-2)',
+                border: `1.5px solid ${selected === m.id ? '#F39C12' : 'var(--border)'}`,
+                color: selected === m.id ? '#F39C12' : 'var(--text-secondary)',
+                fontSize: 13,
+                lineHeight: 1.5,
+                transition: 'all 0.15s',
+              }}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button
+            className="btn btn-warn"
+            disabled={!selected}
+            style={{ opacity: selected ? 1 : 0.45 }}
+            onClick={() => {
+              if (selected) {
+                const msg = messages.find(m => m.id === selected)
+                if (msg) onSend(msg.label)
+              }
+            }}
+          >
+            <Send size={13} /> Send Warning
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 /* ── Main Page ────────────────────────────────────────────────── */
 
 export default function Reports() {
   const {
     reports, dismissReport, reopenReport, banReportTarget, warnReportTarget,
-    reportReasons, updateReportReason, removeReportReason,
+    reportReasons, updateReportReason, removeReportReason, warnMessages,
   } = useStore()
 
   const [selectedTypes,    setSelectedTypes]    = useState<ReportType[]>([])
   const [selectedStatuses, setSelectedStatuses] = useState<ReportStatus[]>([])
   const [showAddReason, setShowAddReason] = useState(false)
+  const [warnPickerReport, setWarnPickerReport] = useState<{ id: string; targetHandle: string } | null>(null)
 
   const filtered = reports.filter(r => {
     const typeOk   = selectedTypes.length   === 0 || selectedTypes.includes(r.type)
@@ -264,7 +332,7 @@ export default function Reports() {
                           <button className="btn btn-ghost btn-sm" title="Dismiss" onClick={() => dismissReport(r.id)}>
                             <X size={12} /> Dismiss
                           </button>
-                          <button className="btn btn-warn btn-sm" title="Warn target" onClick={() => warnReportTarget(r.id)}>
+                          <button className="btn btn-warn btn-sm" title="Warn target" onClick={() => setWarnPickerReport({ id: r.id, targetHandle: r.targetHandle })}>
                             <AlertTriangle size={12} />
                           </button>
                           <button className="btn btn-danger btn-sm" title="Ban target" onClick={() => banReportTarget(r.id)}>
@@ -380,6 +448,17 @@ export default function Reports() {
       </div>
 
       {showAddReason && <AddReasonModal onClose={() => setShowAddReason(false)} />}
+      {warnPickerReport && (
+        <WarnPickerModal
+          targetHandle={warnPickerReport.targetHandle}
+          messages={warnMessages}
+          onSend={msg => {
+            warnReportTarget(warnPickerReport.id, msg)
+            setWarnPickerReport(null)
+          }}
+          onClose={() => setWarnPickerReport(null)}
+        />
+      )}
     </div>
   )
 }
