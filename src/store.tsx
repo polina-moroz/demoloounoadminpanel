@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import {
   mockUsers, mockStreams, mockReports, mockWithdrawals,
-  mockKYC, mockNotifications, mockAdminTeam, mockReportReasons,
+  mockKYC, mockNotifications, mockAdminTeam, mockReportReasons, mockFraudAlerts,
 } from './mockData'
 import type {
   User, Stream, Report, WithdrawalRequest, KYCEntry,
   Notification, UserStatus, WithdrawalStatus, KYCStatus, NotificationTarget,
-  AdminMember, AdminRole, ReportReason, ReportType,
+  AdminMember, AdminRole, ReportReason, ReportType, FraudAlert,
 } from './types'
 
 function generateInviteCode(): string {
@@ -65,6 +65,13 @@ interface StoreCtx {
   rejectWithdrawal: (id: string) => void
   holdWithdrawal: (id: string) => void
 
+  // fraud detection
+  fraudAlerts: FraudAlert[]
+  fraudThresholdUSD: number
+  approveFraudAlert: (id: string) => void
+  rejectFraudAlert: (id: string) => void
+  setFraudThreshold: (usd: number) => void
+
   // kyc actions
   approveKYC: (id: string) => void
   rejectKYC: (id: string) => void
@@ -101,6 +108,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [streams, setStreams] = useState<Stream[]>(mockStreams)
   const [reports, setReports] = useState<Report[]>(mockReports)
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>(mockWithdrawals)
+  const [fraudAlerts, setFraudAlerts] = useState<FraudAlert[]>(mockFraudAlerts)
+  const [fraudThresholdUSD, setFraudThresholdUSD] = useState(50)
   const [kyc, setKyc] = useState<KYCEntry[]>(mockKYC)
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
   const [reportReasons, setReportReasons] = useState<ReportReason[]>(mockReportReasons)
@@ -255,6 +264,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     toast('Withdrawal placed on hold', 'warn')
   }, [toast])
 
+  /* ── fraud detection helpers ── */
+  const approveFraudAlert = useCallback((id: string) => {
+    const a = fraudAlerts.find(a => a.id === id)
+    setFraudAlerts(prev => prev.map(a => a.id === id ? { ...a, status: 'approved' } : a))
+    if (a?.withdrawalId) {
+      setWithdrawals(prev => prev.map(w => w.id === a.withdrawalId ? { ...w, status: 'approved' } : w))
+    }
+    toast(`Fraud alert cleared — withdrawal approved for @${a?.userHandle ?? id}`, 'success')
+  }, [fraudAlerts, toast])
+
+  const rejectFraudAlert = useCallback((id: string) => {
+    const a = fraudAlerts.find(a => a.id === id)
+    setFraudAlerts(prev => prev.map(a => a.id === id ? { ...a, status: 'rejected' } : a))
+    if (a?.withdrawalId) {
+      setWithdrawals(prev => prev.map(w => w.id === a.withdrawalId ? { ...w, status: 'rejected' } : w))
+    }
+    toast(`Fraud alert rejected — withdrawal denied for @${a?.userHandle ?? id}`, 'error')
+  }, [fraudAlerts, toast])
+
+  const setFraudThreshold = useCallback((usd: number) => {
+    setFraudThresholdUSD(usd)
+    toast(`Fraud threshold updated to $${usd} USD`, 'success')
+  }, [toast])
+
   /* ── kyc helpers ── */
   const approveKYC = useCallback((id: string) => {
     const k = kyc.find(k => k.id === id)
@@ -369,6 +402,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       resolveReport, dismissReport, banReportTarget, warnReportTarget,
       reportReasons, addReportReason, updateReportReason, removeReportReason,
       approveWithdrawal, rejectWithdrawal, holdWithdrawal,
+      fraudAlerts, fraudThresholdUSD, approveFraudAlert, rejectFraudAlert, setFraudThreshold,
       approveKYC, rejectKYC, requestMoreInfoKYC,
       sendNotification,
       isAuthenticated, currentAdmin, login, logout,

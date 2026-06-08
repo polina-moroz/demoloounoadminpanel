@@ -198,3 +198,26 @@ export interface FortuneWheelPrize {
   color: string;
   enabled: boolean;
 }
+
+export type FraudAlertStatus = 'pending' | 'approved' | 'rejected';
+
+export interface FraudAlert {
+  id: string;
+  withdrawalId: string;
+  userId: string;
+  user: string;
+  userHandle: string;
+  email: string;
+  country: string;
+  diamonds: number;
+  estimatedUSD: number;
+  kycStatus: KYCStatus;
+  requestedAt: string;
+  status: FraudAlertStatus;
+  avatarColor: string;
+  joined: string;
+  totalEarned: number;
+  totalStreams: number;
+  followers: number;
+  walletBalance: number;
+}

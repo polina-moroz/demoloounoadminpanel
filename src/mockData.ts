@@ -1,7 +1,7 @@
 import type {
   User, Stream, Report, WithdrawalRequest, Transaction,
   KYCEntry, Gift, CompetitionEntry, PrizeTier, CoinPackage,
-  Notification, PrestigeXPLevel, PrestigeSPTier, VIPLevel, FortuneWheelPrize, AdminMember, ReportReason
+  Notification, PrestigeXPLevel, PrestigeSPTier, VIPLevel, FortuneWheelPrize, AdminMember, ReportReason, FraudAlert
 } from './types';
 
 export const mockUsers: User[] = [
@@ -63,6 +63,17 @@ export const mockTransactions: Transaction[] = [
   { id: 't8', user: 'Jade Kim', userHandle: 'jadekim', type: 'gift_sent', amount: 8000, currency: 'coins', date: '2026-05-31T22:10:00Z', note: 'Trophy gift to Aria Voss' },
   { id: 't9', user: 'Aria Voss', userHandle: 'ariavoss', type: 'gift_received', amount: 8000, currency: 'diamonds', date: '2026-05-31T22:10:00Z', note: 'Trophy from Jade Kim' },
   { id: 't10', user: 'Carlos Duarte', userHandle: 'cduarte', type: 'refund', amount: 19.99, currency: 'USD', date: '2026-05-30T14:00:00Z', note: 'Account banned — purchase refunded' },
+  // Extended history for fraud-flagged users
+  { id: 'tx1', user: 'Sasha Bloom', userHandle: 'sashabloom', type: 'gift_received', amount: 100000, currency: 'diamonds', date: '2026-05-30T21:00:00Z', note: 'Castle gift from @whalekid during Sunday stream' },
+  { id: 'tx2', user: 'Sasha Bloom', userHandle: 'sashabloom', type: 'gift_received', amount: 70000, currency: 'diamonds', date: '2026-05-25T18:30:00Z', note: 'Yacht gift from @topfan99' },
+  { id: 'tx3', user: 'Sasha Bloom', userHandle: 'sashabloom', type: 'withdrawal', amount: 200000, currency: 'diamonds', date: '2026-05-20T10:00:00Z', note: 'Withdrawal $140 est. — flagged & rejected' },
+  { id: 'tx4', user: 'Aria Voss', userHandle: 'ariavoss', type: 'withdrawal', amount: 100000, currency: 'diamonds', date: '2026-05-28T11:00:00Z', note: 'Withdrawal $70 est. — flagged & approved' },
+  { id: 'tx5', user: 'Aria Voss', userHandle: 'ariavoss', type: 'gift_received', amount: 55000, currency: 'diamonds', date: '2026-05-27T20:00:00Z', note: 'Dragon gift during GRWM stream' },
+  { id: 'tx6', user: 'Aria Voss', userHandle: 'ariavoss', type: 'gift_received', amount: 22100, currency: 'diamonds', date: '2026-05-20T17:00:00Z', note: 'Multiple gifts — Q&A session' },
+  { id: 'tx7', user: 'Nour Al-Rashid', userHandle: 'nourar', type: 'gift_received', amount: 120000, currency: 'diamonds', date: '2026-06-05T20:00:00Z', note: 'Yacht + Castle during cooking stream' },
+  { id: 'tx8', user: 'Nour Al-Rashid', userHandle: 'nourar', type: 'withdrawal', amount: 120000, currency: 'diamonds', date: '2026-06-06T09:00:00Z', note: 'Withdrawal $84 est. — flagged' },
+  { id: 'tx9', user: 'Nour Al-Rashid', userHandle: 'nourar', type: 'gift_received', amount: 8800, currency: 'diamonds', date: '2026-06-03T22:10:00Z', note: 'Regular viewer gifts during stream' },
+  { id: 'tx10', user: 'Nour Al-Rashid', userHandle: 'nourar', type: 'gift_received', amount: 31400, currency: 'diamonds', date: '2026-05-30T20:00:00Z', note: 'VS Battle night gifts' },
 ];
 
 export const mockKYC: KYCEntry[] = [
@@ -129,30 +140,30 @@ export const mockPrizeTiers: PrizeTier[] = [
 ];
 
 export const mockCoinPackages: CoinPackage[] = [
-  // IAP
-  { id: 'cp1', tier: 1, label: 'Starter', coins: 100, price: 0.99, bonusPercent: 0, bestValue: false, enabled: true, platform: 'iap' },
-  { id: 'cp2', tier: 2, label: 'Basic', coins: 500, price: 4.99, bonusPercent: 0, bestValue: false, enabled: true, platform: 'iap' },
-  { id: 'cp3', tier: 3, label: 'Value', coins: 1200, price: 9.99, bonusPercent: 0, bestValue: false, enabled: true, platform: 'iap' },
-  { id: 'cp4', tier: 4, label: 'Popular', coins: 3000, price: 19.99, bonusPercent: 0, bestValue: true, enabled: true, platform: 'iap' },
-  { id: 'cp5', tier: 5, label: 'Super', coins: 7500, price: 49.99, bonusPercent: 0, bestValue: false, enabled: true, platform: 'iap' },
-  { id: 'cp6', tier: 6, label: 'Mega', coins: 20000, price: 99.99, bonusPercent: 0, bestValue: false, enabled: true, platform: 'iap' },
-  // Web
-  { id: 'cp7', tier: 1, label: 'Starter+', coins: 130, price: 0.99, bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
-  { id: 'cp8', tier: 2, label: 'Basic+', coins: 650, price: 4.99, bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
-  { id: 'cp9', tier: 3, label: 'Value+', coins: 1560, price: 9.99, bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
-  { id: 'cp10', tier: 4, label: 'Popular+', coins: 3900, price: 19.99, bonusPercent: 30, bestValue: true, enabled: true, platform: 'web' },
-  { id: 'cp11', tier: 5, label: 'Super+', coins: 9750, price: 49.99, bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
-  { id: 'cp12', tier: 6, label: 'Mega+', coins: 26000, price: 99.99, bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
-  { id: 'cp13', tier: 7, label: 'Elite+', coins: 65000, price: 249.99, bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
-  { id: 'cp14', tier: 8, label: 'VIP+', coins: 195000, price: 749.99, bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
-  { id: 'cp15', tier: 9, label: 'Whale+', coins: 650000, price: 2499.99, bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
+  // IAP — 6 tiers, $4.99 → $199.99 (Apple/Google IAP)
+  { id: 'cp1', tier: 1, label: 'Fan',       coins: 500,   price: 4.99,   bonusPercent: 0, bestValue: false, enabled: true, platform: 'iap' },
+  { id: 'cp2', tier: 2, label: 'Supporter', coins: 1200,  price: 9.99,   bonusPercent: 0, bestValue: false, enabled: true, platform: 'iap' },
+  { id: 'cp3', tier: 3, label: 'Champion',  coins: 3000,  price: 19.99,  bonusPercent: 0, bestValue: true,  enabled: true, platform: 'iap' },
+  { id: 'cp4', tier: 4, label: 'Elite',     coins: 7500,  price: 49.99,  bonusPercent: 0, bestValue: false, enabled: true, platform: 'iap' },
+  { id: 'cp5', tier: 5, label: 'Legend',    coins: 20000, price: 99.99,  bonusPercent: 0, bestValue: false, enabled: true, platform: 'iap' },
+  { id: 'cp6', tier: 6, label: 'Titan',     coins: 45000, price: 199.99, bonusPercent: 0, bestValue: false, enabled: true, platform: 'iap' },
+  // Web — 9 tiers, $4.99 → $4,999.99 (30% more coins vs IAP)
+  { id: 'cp7',  tier: 1, label: 'Fan+',       coins: 650,    price: 4.99,    bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
+  { id: 'cp8',  tier: 2, label: 'Supporter+', coins: 1560,   price: 9.99,    bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
+  { id: 'cp9',  tier: 3, label: 'Champion+',  coins: 3900,   price: 19.99,   bonusPercent: 30, bestValue: true,  enabled: true, platform: 'web' },
+  { id: 'cp10', tier: 4, label: 'Elite+',     coins: 9750,   price: 49.99,   bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
+  { id: 'cp11', tier: 5, label: 'Legend+',    coins: 26000,  price: 99.99,   bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
+  { id: 'cp12', tier: 6, label: 'Titan+',     coins: 58500,  price: 199.99,  bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
+  { id: 'cp13', tier: 7, label: 'Elite Pro',  coins: 325000, price: 999.99,  bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
+  { id: 'cp14', tier: 8, label: 'VIP+',       coins: 1000000,price: 2999.99, bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
+  { id: 'cp15', tier: 9, label: 'Whale+',     coins: 1950000,price: 4999.99, bonusPercent: 30, bestValue: false, enabled: true, platform: 'web' },
 ];
 
 export const mockNotifications: Notification[] = [
   { id: 'n1', title: 'Welcome to Loouno Closed Beta!', body: 'You\'re among the first. Explore the app and let us know what you think.', target: 'all', sentAt: '2026-05-01T10:00:00Z', delivered: 847, openRate: 78.2 },
   { id: 'n2', title: 'June Competition Has Begun 🏆', body: 'The June leaderboard is now live. Stream and collect diamonds to compete for cash prizes!', target: 'creators', sentAt: '2026-06-01T09:00:00Z', delivered: 312, openRate: 64.5 },
   { id: 'n3', title: 'New Gift: Dragon 🐉', body: 'The premium Dragon cinematic gift is now available for 60,000 coins.', target: 'all', sentAt: '2026-05-20T14:00:00Z', delivered: 847, openRate: 55.1 },
-  { id: 'n4', title: 'Your KYC has been approved', body: 'You can now withdraw your earned diamonds. Minimum withdrawal is 10,000 💎.', target: 'specific', sentAt: '2026-06-02T11:30:00Z', delivered: 1, openRate: 100 },
+  { id: 'n4', title: 'Your KYC has been approved', body: 'You can now withdraw your earned diamonds. Minimum withdrawal is 80,000 💎 (~$56 gross).', target: 'specific', sentAt: '2026-06-02T11:30:00Z', delivered: 1, openRate: 100 },
   { id: 'n5', title: 'App Update Available', body: 'Version 1.0.1 is out with performance improvements and bug fixes.', target: 'all', sentAt: '2026-05-28T16:00:00Z', delivered: 847, openRate: 42.3 },
 ];
 
@@ -252,4 +263,87 @@ export const revenueData = [
   { day: 'Fri', amount: 480 },
   { day: 'Sat', amount: 720 },
   { day: 'Sun', amount: 340 },
+];
+
+export const mockFraudAlerts: FraudAlert[] = [
+  {
+    id: 'fa1',
+    withdrawalId: 'w1',
+    userId: 'u7',
+    user: 'Sasha Bloom',
+    userHandle: 'sashabloom',
+    email: 'sasha@example.com',
+    country: 'DE',
+    diamonds: 80000,
+    estimatedUSD: 56,
+    kycStatus: 'approved',
+    requestedAt: '2026-06-03T10:00:00Z',
+    status: 'pending',
+    avatarColor: '#9966CC',
+    joined: '2025-03-28',
+    totalEarned: 340000,
+    totalStreams: 134,
+    followers: 22100,
+    walletBalance: 88000,
+  },
+  {
+    id: 'fa2',
+    withdrawalId: 'w6',
+    userId: 'u1',
+    user: 'Aria Voss',
+    userHandle: 'ariavoss',
+    email: 'aria@example.com',
+    country: 'US',
+    diamonds: 100000,
+    estimatedUSD: 70,
+    kycStatus: 'approved',
+    requestedAt: '2026-05-28T11:00:00Z',
+    status: 'approved',
+    avatarColor: '#9966CC',
+    joined: '2025-03-12',
+    totalEarned: 182000,
+    totalStreams: 87,
+    followers: 14200,
+    walletBalance: 42000,
+  },
+  {
+    id: 'fa3',
+    withdrawalId: 'tx8',
+    userId: 'u9',
+    user: 'Nour Al-Rashid',
+    userHandle: 'nourar',
+    email: 'nour@example.com',
+    country: 'SA',
+    diamonds: 120000,
+    estimatedUSD: 84,
+    kycStatus: 'approved',
+    requestedAt: '2026-06-06T09:00:00Z',
+    status: 'pending',
+    avatarColor: '#D4AF37',
+    joined: '2025-04-14',
+    totalEarned: 120000,
+    totalStreams: 58,
+    followers: 6400,
+    walletBalance: 31000,
+  },
+  {
+    id: 'fa4',
+    withdrawalId: 'tx3',
+    userId: 'u7',
+    user: 'Sasha Bloom',
+    userHandle: 'sashabloom',
+    email: 'sasha@example.com',
+    country: 'DE',
+    diamonds: 200000,
+    estimatedUSD: 140,
+    kycStatus: 'approved',
+    requestedAt: '2026-05-20T10:00:00Z',
+    status: 'rejected',
+    avatarColor: '#9966CC',
+    joined: '2025-03-28',
+    totalEarned: 340000,
+    totalStreams: 134,
+    followers: 22100,
+    walletBalance: 88000,
+  },
 ];
