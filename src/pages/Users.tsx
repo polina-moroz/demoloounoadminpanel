@@ -1,8 +1,90 @@
 import { useState } from 'react'
-import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, WifiOff } from 'lucide-react'
+import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, WifiOff, PlusCircle, MinusCircle, Receipt } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
-import type { User, UserStatus } from '../types'
+import { mockTransactions } from '../mockData'
+import type { User, UserStatus, Transaction } from '../types'
+
+const txTypeLabel: Record<string, string> = {
+  coin_purchase: 'Coin Purchase',
+  gift_sent: 'Gift Sent',
+  gift_received: 'Gift Received',
+  withdrawal: 'Withdrawal',
+  refund: 'Refund',
+}
+
+const txTypeColor: Record<string, string> = {
+  coin_purchase: 'var(--gold)',
+  gift_sent: 'var(--ruby-bright)',
+  gift_received: 'var(--emerald)',
+  withdrawal: 'var(--amethyst)',
+  refund: 'var(--text-muted)',
+}
+
+function TxHistoryModal({ user, txs, onClose }: { user: User; txs: Transaction[]; onClose: () => void }) {
+  const incoming = txs.filter(t => t.type === 'gift_received' || t.type === 'coin_purchase')
+  const outgoing = txs.filter(t => t.type === 'gift_sent' || t.type === 'withdrawal' || t.type === 'refund')
+
+  const Section = ({ title, items }: { title: string; items: Transaction[] }) => (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', marginBottom: 10 }}>
+        {title} ({items.length})
+      </div>
+      {items.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '10px 0' }}>No transactions</div>
+      ) : items.map(tx => (
+        <div key={tx.id} style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+          padding: '10px 0', borderBottom: '1px solid var(--border-subtle)',
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20,
+                background: txTypeColor[tx.type] + '22', color: txTypeColor[tx.type],
+                textTransform: 'uppercase', letterSpacing: '0.4px',
+              }}>
+                {txTypeLabel[tx.type]}
+              </span>
+            </div>
+            {tx.note && <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{tx.note}</div>}
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+              {new Date(tx.date).toLocaleString()}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: tx.type === 'gift_received' ? 'var(--emerald)' : 'var(--text-primary)' }}>
+              {tx.type === 'gift_received' || tx.type === 'coin_purchase' ? '+' : '−'}
+              {tx.amount.toLocaleString()}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{tx.currency}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  return (
+    <div className="modal-overlay" style={{ zIndex: 300 }} onClick={onClose}>
+      <div className="modal" style={{ maxWidth: 520, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
+        onClick={e => e.stopPropagation()}>
+        <div className="modal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700 }}>Transaction History</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+              @{user.handle} · {txs.length} transaction{txs.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+          <button className="modal-close" onClick={onClose}><X size={14} /></button>
+        </div>
+        <div className="modal-body" style={{ overflowY: 'auto' }}>
+          <Section title="Incoming" items={incoming} />
+          <Section title="Outgoing" items={outgoing} />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 type FilterTab = 'all' | UserStatus
 
@@ -24,23 +106,39 @@ interface SlideOverProps {
   onPromote: (id: string) => void
   onDemote: (id: string) => void
   onIPBan: (id: string) => void
+  onAdjustBalance: (id: string, delta: number, reason: string) => void
 }
 
-function UserSlideOver({ user, onClose, onWarn, onSuspend, onBan, onReinstate, onPromote, onDemote, onIPBan }: SlideOverProps) {
+function UserSlideOver({ user, onClose, onWarn, onSuspend, onBan, onReinstate, onPromote, onDemote, onIPBan, onAdjustBalance }: SlideOverProps) {
   const { streams, reports } = useStore()
+  const [balanceAmount, setBalanceAmount] = useState('')
+  const [balanceReason, setBalanceReason] = useState('')
+  const [txOpen, setTxOpen] = useState(false)
   if (!user) return null
   const userStreams = streams.filter(s => s.streamerHandle === user.handle)
   const userReports = reports.filter(r => r.targetHandle === user.handle)
+  const userTxs = mockTransactions.filter(t => t.userHandle === user.handle)
 
   const canReinstate = user.status === 'suspended' || user.status === 'banned'
 
   return (
     <>
+      {txOpen && <TxHistoryModal user={user} txs={userTxs} onClose={() => setTxOpen(false)} />}
       <div className="slide-over-overlay" onClick={onClose} />
       <aside className="slide-over open">
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>User Details</span>
-          <button className="modal-close" onClick={onClose}><X size={14} /></button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => setTxOpen(true)}
+              style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}
+            >
+              <Receipt size={13} />
+              Transactions{userTxs.length > 0 ? ` (${userTxs.length})` : ''}
+            </button>
+            <button className="modal-close" onClick={onClose}><X size={14} /></button>
+          </div>
         </div>
 
         <div style={{ padding: 24, overflowY: 'auto', maxHeight: 'calc(100vh - 64px)' }}>
@@ -79,6 +177,54 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onBan, onReinstate, o
                 <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>{stat.value}</div>
               </div>
             ))}
+          </div>
+
+          {/* Balance adjustment */}
+          <div style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px', marginBottom: 24 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Wallet size={13} style={{ color: 'var(--amethyst)' }} /> Adjust Balance
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <input
+                className="form-input"
+                type="number"
+                placeholder="Amount (e.g. 5000 or -5000)"
+                value={balanceAmount}
+                onChange={e => setBalanceAmount(e.target.value)}
+                style={{ flex: 1, fontSize: 13 }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              <input
+                className="form-input"
+                type="text"
+                placeholder="Reason (optional)"
+                value={balanceReason}
+                onChange={e => setBalanceReason(e.target.value)}
+                style={{ flex: 1, fontSize: 13 }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                className="btn btn-success btn-sm"
+                disabled={!balanceAmount || Number(balanceAmount) === 0}
+                onClick={() => {
+                  const delta = Math.round(Number(balanceAmount))
+                  if (!delta) return
+                  onAdjustBalance(user.id, delta, balanceReason.trim())
+                  setBalanceAmount('')
+                  setBalanceReason('')
+                }}
+              >
+                {Number(balanceAmount) < 0 ? <MinusCircle size={12} /> : <PlusCircle size={12} />}
+                Apply
+              </button>
+              {balanceAmount && (
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', alignSelf: 'center' }}>
+                  {Number(balanceAmount) >= 0 ? '+' : ''}{Number(balanceAmount).toLocaleString()} 💎 → {Math.max(0, user.walletBalance + (Number(balanceAmount) || 0)).toLocaleString()} 💎
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Info rows */}
@@ -175,7 +321,7 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onBan, onReinstate, o
 }
 
 export default function Users() {
-  const { users, warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser } = useStore()
+  const { users, warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser, adjustWalletBalance } = useStore()
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterTab>('all')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -332,6 +478,7 @@ export default function Users() {
         onPromote={promoteTopStreamer}
         onDemote={demoteTopStreamer}
         onIPBan={ipBanUser}
+        onAdjustBalance={adjustWalletBalance}
       />
     </div>
   )
