@@ -6,7 +6,7 @@ import {
 import type {
   User, Stream, Report, WithdrawalRequest, KYCEntry,
   Notification, UserStatus, WithdrawalStatus, KYCStatus, NotificationTarget,
-  AdminMember, AdminRole, ReportReason, ReportType, FraudAlert, WarnMessage,
+  AdminMember, AdminRole, ReportReason, ReportType, FraudAlert, WarnMessage, ReportLogEntry,
 } from './types'
 
 function generateInviteCode(): string {
@@ -198,20 +198,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [streams, toast])
 
   /* ── report helpers ── */
+  const addReportLog = (prev: Report[], id: string, entry: Omit<ReportLogEntry, 'id'>): Report[] =>
+    prev.map(r => r.id === id ? { ...r, log: [...(r.log ?? []), { ...entry, id: `log${Date.now()}${Math.random()}` }] } : r)
+
   const resolveReport = useCallback((id: string) => {
-    setReports(prev => prev.map(r => r.id === id ? { ...r, status: 'resolved' } : r))
+    setReports(prev => addReportLog(
+      prev.map(r => r.id === id ? { ...r, status: 'resolved' } : r),
+      id, { action: 'resolved', adminName: currentAdmin?.displayName ?? 'Admin', timestamp: new Date().toISOString() }
+    ))
     toast('Report resolved', 'success')
-  }, [toast])
+  }, [currentAdmin, toast])
 
   const dismissReport = useCallback((id: string) => {
-    setReports(prev => prev.map(r => r.id === id ? { ...r, status: 'dismissed' } : r))
+    setReports(prev => addReportLog(
+      prev.map(r => r.id === id ? { ...r, status: 'dismissed' } : r),
+      id, { action: 'dismissed', adminName: currentAdmin?.displayName ?? 'Admin', timestamp: new Date().toISOString() }
+    ))
     toast('Report dismissed', 'info')
-  }, [toast])
+  }, [currentAdmin, toast])
 
   const reopenReport = useCallback((id: string) => {
-    setReports(prev => prev.map(r => r.id === id ? { ...r, status: 'pending' } : r))
+    setReports(prev => addReportLog(
+      prev.map(r => r.id === id ? { ...r, status: 'pending' } : r),
+      id, { action: 'reopened', adminName: currentAdmin?.displayName ?? 'Admin', timestamp: new Date().toISOString() }
+    ))
     toast('Report reopened', 'info')
-  }, [toast])
+  }, [currentAdmin, toast])
 
   const banReportTarget = useCallback((id: string) => {
     const r = reports.find(r => r.id === id)
@@ -219,18 +231,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setUsers(prev => prev.map(u =>
         u.handle === r.targetHandle ? { ...u, status: 'banned' } : u
       ))
-      setReports(prev => prev.map(rep => rep.id === id ? { ...rep, status: 'resolved' } : rep))
+      setReports(prev => addReportLog(
+        prev.map(rep => rep.id === id ? { ...rep, status: 'resolved' } : rep),
+        id, { action: 'banned', adminName: currentAdmin?.displayName ?? 'Admin', timestamp: new Date().toISOString(), note: `@${r.targetHandle} banned` }
+      ))
       toast(`@${r.targetHandle} has been banned`, 'error')
     }
-  }, [reports, toast])
+  }, [reports, currentAdmin, toast])
 
-  const warnReportTarget = useCallback((id: string, _message?: string) => {
+  const warnReportTarget = useCallback((id: string, message?: string) => {
     const r = reports.find(r => r.id === id)
     if (r) {
-      setReports(prev => prev.map(rep => rep.id === id ? { ...rep, status: 'resolved' } : rep))
+      setReports(prev => addReportLog(
+        prev.map(rep => rep.id === id ? { ...rep, status: 'resolved' } : rep),
+        id, { action: 'warned', adminName: currentAdmin?.displayName ?? 'Admin', timestamp: new Date().toISOString(), note: message }
+      ))
       toast(`Warning sent to @${r.targetHandle}`, 'warn')
     }
-  }, [reports, toast])
+  }, [reports, currentAdmin, toast])
 
   /* ── report reason helpers ── */
   const addReportReason = useCallback((label: string, appliesTo: ReportType | 'all') => {

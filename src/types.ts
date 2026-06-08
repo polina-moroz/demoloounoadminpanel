@@ -44,6 +44,14 @@ export interface Stream {
   avatarColor: string;
 }
 
+export interface ReportLogEntry {
+  id: string;
+  action: 'warned' | 'banned' | 'resolved' | 'dismissed' | 'reopened';
+  adminName: string;
+  timestamp: string;
+  note?: string;
+}
+
 export interface Report {
   id: string;
   reporter: string;
@@ -54,6 +62,7 @@ export interface Report {
   reason: string;
   reportedAt: string;
   status: ReportStatus;
+  log?: ReportLogEntry[];
 }
 
 export interface WithdrawalRequest {
