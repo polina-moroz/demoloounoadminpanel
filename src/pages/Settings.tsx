@@ -41,8 +41,6 @@ export default function Settings() {
   const [maxReports, setMaxReports] = useState('10')
   const [explicitContent, setExplicitContent] = useState('flag_and_review')
   const [maxStreamDuration, setMaxStreamDuration] = useState('6')
-  const [allowVsBattle, setAllowVsBattle] = useState(true)
-  const [allowMultiGuest, setAllowMultiGuest] = useState(true)
   const [minAgeEnforced, setMinAgeEnforced] = useState(true)
 
   return (
@@ -281,62 +279,10 @@ export default function Settings() {
             </div>
           }
         />
-        <Row
-          label="VS Battle Mode"
-          desc="Allow creators to challenge each other to diamond battles"
-          control={
-            <label className="toggle">
-              <input type="checkbox" checked={allowVsBattle} onChange={e => setAllowVsBattle(e.target.checked)} />
-              <span className="toggle-track" />
-            </label>
-          }
-        />
-        <Row
-          label="Multi-Guest Mode"
-          desc="Allow multiple guests to join a single stream simultaneously"
-          control={
-            <label className="toggle">
-              <input type="checkbox" checked={allowMultiGuest} onChange={e => setAllowMultiGuest(e.target.checked)} />
-              <span className="toggle-track" />
-            </label>
-          }
-        />
-        <Row
-          label="Stream Storage / VOD"
-          desc="Streams are not stored automatically — clips must be uploaded manually by creators"
-          control={
-            <span style={{ fontSize: 12, padding: '3px 9px', borderRadius: 20, background: 'rgba(138,138,142,0.1)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
-              No VOD
-            </span>
-          }
-        />
       </Section>
 
       {/* Legal */}
       <Section title="Legal">
-        <Row
-          label="Governing Law"
-          desc="Jurisdiction for Terms of Service and disputes"
-          control={
-            <select className="form-select" defaultValue="texas" style={{ width: 200 }}>
-              <option value="texas">Texas, United States</option>
-              <option value="delaware">Delaware, United States</option>
-              <option value="california">California, United States</option>
-            </select>
-          }
-        />
-        <Row
-          label="Attorney Review Status"
-          desc="Current status of legal document review"
-          control={
-            <select className="form-select" defaultValue="in_review" style={{ width: 200 }}>
-              <option value="pending">Pending</option>
-              <option value="in_review">In Review</option>
-              <option value="approved">Approved</option>
-              <option value="needs_update">Needs Update</option>
-            </select>
-          }
-        />
         <Row
           label="Legal Framework Version"
           desc="Version of Terms of Service and Privacy Policy in effect"
