@@ -32,7 +32,6 @@ export default function Settings() {
   const { fraudThresholdUSD, setFraudThreshold } = useStore()
   const [fraudThresholdInput, setFraudThresholdInput] = useState(String(fraudThresholdUSD))
   const [appVersion, setAppVersion] = useState('1.0.0')
-  const [ageGate, setAgeGate] = useState('18')
   const [minWithdrawal, setMinWithdrawal] = useState('80000')
   const [diamondRate, setDiamondRate] = useState('7')
   const [processingFee, setProcessingFee] = useState('3')
@@ -41,7 +40,6 @@ export default function Settings() {
   const [maxReports, setMaxReports] = useState('10')
   const [explicitContent, setExplicitContent] = useState('flag_and_review')
   const [maxStreamDuration, setMaxStreamDuration] = useState('6')
-  const [minAgeEnforced, setMinAgeEnforced] = useState(true)
 
   return (
     <div>
@@ -75,32 +73,6 @@ export default function Settings() {
               <option value="open_beta">Open Beta</option>
               <option value="public">Public</option>
             </select>
-          }
-        />
-        <Row
-          label="Age Gate"
-          desc="Minimum age required to register"
-          control={
-            <select
-              className="form-select"
-              value={ageGate}
-              onChange={e => setAgeGate(e.target.value)}
-              style={{ width: 120 }}
-            >
-              <option value="17">17+</option>
-              <option value="18">18+</option>
-              <option value="21">21+</option>
-            </select>
-          }
-        />
-        <Row
-          label="Enforce Age Gate"
-          desc="Require date of birth on signup"
-          control={
-            <label className="toggle">
-              <input type="checkbox" checked={minAgeEnforced} onChange={e => setMinAgeEnforced(e.target.checked)} />
-              <span className="toggle-track" />
-            </label>
           }
         />
       </Section>
@@ -283,17 +255,6 @@ export default function Settings() {
 
       {/* Legal */}
       <Section title="Legal">
-        <Row
-          label="Legal Framework Version"
-          desc="Version of Terms of Service and Privacy Policy in effect"
-          control={
-            <input
-              className="form-input"
-              defaultValue="1.0.0-beta"
-              style={{ width: 140 }}
-            />
-          }
-        />
         <Row
           label="Privacy Policy URL"
           control={
