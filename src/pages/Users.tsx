@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, PlusCircle, MinusCircle, Receipt } from 'lucide-react'
+import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, PlusCircle, MinusCircle, Receipt, ChevronDown, ChevronRight, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
-import type { User, UserStatus, Transaction } from '../types'
+import type { User, UserStatus, Transaction, Report } from '../types'
 
 const txTypeLabel: Record<string, string> = {
   coin_purchase: 'Coin Purchase',
@@ -86,6 +86,178 @@ function TxHistoryModal({ user, txs, onClose }: { user: User; txs: Transaction[]
   )
 }
 
+/* ── User Reports Modal ───────────────────────────────────────── */
+
+const reportStatusMeta: Record<Report['status'], { color: string; label: string }> = {
+  pending:   { color: '#F39C12', label: 'Pending'   },
+  resolved:  { color: '#2ECC8A', label: 'Resolved'  },
+  dismissed: { color: '#8A8A8E', label: 'Dismissed' },
+}
+
+const logActionMeta: Record<string, { color: string; label: string }> = {
+  warned:    { color: '#F39C12', label: 'Warned'    },
+  banned:    { color: '#E74C3C', label: 'Banned'    },
+  resolved:  { color: '#2ECC8A', label: 'Resolved'  },
+  dismissed: { color: '#8A8A8E', label: 'Dismissed' },
+  reopened:  { color: '#3498DB', label: 'Reopened'  },
+}
+
+function UserReportsModal({ user, reports, onClose }: {
+  user: User
+  reports: Report[]
+  onClose: () => void
+}) {
+  const { resolveReport, dismissReport, reopenReport } = useStore()
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const pendingCount = reports.filter(r => r.status === 'pending').length
+
+  return (
+    <div className="modal-overlay" style={{ zIndex: 350 }} onClick={onClose}>
+      <div
+        className="modal"
+        style={{ maxWidth: 560, maxHeight: '82vh', display: 'flex', flexDirection: 'column' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* header */}
+        <div className="modal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(155,17,30,0.12)', border: '1px solid rgba(155,17,30,0.25)',
+            }}>
+              <Flag size={14} color="var(--ruby-bright)" />
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>Reports Against @{user.handle}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
+                {reports.length} total
+                {pendingCount > 0 && (
+                  <span style={{ marginLeft: 6, color: '#F39C12', fontWeight: 600 }}>· {pendingCount} pending</span>
+                )}
+              </div>
+            </div>
+          </div>
+          <button className="modal-close" onClick={onClose}><X size={14} /></button>
+        </div>
+
+        {/* body */}
+        <div className="modal-body" style={{ overflowY: 'auto', padding: 0 }}>
+          {reports.length === 0 ? (
+            <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+              No reports found for this user.
+            </div>
+          ) : reports.map((r, idx) => {
+            const isOpen = expandedId === r.id
+            const meta = reportStatusMeta[r.status]
+            return (
+              <div key={r.id} style={{ borderBottom: idx < reports.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                {/* row */}
+                <button
+                  onClick={() => setExpandedId(isOpen ? null : r.id)}
+                  style={{
+                    width: '100%', padding: '13px 20px', display: 'flex', alignItems: 'center',
+                    gap: 12, background: isOpen ? 'var(--bg-surface-2)' : 'transparent',
+                    border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s',
+                  }}
+                >
+                  {/* status dot */}
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: meta.color, flexShrink: 0, marginTop: 1 }} />
+
+                  {/* main info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {r.reason}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                      by @{r.reporterHandle} · {new Date(r.reportedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      <span style={{
+                        marginLeft: 8, fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 20,
+                        background: meta.color + '1A', color: meta.color,
+                        textTransform: 'uppercase', letterSpacing: '0.3px',
+                      }}>
+                        {meta.label}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* type chip */}
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20, flexShrink: 0,
+                    background: 'var(--bg-surface-3, #2A2A30)', color: 'var(--text-muted)',
+                    textTransform: 'uppercase', letterSpacing: '0.3px',
+                  }}>
+                    {r.type}
+                  </span>
+
+                  {isOpen ? <ChevronDown size={14} color="var(--text-muted)" /> : <ChevronRight size={14} color="var(--text-muted)" />}
+                </button>
+
+                {/* expanded detail */}
+                {isOpen && (
+                  <div style={{ padding: '0 20px 16px 40px', background: 'var(--bg-surface-2)' }}>
+                    {/* action log */}
+                    {r.log && r.log.length > 0 ? (
+                      <div style={{ marginBottom: 14 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', marginBottom: 8 }}>
+                          Action Log
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {r.log.map(entry => {
+                            const lm = logActionMeta[entry.action] ?? { color: '#8A8A8E', label: entry.action }
+                            return (
+                              <div key={entry.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 12 }}>
+                                <span style={{
+                                  fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, flexShrink: 0,
+                                  background: lm.color + '1A', color: lm.color,
+                                  textTransform: 'uppercase', letterSpacing: '0.3px', marginTop: 1,
+                                }}>
+                                  {lm.label}
+                                </span>
+                                <div style={{ color: 'var(--text-secondary)', flex: 1 }}>
+                                  {entry.note && <span>{entry.note} · </span>}
+                                  <span style={{ color: 'var(--text-muted)' }}>
+                                    by {entry.adminName} · {new Date(entry.timestamp).toLocaleString()}
+                                  </span>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14, fontStyle: 'italic' }}>No actions taken yet.</div>
+                    )}
+
+                    {/* action buttons */}
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {r.status !== 'resolved' && (
+                        <button className="btn btn-success btn-sm" onClick={() => resolveReport(r.id)}>
+                          <CheckCircle size={12} /> Resolve
+                        </button>
+                      )}
+                      {r.status !== 'dismissed' && (
+                        <button className="btn btn-ghost btn-sm" style={{ color: 'var(--text-muted)' }} onClick={() => dismissReport(r.id)}>
+                          <XCircle size={12} /> Dismiss
+                        </button>
+                      )}
+                      {(r.status === 'resolved' || r.status === 'dismissed') && (
+                        <button className="btn btn-secondary btn-sm" onClick={() => reopenReport(r.id)}>
+                          <RefreshCw size={12} /> Reopen
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 type FilterTab = 'all' | UserStatus
 
 const filterTabs: { key: FilterTab; label: string }[] = [
@@ -113,16 +285,19 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
   const [balanceAmount, setBalanceAmount] = useState('')
   const [balanceReason, setBalanceReason] = useState('')
   const [txOpen, setTxOpen] = useState(false)
+  const [reportsOpen, setReportsOpen] = useState(false)
   if (!user) return null
   const userStreams = streams.filter(s => s.streamerHandle === user.handle)
   const userReports = reports.filter(r => r.targetHandle === user.handle)
   const userTxs = mockTransactions.filter(t => t.userHandle === user.handle)
+  const pendingReports = userReports.filter(r => r.status === 'pending').length
 
   const canReinstate = user.status === 'suspended' || user.status === 'banned'
 
   return (
     <>
       {txOpen && <TxHistoryModal user={user} txs={userTxs} onClose={() => setTxOpen(false)} />}
+      {reportsOpen && <UserReportsModal user={user} reports={userReports} onClose={() => setReportsOpen(false)} />}
       <div className="slide-over-overlay" onClick={onClose} />
       <aside className="slide-over open">
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -251,21 +426,52 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
             </div>
           )}
 
-          {/* Reports */}
-          {userReports.length > 0 && (
-            <div style={{ marginTop: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Flag size={13} style={{ color: 'var(--ruby-bright)' }} />
-                Reports Against ({userReports.length})
+          {/* Reports row */}
+          <button
+            onClick={() => userReports.length > 0 && setReportsOpen(true)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+              padding: '11px 14px', marginTop: 16, borderRadius: 10, border: 'none',
+              background: pendingReports > 0
+                ? 'rgba(155,17,30,0.07)'
+                : 'var(--bg-surface-2)',
+              outline: pendingReports > 0
+                ? '1px solid rgba(155,17,30,0.18)'
+                : '1px solid var(--border)',
+              cursor: userReports.length > 0 ? 'pointer' : 'default',
+              transition: 'background 0.15s',
+              textAlign: 'left',
+            }}
+          >
+            <Flag size={14} color={pendingReports > 0 ? 'var(--ruby-bright)' : 'var(--text-muted)'} style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: pendingReports > 0 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+              Reports Against
+            </span>
+            {userReports.length > 0 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {pendingReports > 0 && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20,
+                    background: 'rgba(243,156,18,0.15)', color: '#F39C12',
+                    textTransform: 'uppercase', letterSpacing: '0.3px',
+                  }}>
+                    {pendingReports} pending
+                  </span>
+                )}
+                <span style={{
+                  minWidth: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 800,
+                  background: pendingReports > 0 ? 'var(--ruby-bright)' : 'var(--bg-surface-3, #2A2A30)',
+                  color: pendingReports > 0 ? '#fff' : 'var(--text-muted)',
+                }}>
+                  {userReports.length}
+                </span>
+                <ChevronRight size={13} color="var(--text-muted)" />
               </div>
-              {userReports.map(r => (
-                <div key={r.id} style={{ background: 'rgba(155,17,30,0.06)', border: '1px solid rgba(155,17,30,0.15)', borderRadius: 8, padding: '10px 12px', marginBottom: 8 }}>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{r.reason}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>by @{r.reporterHandle} · {new Date(r.reportedAt).toLocaleDateString()}</div>
-                </div>
-              ))}
-            </div>
-          )}
+            ) : (
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>None</span>
+            )}
+          </button>
 
           {/* Actions */}
           <div style={{ marginTop: 24, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
