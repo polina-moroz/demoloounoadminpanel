@@ -92,7 +92,7 @@ interface StoreCtx {
 
   // admin team
   adminTeam: AdminMember[]
-  inviteAdmin: (email: string, role: AdminRole) => string
+  inviteAdmin: (email: string, role: AdminRole, fullName: string) => string
   updateAdminRole: (id: string, role: AdminRole) => void
   suspendAdmin: (id: string) => void
   reinstateAdmin: (id: string) => void
@@ -356,11 +356,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   /* ── admin team helpers ── */
-  const inviteAdmin = useCallback((email: string, role: AdminRole): string => {
+  const inviteAdmin = useCallback((email: string, role: AdminRole, fullName: string): string => {
     const code = generateInviteCode()
     const newMember: AdminMember = {
       id: `a${Date.now()}`,
-      displayName: '—',
+      displayName: fullName.trim() || '—',
       email,
       role,
       status: 'invited',

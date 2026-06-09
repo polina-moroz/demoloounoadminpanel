@@ -37,7 +37,7 @@ export default function Economy() {
         <Info size={15} />
         <div>
           <strong>Economy rules:</strong> 1 gifted coin = 1 creator diamond (1:1). 10,000 💎 = $7 gross.
-          ~3% processing fee deducted. 7-day hold. 10,000 💎 minimum withdrawal. KYC via Stripe Connect required on first withdrawal.
+          ~3% processing fee deducted. 7-day hold. 80,000 💎 minimum withdrawal. KYC via Stripe Connect required on first withdrawal.
         </div>
       </div>
 
@@ -47,7 +47,7 @@ export default function Economy() {
           <div className="table-header">
             <div>
               <div className="table-title">Withdrawal Requests</div>
-              <div className="table-subtitle">10,000 💎 minimum · 7-day hold · $7 per 10,000 💎 gross</div>
+              <div className="table-subtitle">80,000 💎 minimum · 7-day hold · $7 per 10,000 💎 gross</div>
             </div>
           </div>
           <div style={{ overflowX: 'auto' }}>

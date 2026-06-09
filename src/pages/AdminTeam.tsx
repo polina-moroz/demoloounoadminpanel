@@ -8,7 +8,6 @@ const roleLabels: Record<AdminRole, string> = {
   super_admin: 'Super Admin',
   admin: 'Admin',
   moderator: 'Moderator',
-  support: 'Support',
   viewer: 'Viewer',
 }
 
@@ -16,7 +15,6 @@ const roleColors: Record<AdminRole, string> = {
   super_admin: '#D4AF37',
   admin: '#9966CC',
   moderator: '#3498DB',
-  support: '#2ECC8A',
   viewer: '#8A8A8E',
 }
 
@@ -24,7 +22,6 @@ const roleDesc: Record<AdminRole, string> = {
   super_admin: 'Full platform control',
   admin: 'Full access, manage team',
   moderator: 'Users, streams, reports',
-  support: 'Read-only + KYC review',
   viewer: 'Read-only access',
 }
 
@@ -65,15 +62,18 @@ function StatusBadge({ status }: { status: AdminMember['status'] }) {
 
 function InviteModal({ onClose }: { onClose: () => void }) {
   const { inviteAdmin } = useStore()
+  const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<AdminRole>('moderator')
   const [step, setStep] = useState<'form' | 'success'>('form')
   const [generatedCode, setGeneratedCode] = useState('')
   const [copied, setCopied] = useState(false)
 
+  const canSubmit = fullName.trim().length > 0 && email.trim().length > 0
+
   const handleSend = () => {
-    if (!email.trim()) return
-    const code = inviteAdmin(email.trim(), role)
+    if (!canSubmit) return
+    const code = inviteAdmin(email.trim(), role, fullName.trim())
     setGeneratedCode(code)
     setStep('success')
   }
@@ -99,6 +99,18 @@ function InviteModal({ onClose }: { onClose: () => void }) {
           <>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder="Jane Smith"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  autoFocus
+                />
+              </div>
+
+              <div className="form-group">
                 <label className="form-label">Email Address</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
@@ -109,7 +121,6 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     style={{ paddingLeft: 36 }}
-                    autoFocus
                   />
                 </div>
               </div>
@@ -146,8 +157,8 @@ function InviteModal({ onClose }: { onClose: () => void }) {
               <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
               <button
                 className="btn btn-primary"
-                disabled={!email.trim()}
-                style={{ opacity: email.trim() ? 1 : 0.45 }}
+                disabled={!canSubmit}
+                style={{ opacity: canSubmit ? 1 : 0.45 }}
                 onClick={handleSend}
               >
                 <Mail size={13} /> Generate & Send Invite
@@ -168,7 +179,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>Invite code generated</div>
                 <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                  Share this code with <strong style={{ color: 'var(--text-secondary)' }}>{email}</strong>. They can use it at <span style={{ color: 'var(--gold)', fontFamily: 'monospace' }}>/accept-invite</span> to activate their account.
+                  Share this code with <strong style={{ color: 'var(--text-secondary)' }}>{fullName}</strong> ({email}). They can use it at <span style={{ color: 'var(--gold)', fontFamily: 'monospace' }}>/accept-invite</span> to activate their account.
                 </div>
               </div>
 
@@ -270,9 +281,6 @@ export default function AdminTeam() {
             <div className="table-title">Team Members</div>
             <div className="table-subtitle">{adminTeam.length} total · {totalActive} active · {pendingCount} pending</div>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowInvite(true)}>
-            <Plus size={13} /> Invite
-          </button>
         </div>
 
         <div style={{ overflowX: 'auto' }}>

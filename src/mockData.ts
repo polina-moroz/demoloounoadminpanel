@@ -238,7 +238,7 @@ export const mockAdminTeam: AdminMember[] = [
   { id: 'a1', displayName: 'Cyrus', email: 'cyrus@loouno.com', role: 'super_admin', status: 'active', invitedAt: '2025-12-01T00:00:00Z', joinedAt: '2025-12-01T00:00:00Z', avatarColor: '#D4AF37' },
   { id: 'a2', displayName: 'Polina', email: 'polina_m@dataforest.ai', role: 'admin', status: 'active', invitedAt: '2026-01-15T10:00:00Z', joinedAt: '2026-01-16T09:30:00Z', avatarColor: '#9966CC' },
   { id: 'a3', displayName: 'Alex Chen', email: 'alex.chen@loouno.com', role: 'moderator', status: 'active', invitedAt: '2026-02-10T08:00:00Z', joinedAt: '2026-02-11T14:00:00Z', avatarColor: '#2ECC8A' },
-  { id: 'a4', displayName: 'Sofia Romano', email: 'sofia.r@loouno.com', role: 'support', status: 'active', invitedAt: '2026-03-01T11:00:00Z', joinedAt: '2026-03-01T15:00:00Z', avatarColor: '#3498DB' },
+  { id: 'a4', displayName: 'Sofia Romano', email: 'sofia.r@loouno.com', role: 'viewer', status: 'active', invitedAt: '2026-03-01T11:00:00Z', joinedAt: '2026-03-01T15:00:00Z', avatarColor: '#3498DB' },
   { id: 'a5', displayName: '—', email: 'new.mod@example.com', role: 'moderator', status: 'invited', invitedAt: '2026-06-04T09:00:00Z', inviteCode: 'LOOO-X4R2-9KPW', avatarColor: '#48484A' },
 ];
 

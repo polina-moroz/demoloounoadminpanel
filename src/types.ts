@@ -173,7 +173,7 @@ export interface VIPLevel {
   perks: string;
 }
 
-export type AdminRole = 'super_admin' | 'admin' | 'moderator' | 'support' | 'viewer';
+export type AdminRole = 'super_admin' | 'admin' | 'moderator' | 'viewer';
 export type AdminStatus = 'active' | 'invited' | 'suspended';
 
 export interface AdminMember {

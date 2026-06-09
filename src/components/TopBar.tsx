@@ -12,7 +12,9 @@ const pageMeta: Record<string, { title: string; subtitle: string }> = {
   '/coin-packages': { title: 'Coin Packages', subtitle: 'In-app and website purchase tiers' },
   '/competitions': { title: 'Competitions', subtitle: 'Monthly leaderboard and prize config' },
   '/prestige': { title: 'Prestige System', subtitle: 'XP levels, SP tiers, and VIP ranks' },
+  '/fortune-wheel': { title: 'Fortune Wheel', subtitle: 'Seasonal spin mechanic — prizes and probabilities' },
   '/notifications': { title: 'Notifications', subtitle: 'Send push notifications to users' },
+  '/admin-team': { title: 'Admin Team', subtitle: 'Manage team members, roles, and invites' },
   '/settings': { title: 'Settings', subtitle: 'Platform configuration and policies' },
 }
 

@@ -52,7 +52,7 @@ function PlatformStatus() {
         </div>
         <div className="platform-status-item">
           <div className="label">Min Withdrawal</div>
-          <div className="value">10,000 💎</div>
+          <div className="value">80,000 💎</div>
         </div>
         <div className="platform-status-item">
           <div className="label">Age Gate</div>
