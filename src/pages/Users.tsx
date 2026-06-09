@@ -2,90 +2,10 @@ import { useState } from 'react'
 import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, PlusCircle, MinusCircle, Receipt, ChevronDown, ChevronRight, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
+import TxHistoryModal from '../components/TxHistoryModal'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
-import type { User, UserStatus, Transaction, Report } from '../types'
-
-const txTypeLabel: Record<string, string> = {
-  coin_purchase: 'Coin Purchase',
-  gift_sent: 'Gift Sent',
-  gift_received: 'Gift Received',
-  withdrawal: 'Withdrawal',
-  refund: 'Refund',
-}
-
-const txTypeColor: Record<string, string> = {
-  coin_purchase: 'var(--gold)',
-  gift_sent: 'var(--ruby-bright)',
-  gift_received: 'var(--emerald)',
-  withdrawal: 'var(--amethyst)',
-  refund: 'var(--text-muted)',
-}
-
-function TxHistoryModal({ user, txs, onClose }: { user: User; txs: Transaction[]; onClose: () => void }) {
-  const incoming = txs.filter(t => t.type === 'gift_received' || t.type === 'coin_purchase')
-  const outgoing = txs.filter(t => t.type === 'gift_sent' || t.type === 'withdrawal' || t.type === 'refund')
-
-  const Section = ({ title, items }: { title: string; items: Transaction[] }) => (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', marginBottom: 10 }}>
-        {title} ({items.length})
-      </div>
-      {items.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '10px 0' }}>No transactions</div>
-      ) : items.map(tx => (
-        <div key={tx.id} style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-          padding: '10px 0', borderBottom: '1px solid var(--border-subtle)',
-        }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-              <span style={{
-                fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20,
-                background: txTypeColor[tx.type] + '22', color: txTypeColor[tx.type],
-                textTransform: 'uppercase', letterSpacing: '0.4px',
-              }}>
-                {txTypeLabel[tx.type]}
-              </span>
-            </div>
-            {tx.note && <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{tx.note}</div>}
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-              {new Date(tx.date).toLocaleString()}
-            </div>
-          </div>
-          <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: tx.type === 'gift_received' ? 'var(--emerald)' : 'var(--text-primary)' }}>
-              {tx.type === 'gift_received' || tx.type === 'coin_purchase' ? '+' : '−'}
-              {tx.amount.toLocaleString()}
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{tx.currency}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-
-  return (
-    <div className="modal-overlay" style={{ zIndex: 300 }} onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 520, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
-        onClick={e => e.stopPropagation()}>
-        <div className="modal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>Transaction History</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-              @{user.handle} · {txs.length} transaction{txs.length !== 1 ? 's' : ''}
-            </div>
-          </div>
-          <button className="modal-close" onClick={onClose}><X size={14} /></button>
-        </div>
-        <div className="modal-body" style={{ overflowY: 'auto' }}>
-          <Section title="Incoming" items={incoming} />
-          <Section title="Outgoing" items={outgoing} />
-        </div>
-      </div>
-    </div>
-  )
-}
+import type { User, UserStatus, Report } from '../types'
 
 /* ── User Reports Modal ───────────────────────────────────────── */
 
@@ -329,7 +249,7 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
 
   return (
     <>
-      {txOpen && <TxHistoryModal user={user} txs={userTxs} onClose={() => setTxOpen(false)} />}
+      {txOpen && <TxHistoryModal userHandle={user.handle} userName={user.displayName} transactions={userTxs} onClose={() => setTxOpen(false)} />}
       {reportsOpen && <UserReportsModal user={user} reports={userReports} onClose={() => setReportsOpen(false)} />}
       {warnOpen && (
         <WarnModal

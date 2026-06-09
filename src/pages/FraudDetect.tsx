@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ShieldAlert, CheckCircle, XCircle, X, Clock, AlertTriangle, History } from 'lucide-react'
 import StatCard from '../components/StatCard'
 import Badge, { statusLabel } from '../components/Badge'
+import TxHistoryModal from '../components/TxHistoryModal'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
 import type { FraudAlert, FraudAlertStatus } from '../types'
@@ -14,83 +15,6 @@ const filterTabs: { key: FilterTab; label: string }[] = [
   { key: 'approved', label: 'Approved' },
   { key: 'rejected', label: 'Rejected' },
 ]
-
-const txTypeLabels: Record<string, string> = {
-  coin_purchase: 'Coin Purchase',
-  gift_sent: 'Gift Sent',
-  gift_received: 'Gift Received',
-  withdrawal: 'Withdrawal',
-  refund: 'Refund',
-}
-
-const txTypeColors: Record<string, string> = {
-  coin_purchase: '#2ECC8A',
-  gift_sent: '#9966CC',
-  gift_received: '#D4AF37',
-  withdrawal: '#3498DB',
-  refund: '#C0392B',
-}
-
-function TxHistoryModal({ userHandle, userName, onClose }: { userHandle: string; userName: string; onClose: () => void }) {
-  const userTxs = mockTransactions.filter(t => t.userHandle === userHandle)
-
-  return (
-    <div
-      className="modal-overlay"
-      onClick={onClose}
-      style={{ zIndex: 300 }}
-    >
-      <div
-        className="modal"
-        style={{ maxWidth: 560, width: '90%', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="modal-header">
-          <div>
-            <span className="modal-title">Transaction History</span>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>
-              {userName} · @{userHandle} · {userTxs.length} transactions
-            </div>
-          </div>
-          <button className="modal-close" onClick={onClose}><X size={14} /></button>
-        </div>
-
-        <div style={{ overflowY: 'auto', padding: '16px 24px 24px', flex: 1 }}>
-          {userTxs.length === 0 ? (
-            <div style={{ color: 'var(--text-muted)', fontSize: 13, padding: '32px 0', textAlign: 'center' }}>
-              No transactions found for this user.
-            </div>
-          ) : userTxs.map(t => (
-            <div
-              key={t.id}
-              style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '12px 14px', marginBottom: 10 }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-                  color: txTypeColors[t.type], background: `${txTypeColors[t.type]}18`,
-                  border: `1px solid ${txTypeColors[t.type]}30`,
-                }}>
-                  {txTypeLabels[t.type] ?? t.type}
-                </span>
-                <span style={{ fontWeight: 700, fontSize: 14, color: t.currency === 'USD' ? 'var(--emerald)' : 'var(--gold)' }}>
-                  {t.currency === 'USD'
-                    ? `$${t.amount.toFixed(2)}`
-                    : `${t.amount.toLocaleString()} ${t.currency === 'coins' ? '🪙' : '💎'}`}
-                </span>
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t.note ?? '—'}</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>
-                {new Date(t.date).toLocaleString()}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 interface SlideOverProps {
   alert: FraudAlert | null
@@ -206,6 +130,7 @@ function AlertSlideOver({ alert, onClose, onApprove, onReject }: SlideOverProps)
         <TxHistoryModal
           userHandle={alert.userHandle}
           userName={alert.user}
+          transactions={mockTransactions.filter(t => t.userHandle === alert.userHandle)}
           onClose={() => setTxOpen(false)}
         />
       )}

@@ -5,7 +5,7 @@ export type ReportType = 'stream' | 'user' | 'message';
 export type ReportStatus = 'pending' | 'resolved' | 'dismissed';
 export type StreamStatus = 'live' | 'ended' | 'terminated';
 export type WithdrawalStatus = 'pending' | 'approved' | 'rejected' | 'on_hold';
-export type TransactionType = 'coin_purchase' | 'gift_sent' | 'gift_received' | 'withdrawal' | 'refund';
+export type TransactionType = 'coin_purchase' | 'diamond_received' | 'diamond_withdrawal';
 export type CompetitionStatus = 'active' | 'upcoming' | 'ended';
 export type NotificationTarget = 'all' | 'creators' | 'viewers' | 'specific';
 
