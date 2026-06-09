@@ -195,13 +195,41 @@ function UserReportsModal({ user, reports, onClose }: {
 
                 {/* expanded detail */}
                 {isOpen && (
-                  <div style={{ padding: '0 20px 16px 40px', background: 'var(--bg-surface-2)' }}>
-                    {/* action log */}
-                    {r.log && r.log.length > 0 ? (
-                      <div style={{ marginBottom: 14 }}>
-                        <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', marginBottom: 8 }}>
-                          Action Log
+                  <div style={{ background: 'var(--bg-surface-2)', borderTop: '1px solid var(--border-subtle)', padding: '16px 20px 18px' }}>
+
+                    {/* meta grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 20px', marginBottom: 16 }}>
+                      {[
+                        { label: 'Report ID',  value: `#${r.id}` },
+                        { label: 'Type',       value: r.type.charAt(0).toUpperCase() + r.type.slice(1) },
+                        { label: 'Reporter',   value: `@${r.reporterHandle}` },
+                        { label: 'Email',      value: r.reporter },
+                        { label: 'Submitted',  value: new Date(r.reportedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) },
+                        { label: 'Status',     value: reportStatusMeta[r.status].label },
+                      ].map(({ label, value }) => (
+                        <div key={label}>
+                          <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: 2 }}>{label}</div>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>{value}</div>
                         </div>
+                      ))}
+                    </div>
+
+                    {/* description */}
+                    {r.description && (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: 6 }}>Description</div>
+                        <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0, padding: '10px 12px', background: 'var(--bg-base, #0F0F13)', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                          {r.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* action log */}
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: 8 }}>
+                        Action Log {r.log && r.log.length > 0 ? `(${r.log.length})` : ''}
+                      </div>
+                      {r.log && r.log.length > 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                           {r.log.map(entry => {
                             const lm = logActionMeta[entry.action] ?? { color: '#8A8A8E', label: entry.action }
@@ -217,17 +245,20 @@ function UserReportsModal({ user, reports, onClose }: {
                                 <div style={{ color: 'var(--text-secondary)', flex: 1 }}>
                                   {entry.note && <span>{entry.note} · </span>}
                                   <span style={{ color: 'var(--text-muted)' }}>
-                                    by {entry.adminName} · {new Date(entry.timestamp).toLocaleString()}
+                                    {entry.adminName} · {new Date(entry.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                   </span>
                                 </div>
                               </div>
                             )
                           })}
                         </div>
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14, fontStyle: 'italic' }}>No actions taken yet.</div>
-                    )}
+                      ) : (
+                        <span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>No actions taken yet.</span>
+                      )}
+                    </div>
+
+                    {/* divider */}
+                    <div style={{ height: 1, background: 'var(--border-subtle)', marginBottom: 14 }} />
 
                     {/* action buttons */}
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

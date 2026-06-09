@@ -60,6 +60,7 @@ export interface Report {
   target: string;
   targetHandle: string;
   reason: string;
+  description?: string;
   reportedAt: string;
   status: ReportStatus;
   log?: ReportLogEntry[];
