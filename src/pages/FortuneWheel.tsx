@@ -1,92 +1,172 @@
-import { useState } from 'react'
-import { Save, Plus, Trash2, AlertTriangle, CheckCircle, RotateCcw } from 'lucide-react'
-import { mockWheelPrizes } from '../mockData'
+import { useState, useRef } from 'react'
+import { Save, Upload, X } from 'lucide-react'
 import { useStore } from '../store'
-import type { FortuneWheelPrize, WheelPrizeType } from '../types'
+import type { WheelSegment, WheelSegmentType } from '../types'
 
-const typeLabels: Record<WheelPrizeType, string> = {
-  coins:      '🪙 Coins',
-  diamonds:   '💎 Diamonds',
-  multiplier: '✨ Multiplier',
-  miss:       '💨 Miss',
+const SEGMENT_TYPE_META: Record<WheelSegmentType, { label: string; color: string; bg: string; border: string; description: string }> = {
+  'rare': {
+    label: 'Rare',
+    color: '#3498DB',
+    bg: 'rgba(52,152,219,0.1)',
+    border: 'rgba(52,152,219,0.25)',
+    description: 'Triggers every rare milestone',
+  },
+  'ultra-rare': {
+    label: 'Ultra-Rare',
+    color: '#9B66CC',
+    bg: 'rgba(155,102,204,0.1)',
+    border: 'rgba(155,102,204,0.25)',
+    description: 'Triggers every ultra-rare milestone',
+  },
+  'miss': {
+    label: 'Miss',
+    color: '#8A8A8E',
+    bg: 'rgba(138,138,142,0.08)',
+    border: 'rgba(138,138,142,0.2)',
+    description: 'No reward — most spins land here',
+  },
 }
 
-function ProbabilityBar({ prizes }: { prizes: FortuneWheelPrize[] }) {
-  const active = prizes.filter(p => p.enabled && p.probability > 0)
-  const total = active.reduce((s, p) => s + p.probability, 0)
-  if (total === 0) return (
-    <div style={{ width: '100%', height: 12, borderRadius: 6, background: 'var(--bg-surface-2)', border: '1px solid var(--border)' }} />
-  )
+const DEFAULT_SEGMENTS: WheelSegment[] = [
+  { id: 'ws1', type: 'rare',       label: 'Rare Gift',       color: '#3498DB', animationFileName: null },
+  { id: 'ws2', type: 'rare',       label: 'Rare Gift',       color: '#2980B9', animationFileName: null },
+  { id: 'ws3', type: 'ultra-rare', label: 'Ultra-Rare Gift', color: '#9B66CC', animationFileName: null },
+  { id: 'ws4', type: 'ultra-rare', label: 'Ultra-Rare Gift', color: '#7B52AB', animationFileName: null },
+  { id: 'ws5', type: 'miss',       label: 'Miss',            color: '#3A3A40', animationFileName: null },
+]
+
+function SegmentCard({
+  segment,
+  index,
+  onChange,
+}: {
+  segment: WheelSegment
+  index: number
+  onChange: (id: string, updates: Partial<WheelSegment>) => void
+}) {
+  const meta = SEGMENT_TYPE_META[segment.type]
+  const fileRef = useRef<HTMLInputElement>(null)
+
   return (
-    <div style={{ width: '100%', height: 12, borderRadius: 6, overflow: 'hidden', display: 'flex', background: 'var(--bg-surface-2)', border: '1px solid var(--border)' }}>
-      {active.map(p => (
-        <div
-          key={p.id}
-          title={`${p.label}: ${p.probability}%`}
-          style={{ width: `${(p.probability / total) * 100}%`, background: p.color, transition: 'width 0.2s' }}
-        />
-      ))}
+    <div style={{
+      background: 'var(--bg-surface-2)',
+      border: `1px solid var(--border)`,
+      borderRadius: 12,
+      overflow: 'hidden',
+    }}>
+      {/* Colour strip */}
+      <div style={{ height: 5, background: segment.color }} />
+
+      <div style={{ padding: '16px 18px' }}>
+        {/* Header row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{
+              fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20,
+              textTransform: 'uppercase', letterSpacing: '0.5px',
+              background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`,
+            }}>
+              {meta.label}
+            </span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Slot {index + 1}</span>
+          </div>
+          {/* Colour picker */}
+          <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, position: 'relative' }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: 6,
+              background: segment.color,
+              border: '2px solid rgba(255,255,255,0.12)',
+            }} />
+            <input
+              type="color"
+              value={segment.color}
+              onChange={e => onChange(segment.id, { color: e.target.value })}
+              style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+            />
+          </label>
+        </div>
+
+        {/* Label */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600 }}>Gift Name</div>
+          <input
+            className="form-input"
+            value={segment.label}
+            onChange={e => onChange(segment.id, { label: e.target.value })}
+            style={{ width: '100%' }}
+            placeholder="Enter gift name"
+          />
+        </div>
+
+        {/* Animation upload */}
+        <div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>
+            Gift Animation
+          </div>
+          {segment.animationFileName ? (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '8px 10px', borderRadius: 8,
+              background: 'var(--bg-surface-3, #1A1A20)', border: '1px solid var(--border)',
+            }}>
+              <span style={{ fontSize: 13 }}>🎞</span>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {segment.animationFileName}
+              </span>
+              <button
+                className="btn btn-ghost btn-icon"
+                style={{ width: 20, height: 20, color: 'var(--text-muted)', flexShrink: 0 }}
+                onClick={() => onChange(segment.id, { animationFileName: null })}
+                title="Remove animation"
+              >
+                <X size={11} />
+              </button>
+            </div>
+          ) : (
+            <button
+              className="btn btn-secondary btn-sm"
+              style={{ width: '100%', justifyContent: 'center', fontSize: 12 }}
+              onClick={() => fileRef.current?.click()}
+            >
+              <Upload size={12} /> Upload GIF / Lottie
+            </button>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".gif,.json,.lottie"
+            style={{ display: 'none' }}
+            onChange={e => {
+              const file = e.target.files?.[0]
+              if (file) onChange(segment.id, { animationFileName: file.name })
+              e.target.value = ''
+            }}
+          />
+          <div style={{ fontSize: 10, color: 'var(--text-subtle, #555)', marginTop: 5 }}>
+            Accepted: .gif · .json (Lottie) · .lottie
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
 
-const MAX_SEGMENTS = 5
-
 export default function FortuneWheel() {
   const { toast } = useStore()
-  const [prizes, setPrizes] = useState<FortuneWheelPrize[]>(mockWheelPrizes.slice(0, MAX_SEGMENTS))
+  const [segments, setSegments] = useState<WheelSegment[]>(DEFAULT_SEGMENTS)
   const [wheelEnabled, setWheelEnabled] = useState(true)
-  const [spinCost, setSpinCost] = useState(100)
-  const [smallBonusThreshold, setSmallBonusThreshold] = useState(500)
-  const [largeBonusThreshold, setLargeBonusThreshold] = useState(1000)
+  const [rareThreshold, setRareThreshold] = useState(500)
+  const [ultraRareThreshold, setUltraRareThreshold] = useState(1000)
 
-  const activeTotal = prizes.filter(p => p.enabled).reduce((s, p) => s + p.probability, 0)
-  const isValid = activeTotal === 100
+  const thresholdValid = ultraRareThreshold > rareThreshold
 
-  const updatePrize = (id: string, updates: Partial<FortuneWheelPrize>) => {
-    setPrizes(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p))
-  }
-
-  const removePrize = (id: string) => {
-    setPrizes(prev => prev.filter(p => p.id !== id))
-  }
-
-  const addPrize = () => {
-    if (prizes.length >= MAX_SEGMENTS) {
-      toast(`Fortune wheel is fixed at ${MAX_SEGMENTS} segments`, 'warn')
-      return
-    }
-    const newPrize: FortuneWheelPrize = {
-      id: `wp${Date.now()}`,
-      label: 'New Prize',
-      emoji: '🎁',
-      type: 'coins',
-      reward: 0,
-      probability: 0,
-      color: '#3498DB',
-      enabled: true,
-    }
-    setPrizes(prev => [...prev, newPrize])
-  }
-
-  const autoBalance = () => {
-    const enabledPrizes = prizes.filter(p => p.enabled)
-    if (enabledPrizes.length === 0) return
-    const base = Math.floor(100 / enabledPrizes.length)
-    const remainder = 100 - base * enabledPrizes.length
-    let i = 0
-    setPrizes(prev => prev.map(p => {
-      if (!p.enabled) return p
-      const prob = base + (i < remainder ? 1 : 0)
-      i++
-      return { ...p, probability: prob }
-    }))
-    toast('Probabilities auto-balanced to 100%', 'info')
+  const updateSegment = (id: string, updates: Partial<WheelSegment>) => {
+    setSegments(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s))
   }
 
   const handleSave = () => {
-    if (!isValid) {
-      toast(`Probabilities sum to ${activeTotal}% — must equal 100%`, 'error')
+    if (!thresholdValid) {
+      toast('Ultra-rare threshold must be greater than rare threshold', 'error')
       return
     }
     toast('Fortune Wheel configuration saved', 'success')
@@ -97,18 +177,10 @@ export default function FortuneWheel() {
       <div className="page-header">
         <div className="page-header-text">
           <div className="title">Fortune Wheel</div>
-          <div className="subtitle">Configure {MAX_SEGMENTS} prize segments, drop probabilities, and milestone bonuses</div>
+          <div className="subtitle">5 fixed segments · counter-based milestones · no probability system</div>
         </div>
         <div className="page-header-actions">
-          <button className="btn btn-ghost btn-sm" onClick={autoBalance}>
-            <RotateCcw size={13} /> Auto-Balance
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={handleSave}
-            style={{ opacity: isValid ? 1 : 0.55 }}
-            title={isValid ? 'Save configuration' : `Probabilities sum to ${activeTotal}% — must equal 100%`}
-          >
+          <button className="btn btn-primary" onClick={handleSave}>
             <Save size={13} /> Save Config
           </button>
         </div>
@@ -119,7 +191,7 @@ export default function FortuneWheel() {
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
           Global Settings
         </div>
-        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <label className="toggle">
               <input type="checkbox" checked={wheelEnabled} onChange={e => setWheelEnabled(e.target.checked)} />
@@ -131,34 +203,11 @@ export default function FortuneWheel() {
             </div>
           </div>
 
-          <div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Spin Cost</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <input
-                className="form-input"
-                type="number"
-                min={0}
-                value={spinCost}
-                onChange={e => setSpinCost(Number(e.target.value))}
-                style={{ width: 90 }}
-              />
-              <span style={{ fontSize: 14 }}>🪙</span>
-            </div>
-          </div>
-
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--bg-surface-2)', borderRadius: 8, border: '1px solid var(--border)' }}>
-            <span style={{ fontSize: 13 }}>∞</span>
+            <span style={{ fontSize: 16 }}>∞</span>
             <div>
               <div style={{ fontSize: 12, fontWeight: 600 }}>Unlimited Spins</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>No cooldown or daily limit</div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--bg-surface-2)', borderRadius: 8, border: '1px solid var(--border)' }}>
-            <span style={{ fontSize: 13 }}>⬡</span>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600 }}>{MAX_SEGMENTS} Segments Fixed</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Wheel always has {MAX_SEGMENTS} prizes</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>No cooldown · 1 spin = 1 donation</div>
             </div>
           </div>
         </div>
@@ -169,241 +218,108 @@ export default function FortuneWheel() {
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
           Milestone Bonuses
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
-          When total spin milestones are reached, the streamer who triggered that spin receives a bonus gift.
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>
+          The outcome is not random — it is determined purely by the spin counter on the streamer's wheel.
+          All other spins are a miss. The viewer who triggers a milestone spin causes the streamer to receive the bonus gift.
         </div>
-        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Small Bonus — every N spins</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+
+        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+          {/* Rare */}
+          <div style={{
+            flex: 1, minWidth: 220, padding: '14px 16px', borderRadius: 10,
+            background: 'rgba(52,152,219,0.07)', border: '1px solid rgba(52,152,219,0.2)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                textTransform: 'uppercase', letterSpacing: '0.5px',
+                background: 'rgba(52,152,219,0.15)', color: '#3498DB', border: '1px solid rgba(52,152,219,0.3)',
+              }}>Rare</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>bonus threshold</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Every</span>
               <input
                 className="form-input"
                 type="number"
                 min={1}
-                value={smallBonusThreshold}
-                onChange={e => setSmallBonusThreshold(Number(e.target.value))}
-                style={{ width: 100 }}
+                value={rareThreshold}
+                onChange={e => setRareThreshold(Number(e.target.value))}
+                style={{ width: 90 }}
               />
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>spins</span>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-              e.g. spin #{smallBonusThreshold}, #{smallBonusThreshold * 2}, …
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>
+              Spin #{rareThreshold}, #{rareThreshold * 2}, #{rareThreshold * 3}, …
             </div>
           </div>
 
-          <div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Large Bonus — every N spins</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {/* Ultra-Rare */}
+          <div style={{
+            flex: 1, minWidth: 220, padding: '14px 16px', borderRadius: 10,
+            background: 'rgba(155,102,204,0.07)', border: `1px solid ${thresholdValid ? 'rgba(155,102,204,0.2)' : 'rgba(231,76,60,0.4)'}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                textTransform: 'uppercase', letterSpacing: '0.5px',
+                background: 'rgba(155,102,204,0.15)', color: '#9B66CC', border: '1px solid rgba(155,102,204,0.3)',
+              }}>Ultra-Rare</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>bonus threshold</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Every</span>
               <input
                 className="form-input"
                 type="number"
                 min={1}
-                value={largeBonusThreshold}
-                onChange={e => setLargeBonusThreshold(Number(e.target.value))}
-                style={{ width: 100 }}
+                value={ultraRareThreshold}
+                onChange={e => setUltraRareThreshold(Number(e.target.value))}
+                style={{ width: 90, borderColor: thresholdValid ? undefined : 'rgba(231,76,60,0.6)' }}
               />
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>spins</span>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-              e.g. spin #{largeBonusThreshold}, #{largeBonusThreshold * 2}, …
+            <div style={{ fontSize: 11, marginTop: 8, color: thresholdValid ? 'var(--text-muted)' : '#E74C3C' }}>
+              {thresholdValid
+                ? `Spin #${ultraRareThreshold}, #${ultraRareThreshold * 2}, #${ultraRareThreshold * 3}, …`
+                : '⚠ Must be greater than the rare threshold'}
             </div>
           </div>
 
-          {largeBonusThreshold > 0 && smallBonusThreshold > 0 && largeBonusThreshold <= smallBonusThreshold && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#E74C3C', fontWeight: 600 }}>
-              ⚠ Large bonus threshold should be greater than small bonus threshold
+          {/* Miss info */}
+          <div style={{
+            flex: 1, minWidth: 220, padding: '14px 16px', borderRadius: 10,
+            background: 'rgba(138,138,142,0.06)', border: '1px solid rgba(138,138,142,0.15)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                textTransform: 'uppercase', letterSpacing: '0.5px',
+                background: 'rgba(138,138,142,0.12)', color: '#8A8A8E', border: '1px solid rgba(138,138,142,0.2)',
+              }}>Miss</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>all other spins</span>
             </div>
-          )}
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              Spins {rareThreshold - 1 > 0 ? `#1–#${rareThreshold - 1}` : ''} between milestones land here.
+              No reward is given — the wheel animation plays and lands on a miss segment.
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Probability distribution */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 600 }}>Probability Distribution</span>
-          {isValid ? (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--emerald)', fontWeight: 600 }}>
-              <CheckCircle size={14} /> 100% — valid
-            </span>
-          ) : (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#E74C3C', fontWeight: 600 }}>
-              <AlertTriangle size={14} /> {activeTotal}% — must equal 100%
-            </span>
-          )}
+      {/* Segments */}
+      <div className="table-wrapper" style={{ padding: '16px 20px' }}>
+        <div style={{ marginBottom: 16 }}>
+          <div className="table-title">Wheel Segments</div>
+          <div className="table-subtitle" style={{ marginTop: 2 }}>
+            2 rare · 2 ultra-rare · 1 miss — types are fixed, labels and animations are editable
+          </div>
         </div>
-        <ProbabilityBar prizes={prizes} />
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', marginTop: 8 }}>
-          {prizes.filter(p => p.enabled).map(p => (
-            <span key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)' }}>
-              <span style={{ width: 8, height: 8, borderRadius: 2, background: p.color, display: 'inline-block', flexShrink: 0 }} />
-              {p.label} {p.probability}%
-            </span>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+          {segments.map((seg, i) => (
+            <SegmentCard key={seg.id} segment={seg} index={i} onChange={updateSegment} />
           ))}
-        </div>
-      </div>
-
-      {/* Prize table */}
-      <div className="table-wrapper">
-        <div className="table-header">
-          <div>
-            <div className="table-title">Prize Segments</div>
-            <div className="table-subtitle">{prizes.length} segments · {prizes.filter(p => p.enabled).length} active</div>
-          </div>
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={addPrize}
-            disabled={prizes.length >= MAX_SEGMENTS}
-            title={prizes.length >= MAX_SEGMENTS ? `Max ${MAX_SEGMENTS} segments` : 'Add segment'}
-            style={{ opacity: prizes.length >= MAX_SEGMENTS ? 0.4 : 1 }}
-          >
-            <Plus size={13} /> Add Segment
-          </button>
-        </div>
-
-        <div style={{ overflowX: 'auto' }}>
-          <table>
-            <thead>
-              <tr>
-                <th style={{ width: 40 }}>Color</th>
-                <th>Label</th>
-                <th>Type</th>
-                <th>Reward</th>
-                <th style={{ width: 130 }}>Probability</th>
-                <th style={{ width: 80 }}>Enabled</th>
-                <th style={{ width: 40 }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {prizes.map(prize => (
-                <tr key={prize.id} style={{ opacity: prize.enabled ? 1 : 0.45 }}>
-                  <td>
-                    <label style={{ cursor: 'pointer', display: 'block', position: 'relative' }}>
-                      <div style={{
-                        width: 26, height: 26, borderRadius: 6,
-                        background: prize.color,
-                        border: '1.5px solid rgba(255,255,255,0.12)',
-                        cursor: 'pointer',
-                      }} />
-                      <input
-                        type="color"
-                        value={prize.color}
-                        onChange={e => updatePrize(prize.id, { color: e.target.value })}
-                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, top: 0, left: 0 }}
-                      />
-                    </label>
-                  </td>
-
-                  <td>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <input
-                        className="form-input"
-                        value={prize.emoji}
-                        onChange={e => updatePrize(prize.id, { emoji: e.target.value })}
-                        style={{ width: 46, textAlign: 'center', fontSize: 16, padding: '4px 6px' }}
-                      />
-                      <input
-                        className="form-input"
-                        value={prize.label}
-                        onChange={e => updatePrize(prize.id, { label: e.target.value })}
-                        style={{ width: 140 }}
-                      />
-                    </div>
-                  </td>
-
-                  <td>
-                    <select
-                      className="form-select"
-                      value={prize.type}
-                      onChange={e => updatePrize(prize.id, { type: e.target.value as WheelPrizeType })}
-                      style={{ width: 140 }}
-                    >
-                      {(Object.keys(typeLabels) as WheelPrizeType[]).map(t => (
-                        <option key={t} value={t}>{typeLabels[t]}</option>
-                      ))}
-                    </select>
-                  </td>
-
-                  <td>
-                    {prize.type === 'miss' ? (
-                      <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <input
-                          className="form-input"
-                          type="number"
-                          min={0}
-                          value={prize.reward}
-                          onChange={e => updatePrize(prize.id, { reward: Number(e.target.value) })}
-                          style={{ width: 100 }}
-                        />
-                        <span style={{ fontSize: 13 }}>
-                          {prize.type === 'coins' ? '🪙' : prize.type === 'diamonds' ? '💎' : '×'}
-                        </span>
-                      </div>
-                    )}
-                  </td>
-
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <input
-                        className="form-input"
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={prize.probability}
-                        onChange={e => updatePrize(prize.id, { probability: Math.max(0, Math.min(100, Number(e.target.value))) })}
-                        style={{ width: 70 }}
-                      />
-                      <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>%</span>
-                    </div>
-                  </td>
-
-                  <td>
-                    <label className="toggle">
-                      <input
-                        type="checkbox"
-                        checked={prize.enabled}
-                        onChange={e => updatePrize(prize.id, { enabled: e.target.checked })}
-                      />
-                      <span className="toggle-track" />
-                    </label>
-                  </td>
-
-                  <td>
-                    <button
-                      className="btn btn-ghost btn-icon"
-                      onClick={() => removePrize(prize.id)}
-                      title="Remove segment"
-                      style={{ color: 'var(--text-muted)' }}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div style={{
-          padding: '12px 20px',
-          borderTop: '1px solid var(--border)',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          gap: 16,
-        }}>
-          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            Active: {prizes.filter(p => p.enabled).length} segments
-          </span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: isValid ? 'var(--emerald)' : '#E74C3C' }}>
-            Total: {activeTotal}%
-          </span>
-          {!isValid && (
-            <span style={{ fontSize: 12, color: '#E74C3C' }}>
-              {activeTotal < 100 ? `+${100 - activeTotal}% missing` : `-${activeTotal - 100}% excess`}
-            </span>
-          )}
         </div>
       </div>
     </div>

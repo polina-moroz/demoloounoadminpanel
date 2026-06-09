@@ -214,6 +214,16 @@ export interface FortuneWheelPrize {
   enabled: boolean;
 }
 
+export type WheelSegmentType = 'rare' | 'ultra-rare' | 'miss';
+
+export interface WheelSegment {
+  id: string;
+  type: WheelSegmentType;
+  label: string;
+  color: string;
+  animationFileName: string | null;
+}
+
 export type FraudAlertStatus = 'pending' | 'approved' | 'rejected';
 
 export interface FraudAlert {
