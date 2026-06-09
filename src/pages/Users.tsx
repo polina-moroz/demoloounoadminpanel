@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, PlusCircle, MinusCircle, Receipt, ChevronDown, ChevronRight, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
+import WarnModal from '../components/WarnModal'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
 import type { User, UserStatus, Transaction, Report } from '../types'
@@ -302,7 +303,7 @@ const filterTabs: { key: FilterTab; label: string }[] = [
 interface SlideOverProps {
   user: User | null
   onClose: () => void
-  onWarn: (id: string) => void
+  onWarn: (id: string, message: string) => void
   onSuspend: (id: string) => void
   onReinstate: (id: string) => void
   onPromote: (id: string) => void
@@ -317,6 +318,7 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
   const [balanceReason, setBalanceReason] = useState('')
   const [txOpen, setTxOpen] = useState(false)
   const [reportsOpen, setReportsOpen] = useState(false)
+  const [warnOpen, setWarnOpen] = useState(false)
   if (!user) return null
   const userStreams = streams.filter(s => s.streamerHandle === user.handle)
   const userReports = reports.filter(r => r.targetHandle === user.handle)
@@ -329,6 +331,13 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
     <>
       {txOpen && <TxHistoryModal user={user} txs={userTxs} onClose={() => setTxOpen(false)} />}
       {reportsOpen && <UserReportsModal user={user} reports={userReports} onClose={() => setReportsOpen(false)} />}
+      {warnOpen && (
+        <WarnModal
+          targetLabel={`@${user.handle}`}
+          onConfirm={msg => onWarn(user.id, msg)}
+          onClose={() => setWarnOpen(false)}
+        />
+      )}
       <div className="slide-over-overlay" onClick={onClose} />
       <aside className="slide-over open">
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -506,7 +515,7 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
 
           {/* Actions */}
           <div style={{ marginTop: 24, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button className="btn btn-warn btn-sm" onClick={() => { onWarn(user.id); onClose() }}>
+            <button className="btn btn-warn btn-sm" onClick={() => setWarnOpen(true)}>
               <AlertTriangle size={12} /> Warn
             </button>
             {user.status !== 'suspended' && user.status !== 'banned' && (
@@ -555,6 +564,7 @@ export default function Users() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterTab>('all')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [warnTarget, setWarnTarget] = useState<User | null>(null)
 
   // keep slide-over in sync with live state
   const liveSelectedUser = selectedUser ? users.find(u => u.id === selectedUser.id) ?? null : null
@@ -570,6 +580,13 @@ export default function Users() {
 
   return (
     <div>
+      {warnTarget && (
+        <WarnModal
+          targetLabel={`@${warnTarget.handle}`}
+          onConfirm={msg => warnUser(warnTarget.id, msg)}
+          onClose={() => setWarnTarget(null)}
+        />
+      )}
       <div className="page-header">
         <div className="page-header-text">
           <div className="title">Users</div>
@@ -662,7 +679,7 @@ export default function Users() {
                       <button className="btn btn-ghost btn-icon" title="View" onClick={() => setSelectedUser(u)}>
                         <Eye size={13} />
                       </button>
-                      <button className="btn btn-warn btn-icon" title="Warn" onClick={() => warnUser(u.id)}>
+                      <button className="btn btn-warn btn-icon" title="Warn" onClick={() => setWarnTarget(u)}>
                         <AlertTriangle size={13} />
                       </button>
                       {u.status === 'active' || u.status === 'unverified' ? (
@@ -695,7 +712,7 @@ export default function Users() {
       <UserSlideOver
         user={liveSelectedUser}
         onClose={() => setSelectedUser(null)}
-        onWarn={warnUser}
+        onWarn={(id, msg) => warnUser(id, msg)}
         onSuspend={id => setUserStatus(id, 'suspended')}
         onReinstate={id => setUserStatus(id, 'active')}
         onPromote={promoteTopStreamer}

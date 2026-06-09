@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { XCircle, AlertTriangle, ExternalLink, RefreshCw } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
+import WarnModal from '../components/WarnModal'
 import { useStore } from '../store'
-import type { StreamStatus } from '../types'
+import type { Stream, StreamStatus } from '../types'
 
 const STATUS_OPTIONS: { key: StreamStatus; label: string }[] = [
   { key: 'live',       label: 'Live Now' },
@@ -20,6 +21,7 @@ export default function Streams() {
   const [selectedStatuses, setSelectedStatuses] = useState<StreamStatus[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
+  const [warnTarget, setWarnTarget] = useState<Stream | null>(null)
 
   const liveCount = streams.filter(s => s.status === 'live').length
   const allCategories = Array.from(new Set(streams.map(s => s.category))).sort()
@@ -32,6 +34,13 @@ export default function Streams() {
 
   return (
     <div>
+      {warnTarget && (
+        <WarnModal
+          targetLabel={`@${warnTarget.streamerHandle} — ${warnTarget.title}`}
+          onConfirm={msg => warnStreamer(warnTarget.id, msg)}
+          onClose={() => setWarnTarget(null)}
+        />
+      )}
       <div className="page-header">
         <div className="page-header-text">
           <div className="title">Streams</div>
@@ -189,7 +198,7 @@ export default function Streams() {
                             <button className="btn btn-danger btn-sm" onClick={() => terminateStream(s.id)}>
                               <XCircle size={12} /> Terminate
                             </button>
-                            <button className="btn btn-warn btn-sm" onClick={() => warnStreamer(s.id)}>
+                            <button className="btn btn-warn btn-sm" onClick={() => setWarnTarget(s)}>
                               <AlertTriangle size={12} />
                             </button>
                           </>

@@ -37,7 +37,7 @@ interface StoreCtx {
   notifications: Notification[]
 
   // user actions
-  warnUser: (id: string) => void
+  warnUser: (id: string, message?: string) => void
   setUserStatus: (id: string, status: UserStatus) => void
   promoteTopStreamer: (id: string) => void
   demoteTopStreamer: (id: string) => void
@@ -46,7 +46,7 @@ interface StoreCtx {
 
   // stream actions
   terminateStream: (id: string) => void
-  warnStreamer: (streamId: string) => void
+  warnStreamer: (streamId: string, message?: string) => void
 
   // report actions
   resolveReport: (id: string) => void
@@ -142,9 +142,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ))
   }
 
-  const warnUser = useCallback((id: string) => {
+  const warnUser = useCallback((id: string, message?: string) => {
     const u = users.find(u => u.id === id)
-    toast(`Warning sent to @${u?.handle ?? id}`, 'warn')
+    const note = message ? `: "${message.slice(0, 60)}${message.length > 60 ? '…' : ''}"` : ''
+    toast(`Warning sent to @${u?.handle ?? id}${note}`, 'warn')
   }, [users, toast])
 
   const setUserStatus = useCallback((id: string, status: UserStatus) => {
@@ -192,9 +193,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     toast(`Stream "${s?.title ?? id}" has been terminated`, 'error')
   }, [streams, toast])
 
-  const warnStreamer = useCallback((streamId: string) => {
+  const warnStreamer = useCallback((streamId: string, message?: string) => {
     const s = streams.find(s => s.id === streamId)
-    toast(`Warning sent to @${s?.streamerHandle ?? streamId}`, 'warn')
+    const note = message ? `: "${message.slice(0, 60)}${message.length > 60 ? '…' : ''}"` : ''
+    toast(`Warning sent to @${s?.streamerHandle ?? streamId}${note}`, 'warn')
   }, [streams, toast])
 
   /* ── report helpers ── */
