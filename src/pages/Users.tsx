@@ -360,7 +360,7 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
                 <Badge variant={user.role} dot={false}>{user.role}</Badge>
                 <Badge variant={user.kyc} dot>{statusLabel(user.kyc)}</Badge>
                 {user.isTopStreamer && (
-                  <span className="badge badge-top-streamer">⭐ Top Streamer</span>
+                  <span className="badge badge-top-streamer">⭐ Star Badge</span>
                 )}
                 {user.isIPBanned && (
                   <span className="badge badge-ip-banned">🚫 IP Banned</span>
@@ -526,21 +526,21 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
             )}
           </div>
 
-          {/* Top Streamer promotion */}
+          {/* Star Badge promotion */}
           {user.role === 'creator' && (
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 600, marginBottom: 8 }}>Trending Promotion</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 600, marginBottom: 8 }}>Star Badge</div>
               {user.isTopStreamer ? (
                 <button className="btn btn-secondary btn-sm" onClick={() => { onDemote(user.id); onClose() }}>
-                  <Star size={12} /> Remove Top Streamer Badge
+                  <Star size={12} /> Remove Star Badge
                 </button>
               ) : (
                 <button className="btn btn-primary btn-sm" onClick={() => { onPromote(user.id); onClose() }}>
-                  <Star size={12} /> Promote to Top Streamer
+                  <Star size={12} /> Grant Star Badge
                 </button>
               )}
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
-                Top Streamers appear first on the trending page and receive a ⭐ badge.
+                Star Badge streamers appear first on the trending page and receive a boost in visibility.
               </div>
             </div>
           )}
@@ -645,15 +645,15 @@ export default function Users() {
                   <td>
                     {u.isTopStreamer ? (
                       <span className="badge badge-top-streamer" style={{ cursor: 'pointer' }}
-                        title="Remove Top Streamer badge"
+                        title="Remove Star Badge"
                         onClick={() => demoteTopStreamer(u.id)}>
-                        ⭐ Top
+                        ⭐ Star
                       </span>
                     ) : u.role === 'creator' ? (
-                      <button className="btn btn-ghost btn-sm" title="Promote to Top Streamer"
+                      <button className="btn btn-ghost btn-sm" title="Grant Star Badge"
                         onClick={() => promoteTopStreamer(u.id)}
                         style={{ fontSize: 10, padding: '3px 8px' }}>
-                        <Star size={11} /> Promote
+                        <Star size={11} /> Grant
                       </button>
                     ) : <span style={{ color: 'var(--text-subtle)', fontSize: 12 }}>—</span>}
                   </td>

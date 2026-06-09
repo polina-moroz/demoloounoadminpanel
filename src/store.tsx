@@ -158,13 +158,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const promoteTopStreamer = useCallback((id: string) => {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, isTopStreamer: true } : u))
     const u = users.find(u => u.id === id)
-    toast(`@${u?.handle ?? id} promoted to Top Streamer ⭐`, 'success')
+    toast(`@${u?.handle ?? id} granted Star Badge ⭐`, 'success')
   }, [users, toast])
 
   const demoteTopStreamer = useCallback((id: string) => {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, isTopStreamer: false } : u))
     const u = users.find(u => u.id === id)
-    toast(`Top Streamer badge removed from @${u?.handle ?? id}`, 'info')
+    toast(`Star Badge removed from @${u?.handle ?? id}`, 'info')
   }, [users, toast])
 
   const ipBanUser = useCallback((id: string) => {

@@ -322,7 +322,7 @@ export default function Prestige() {
     <div>
       <div className="page-header">
         <div className="page-header-text">
-          <div className="title">Prestige System</div>
+          <div className="title">XP &amp; Levels</div>
           <div className="subtitle">XP viewer levels · SP streamer tiers · VIP monthly spenders</div>
         </div>
         <div className="page-header-actions">

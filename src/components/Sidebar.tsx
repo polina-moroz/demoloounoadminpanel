@@ -43,7 +43,7 @@ const sections = [
     label: 'Engagement',
     items: [
       { to: '/competitions', icon: Trophy, label: 'Competitions' },
-      { to: '/prestige', icon: Star, label: 'Prestige' },
+      { to: '/prestige', icon: Star, label: 'XP & Levels' },
       { to: '/fortune-wheel', icon: Dices, label: 'Fortune Wheel' },
     ],
   },

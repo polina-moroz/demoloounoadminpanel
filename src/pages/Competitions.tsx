@@ -1,19 +1,65 @@
 import { useState } from 'react'
-import { Trophy, RefreshCw, Download, Megaphone, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { Trophy, RefreshCw, Download, Megaphone, TrendingUp, TrendingDown, Minus, Play, Square } from 'lucide-react'
 import { mockLeaderboard, mockPrizeTiers } from '../mockData'
+
+type ContestPeriod = 'weekly' | 'biweekly' | 'monthly'
+
+const periodLabels: Record<ContestPeriod, string> = {
+  weekly:   'Weekly',
+  biweekly: 'Bi-Weekly',
+  monthly:  'Monthly',
+}
+
+const periodDuration: Record<ContestPeriod, string> = {
+  weekly:   '7 days',
+  biweekly: '14 days',
+  monthly:  '30 days',
+}
 
 export default function Competitions() {
   const [prizeEditing, setPrizeEditing] = useState(false)
+  const [period, setPeriod] = useState<ContestPeriod>('monthly')
+  const [contestActive, setContestActive] = useState(true)
+
+  const resetLabel = period === 'weekly' ? 'Reset Week' : period === 'biweekly' ? 'Reset Period' : 'Reset Month'
 
   return (
     <div>
       <div className="page-header">
         <div className="page-header-text">
           <div className="title">Competitions</div>
-          <div className="subtitle">Monthly leaderboard and prize configuration</div>
+          <div className="subtitle">{periodLabels[period]} leaderboard and prize configuration</div>
         </div>
         <div className="page-header-actions">
-          <button className="btn btn-secondary"><RefreshCw size={14} /> Reset Month</button>
+          {/* Period switcher */}
+          <div style={{ display: 'flex', gap: 4, background: 'var(--bg-surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: 3 }}>
+            {(Object.keys(periodLabels) as ContestPeriod[]).map(p => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                style={{
+                  fontSize: 12, fontWeight: 600, padding: '5px 12px', borderRadius: 6, border: 'none',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                  background: period === p ? 'var(--gold)' : 'transparent',
+                  color: period === p ? '#000' : 'var(--text-muted)',
+                }}
+              >
+                {periodLabels[p]}
+              </button>
+            ))}
+          </div>
+
+          {contestActive ? (
+            <button className="btn btn-danger btn-sm" onClick={() => setContestActive(false)}>
+              <Square size={12} /> Stop Contest
+            </button>
+          ) : (
+            <button className="btn btn-success btn-sm" onClick={() => setContestActive(true)}>
+              <Play size={12} /> Start Contest
+            </button>
+          )}
+
+          <button className="btn btn-secondary"><RefreshCw size={14} /> {resetLabel}</button>
           <button className="btn btn-secondary"><Download size={14} /> Export CSV</button>
           <button className="btn btn-primary"><Megaphone size={14} /> Announce Winners</button>
         </div>
@@ -24,17 +70,31 @@ export default function Competitions() {
         <div className="card-header">
           <div>
             <div className="card-title">June 2026 Competition</div>
-            <div className="card-subtitle">Jun 1 – Jun 30, 2026</div>
+            <div className="card-subtitle">
+              {periodLabels[period]} · {periodDuration[period]}
+              {period !== 'monthly' && ' · Auto-resets each cycle'}
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{
-              padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700,
-              background: 'rgba(46,204,138,0.12)', color: '#2ECC8A', border: '1px solid rgba(46,204,138,0.2)',
-              display: 'flex', alignItems: 'center', gap: 6
-            }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#2ECC8A', animation: 'pulse 2s infinite', display: 'inline-block' }} />
-              Active
-            </span>
+            {contestActive ? (
+              <span style={{
+                padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700,
+                background: 'rgba(46,204,138,0.12)', color: '#2ECC8A', border: '1px solid rgba(46,204,138,0.2)',
+                display: 'flex', alignItems: 'center', gap: 6
+              }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#2ECC8A', animation: 'pulse 2s infinite', display: 'inline-block' }} />
+                Active
+              </span>
+            ) : (
+              <span style={{
+                padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700,
+                background: 'rgba(231,76,60,0.12)', color: '#E74C3C', border: '1px solid rgba(231,76,60,0.2)',
+                display: 'flex', alignItems: 'center', gap: 6
+              }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#E74C3C', display: 'inline-block' }} />
+                Stopped
+              </span>
+            )}
           </div>
         </div>
         <div style={{ padding: '16px 20px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>

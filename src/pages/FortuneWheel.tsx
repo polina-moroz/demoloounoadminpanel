@@ -30,13 +30,15 @@ function ProbabilityBar({ prizes }: { prizes: FortuneWheelPrize[] }) {
   )
 }
 
+const MAX_SEGMENTS = 5
+
 export default function FortuneWheel() {
   const { toast } = useStore()
-  const [prizes, setPrizes] = useState<FortuneWheelPrize[]>(mockWheelPrizes)
+  const [prizes, setPrizes] = useState<FortuneWheelPrize[]>(mockWheelPrizes.slice(0, MAX_SEGMENTS))
   const [wheelEnabled, setWheelEnabled] = useState(true)
   const [spinCost, setSpinCost] = useState(100)
-  const [dailyLimit, setDailyLimit] = useState(3)
-  const [cooldown, setCooldown] = useState(60)
+  const [smallBonusThreshold, setSmallBonusThreshold] = useState(500)
+  const [largeBonusThreshold, setLargeBonusThreshold] = useState(1000)
 
   const activeTotal = prizes.filter(p => p.enabled).reduce((s, p) => s + p.probability, 0)
   const isValid = activeTotal === 100
@@ -50,6 +52,10 @@ export default function FortuneWheel() {
   }
 
   const addPrize = () => {
+    if (prizes.length >= MAX_SEGMENTS) {
+      toast(`Fortune wheel is fixed at ${MAX_SEGMENTS} segments`, 'warn')
+      return
+    }
     const newPrize: FortuneWheelPrize = {
       id: `wp${Date.now()}`,
       label: 'New Prize',
@@ -91,7 +97,7 @@ export default function FortuneWheel() {
       <div className="page-header">
         <div className="page-header-text">
           <div className="title">Fortune Wheel</div>
-          <div className="subtitle">Configure prize segments, drop probabilities, and spin settings</div>
+          <div className="subtitle">Configure {MAX_SEGMENTS} prize segments, drop probabilities, and milestone bonuses</div>
         </div>
         <div className="page-header-actions">
           <button className="btn btn-ghost btn-sm" onClick={autoBalance}>
@@ -140,35 +146,74 @@ export default function FortuneWheel() {
             </div>
           </div>
 
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--bg-surface-2)', borderRadius: 8, border: '1px solid var(--border)' }}>
+            <span style={{ fontSize: 13 }}>∞</span>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>Unlimited Spins</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>No cooldown or daily limit</div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--bg-surface-2)', borderRadius: 8, border: '1px solid var(--border)' }}>
+            <span style={{ fontSize: 13 }}>⬡</span>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{MAX_SEGMENTS} Segments Fixed</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Wheel always has {MAX_SEGMENTS} prizes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Milestone bonuses */}
+      <div className="table-wrapper" style={{ padding: '16px 20px', marginBottom: 20 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+          Milestone Bonuses
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
+          When total spin milestones are reached, the streamer who triggered that spin receives a bonus gift.
+        </div>
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Daily Spins Limit</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Small Bonus — every N spins</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <input
                 className="form-input"
                 type="number"
                 min={1}
-                value={dailyLimit}
-                onChange={e => setDailyLimit(Number(e.target.value))}
-                style={{ width: 80 }}
+                value={smallBonusThreshold}
+                onChange={e => setSmallBonusThreshold(Number(e.target.value))}
+                style={{ width: 100 }}
               />
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>/ day</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>spins</span>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+              e.g. spin #{smallBonusThreshold}, #{smallBonusThreshold * 2}, …
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Cooldown Between Spins</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Large Bonus — every N spins</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <input
                 className="form-input"
                 type="number"
-                min={0}
-                value={cooldown}
-                onChange={e => setCooldown(Number(e.target.value))}
-                style={{ width: 80 }}
+                min={1}
+                value={largeBonusThreshold}
+                onChange={e => setLargeBonusThreshold(Number(e.target.value))}
+                style={{ width: 100 }}
               />
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>min</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>spins</span>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+              e.g. spin #{largeBonusThreshold}, #{largeBonusThreshold * 2}, …
             </div>
           </div>
+
+          {largeBonusThreshold > 0 && smallBonusThreshold > 0 && largeBonusThreshold <= smallBonusThreshold && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#E74C3C', fontWeight: 600 }}>
+              ⚠ Large bonus threshold should be greater than small bonus threshold
+            </div>
+          )}
         </div>
       </div>
 
@@ -204,7 +249,13 @@ export default function FortuneWheel() {
             <div className="table-title">Prize Segments</div>
             <div className="table-subtitle">{prizes.length} segments · {prizes.filter(p => p.enabled).length} active</div>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={addPrize}>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={addPrize}
+            disabled={prizes.length >= MAX_SEGMENTS}
+            title={prizes.length >= MAX_SEGMENTS ? `Max ${MAX_SEGMENTS} segments` : 'Add segment'}
+            style={{ opacity: prizes.length >= MAX_SEGMENTS ? 0.4 : 1 }}
+          >
             <Plus size={13} /> Add Segment
           </button>
         </div>
