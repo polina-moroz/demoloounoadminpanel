@@ -128,7 +128,7 @@ function SegmentCard({
               style={{ width: '100%', justifyContent: 'center', fontSize: 12 }}
               onClick={() => fileRef.current?.click()}
             >
-              <Upload size={12} /> Upload GIF / Lottie
+              <Upload size={12} /> Upload Animation
             </button>
           )}
           <input
@@ -142,9 +142,6 @@ function SegmentCard({
               e.target.value = ''
             }}
           />
-          <div style={{ fontSize: 10, color: 'var(--text-subtle, #555)', marginTop: 5 }}>
-            Accepted: .gif · .json (Lottie) · .lottie
-          </div>
         </div>
       </div>
     </div>
