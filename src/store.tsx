@@ -6,7 +6,7 @@ import {
 import type {
   User, Stream, Report, WithdrawalRequest, KYCEntry,
   Notification, UserStatus, WithdrawalStatus, KYCStatus, NotificationTarget,
-  AdminMember, AdminRole, ReportReason, ReportType, FraudAlert, WarnMessage, ReportLogEntry,
+  AdminMember, AdminRole, ReportReason, ReportType, FraudAlert, WarnMessage, ReportLogEntry, ActionLogEntry,
 } from './types'
 
 // Processing fee default (%)
@@ -158,17 +158,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const warnUser = useCallback((id: string, message?: string) => {
     const u = users.find(u => u.id === id)
+    setUsers(prev => prev.map(usr =>
+      usr.id === id
+        ? { ...usr, log: [...(usr.log ?? []), newLogEntry('warned', message)] }
+        : usr
+    ))
     const note = message ? `: "${message.slice(0, 60)}${message.length > 60 ? '…' : ''}"` : ''
     toast(`Warning sent to @${u?.handle ?? id}${note}`, 'warn')
-  }, [users, toast])
+  }, [users, currentAdmin, toast])
 
   const setUserStatus = useCallback((id: string, status: UserStatus) => {
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, status } : u))
+    const action = status === 'active' ? 'reinstated' : status
+    setUsers(prev => prev.map(u =>
+      u.id === id
+        ? { ...u, status, log: [...(u.log ?? []), newLogEntry(action)] }
+        : u
+    ))
     const u = users.find(u => u.id === id)
-    const label = status === 'active' ? 'reinstated' : status
-    toast(`@${u?.handle ?? id} has been ${label}`,
+    toast(`@${u?.handle ?? id} has been ${action}`,
       status === 'banned' ? 'error' : status === 'suspended' ? 'warn' : 'success')
-  }, [users, toast])
+  }, [users, currentAdmin, toast])
 
   const promoteTopStreamer = useCallback((id: string) => {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, isTopStreamer: true } : u))
@@ -183,10 +192,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [users, toast])
 
   const ipBanUser = useCallback((id: string) => {
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, isIPBanned: true, status: 'banned' } : u))
+    setUsers(prev => prev.map(u =>
+      u.id === id
+        ? { ...u, isIPBanned: true, status: 'banned', log: [...(u.log ?? []), newLogEntry('ip_banned')] }
+        : u
+    ))
     const u = users.find(u => u.id === id)
     toast(`@${u?.handle ?? id} has been IP banned`, 'error')
-  }, [users, toast])
+  }, [users, currentAdmin, toast])
 
   const adjustWalletBalance = useCallback((id: string, delta: number, reason: string) => {
     const u = users.find(u => u.id === id)
@@ -201,19 +214,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   /* ── stream helpers ── */
   const terminateStream = useCallback((id: string) => {
     setStreams(prev => prev.map(s =>
-      s.id === id ? { ...s, status: 'terminated', viewers: 0 } : s
+      s.id === id
+        ? { ...s, status: 'terminated', viewers: 0, log: [...(s.log ?? []), newLogEntry('terminated')] }
+        : s
     ))
     const s = streams.find(s => s.id === id)
     toast(`Stream "${s?.title ?? id}" has been terminated`, 'error')
-  }, [streams, toast])
+  }, [streams, currentAdmin, toast])
 
   const warnStreamer = useCallback((streamId: string, warnTitle: string) => {
     setStreams(prev => prev.map(s =>
-      s.id === streamId ? { ...s, warnings: [...(s.warnings ?? []), warnTitle] } : s
+      s.id === streamId
+        ? { ...s, log: [...(s.log ?? []), newLogEntry('warned', warnTitle)] }
+        : s
     ))
     const s = streams.find(s => s.id === streamId)
     toast(`Warning "${warnTitle}" sent to @${s?.streamerHandle ?? streamId}`, 'warn')
-  }, [streams, toast])
+  }, [streams, currentAdmin, toast])
+
+  /* ── action log helper ── */
+  const newLogEntry = (action: string, note?: string): ActionLogEntry => ({
+    id: `log${Date.now()}${Math.random().toString(36).slice(2)}`,
+    action,
+    adminName: currentAdmin?.displayName ?? 'Admin',
+    timestamp: new Date().toISOString(),
+    note,
+  })
 
   /* ── report helpers ── */
   const addReportLog = (prev: Report[], id: string, entry: Omit<ReportLogEntry, 'id'>): Report[] =>

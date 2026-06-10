@@ -26,6 +26,7 @@ export interface User {
   avatarColor: string;
   isTopStreamer?: boolean;
   isIPBanned?: boolean;
+  log?: ActionLogEntry[];
 }
 
 export interface Stream {
@@ -42,12 +43,20 @@ export interface Stream {
   startedAt: string;
   endedAt?: string;
   avatarColor: string;
-  warnings?: string[];
+  log?: ActionLogEntry[];
 }
 
 export interface ReportLogEntry {
   id: string;
   action: 'warned' | 'banned' | 'resolved' | 'dismissed' | 'reopened';
+  adminName: string;
+  timestamp: string;
+  note?: string;
+}
+
+export interface ActionLogEntry {
+  id: string;
+  action: string;
   adminName: string;
   timestamp: string;
   note?: string;

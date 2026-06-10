@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { XCircle, AlertTriangle, ExternalLink, RefreshCw } from 'lucide-react'
+import { XCircle, AlertTriangle, ExternalLink, RefreshCw, ScrollText } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
 import WarnMessagesEditor from '../components/WarnMessagesEditor'
+import ActionLogModal from '../components/ActionLogModal'
 import { useStore } from '../store'
 import type { Stream, StreamStatus } from '../types'
 
@@ -23,6 +24,7 @@ export default function Streams() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [warnTarget, setWarnTarget] = useState<Stream | null>(null)
+  const [logTarget, setLogTarget] = useState<Stream | null>(null)
 
   const liveCount = streams.filter(s => s.status === 'live').length
   const allCategories = Array.from(new Set(streams.map(s => s.category))).sort()
@@ -40,6 +42,13 @@ export default function Streams() {
           targetLabel={`@${warnTarget.streamerHandle} — ${warnTarget.title}`}
           onConfirm={msg => warnStreamer(warnTarget.id, msg)}
           onClose={() => setWarnTarget(null)}
+        />
+      )}
+      {logTarget && (
+        <ActionLogModal
+          title={`${logTarget.title} — @${logTarget.streamerHandle}`}
+          entries={logTarget.log ?? []}
+          onClose={() => setLogTarget(null)}
         />
       )}
       <div className="page-header">
@@ -182,26 +191,19 @@ export default function Streams() {
                         </div>
                       )}
                     </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                        <Badge variant={s.status} dot>{statusLabel(s.status)}</Badge>
-                        {s.warnings && s.warnings.length > 0 && (
-                          <span
-                            title={s.warnings.join('\n')}
-                            style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: 'rgba(243,156,18,0.1)', color: '#F39C12', border: '1px solid rgba(243,156,18,0.25)', cursor: 'default', whiteSpace: 'nowrap' }}
-                          >
-                            {s.warnings.length} warn{s.warnings.length > 1 ? 's' : ''}
-                          </span>
-                        )}
-                      </div>
-                      {s.warnings && s.warnings.length > 0 && (
-                        <div style={{ fontSize: 11, color: '#F39C12', marginTop: 3, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.warnings[s.warnings.length - 1]}>
-                          {s.warnings[s.warnings.length - 1]}
-                        </div>
-                      )}
-                    </td>
+                    <td><Badge variant={s.status} dot>{statusLabel(s.status)}</Badge></td>
                     <td>
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                        <button
+                          className="btn btn-ghost btn-icon"
+                          title="View action log"
+                          onClick={() => setLogTarget(s)}
+                        >
+                          <ScrollText size={12} />
+                          {(s.log?.length ?? 0) > 0 && (
+                            <span style={{ fontSize: 10, marginLeft: 2, color: 'var(--text-muted)' }}>{s.log!.length}</span>
+                          )}
+                        </button>
                         {s.status === 'live' && (
                           <>
                             <a

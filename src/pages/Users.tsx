@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, PlusCircle, MinusCircle, Receipt, ChevronDown, ChevronRight, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
+import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, PlusCircle, MinusCircle, Receipt, ChevronDown, ChevronRight, CheckCircle, XCircle, RefreshCw, ScrollText } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
 import WarnMessagesEditor from '../components/WarnMessagesEditor'
 import TxHistoryModal from '../components/TxHistoryModal'
+import ActionLogModal from '../components/ActionLogModal'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
 import type { User, UserStatus, Report } from '../types'
@@ -231,9 +232,10 @@ interface SlideOverProps {
   onDemote: (id: string) => void
   onIPBan: (id: string) => void
   onAdjustBalance: (id: string, delta: number, reason: string) => void
+  onViewLog: () => void
 }
 
-function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromote, onDemote, onIPBan, onAdjustBalance }: SlideOverProps) {
+function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromote, onDemote, onIPBan, onAdjustBalance, onViewLog }: SlideOverProps) {
   const { streams, reports } = useStore()
   const [balanceAmount, setBalanceAmount] = useState('')
   const [balanceReason, setBalanceReason] = useState('')
@@ -434,6 +436,31 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
             )}
           </button>
 
+          {/* Action Log row */}
+          <button
+            onClick={onViewLog}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+              padding: '11px 14px', marginTop: 8, borderRadius: 10, border: 'none',
+              background: 'var(--bg-surface-2)',
+              outline: '1px solid var(--border)',
+              cursor: 'pointer', transition: 'background 0.15s', textAlign: 'left',
+            }}
+          >
+            <ScrollText size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Action Log
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {(user.log?.length ?? 0) > 0 && (
+                <span style={{ minWidth: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, background: 'var(--bg-surface-3, #2A2A30)', color: 'var(--text-muted)' }}>
+                  {user.log!.length}
+                </span>
+              )}
+              <ChevronRight size={13} color="var(--text-muted)" />
+            </div>
+          </button>
+
           {/* Actions */}
           <div style={{ marginTop: 24, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="btn btn-warn btn-sm" onClick={() => setWarnOpen(true)}>
@@ -486,6 +513,7 @@ export default function Users() {
   const [filter, setFilter] = useState<FilterTab>('all')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [warnTarget, setWarnTarget] = useState<User | null>(null)
+  const [logUser, setLogUser] = useState<User | null>(null)
 
   // keep slide-over in sync with live state
   const liveSelectedUser = selectedUser ? users.find(u => u.id === selectedUser.id) ?? null : null
@@ -638,7 +666,16 @@ export default function Users() {
         onDemote={demoteTopStreamer}
         onIPBan={ipBanUser}
         onAdjustBalance={adjustWalletBalance}
+        onViewLog={() => setLogUser(liveSelectedUser)}
       />
+
+      {logUser && (
+        <ActionLogModal
+          title={`@${logUser.handle} — ${logUser.displayName}`}
+          entries={logUser.log ?? []}
+          onClose={() => setLogUser(null)}
+        />
+      )}
 
       <WarnMessagesEditor />
     </div>
