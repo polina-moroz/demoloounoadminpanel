@@ -42,6 +42,7 @@ export interface Stream {
   startedAt: string;
   endedAt?: string;
   avatarColor: string;
+  warnings?: string[];
 }
 
 export interface ReportLogEntry {
@@ -203,7 +204,8 @@ export interface ReportReason {
 
 export interface WarnMessage {
   id: string;
-  label: string;
+  title: string;
+  message: string;
 }
 
 export type WheelSegmentType = 'small_bonus' | 'big_bonus' | 'miss';

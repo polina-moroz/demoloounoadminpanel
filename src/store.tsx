@@ -49,7 +49,7 @@ interface StoreCtx {
 
   // stream actions
   terminateStream: (id: string) => void
-  warnStreamer: (streamId: string, message?: string) => void
+  warnStreamer: (streamId: string, warnTitle: string) => void
 
   // report actions
   resolveReport: (id: string) => void
@@ -60,6 +60,9 @@ interface StoreCtx {
 
   // warn messages
   warnMessages: WarnMessage[]
+  addWarnMessage: (title: string, message: string) => void
+  updateWarnMessage: (id: string, updates: Partial<Pick<WarnMessage, 'title' | 'message'>>) => void
+  removeWarnMessage: (id: string) => void
 
   // report reasons
   reportReasons: ReportReason[]
@@ -128,7 +131,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [kyc, setKyc] = useState<KYCEntry[]>(mockKYC)
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
   const [reportReasons, setReportReasons] = useState<ReportReason[]>(mockReportReasons)
-  const [warnMessages] = useState<WarnMessage[]>(mockWarnMessages)
+  const [warnMessages, setWarnMessages] = useState<WarnMessage[]>(mockWarnMessages)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [toastId, setToastId] = useState(0)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -204,10 +207,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     toast(`Stream "${s?.title ?? id}" has been terminated`, 'error')
   }, [streams, toast])
 
-  const warnStreamer = useCallback((streamId: string, message?: string) => {
+  const warnStreamer = useCallback((streamId: string, warnTitle: string) => {
+    setStreams(prev => prev.map(s =>
+      s.id === streamId ? { ...s, warnings: [...(s.warnings ?? []), warnTitle] } : s
+    ))
     const s = streams.find(s => s.id === streamId)
-    const note = message ? `: "${message.slice(0, 60)}${message.length > 60 ? '…' : ''}"` : ''
-    toast(`Warning sent to @${s?.streamerHandle ?? streamId}${note}`, 'warn')
+    toast(`Warning "${warnTitle}" sent to @${s?.streamerHandle ?? streamId}`, 'warn')
   }, [streams, toast])
 
   /* ── report helpers ── */
@@ -280,6 +285,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setReportReasons(prev => prev.filter(r => r.id !== id))
     toast(`Reason "${r?.label ?? ''}" removed`, 'info')
   }, [reportReasons, toast])
+
+  /* ── warn message helpers ── */
+  const addWarnMessage = useCallback((title: string, message: string) => {
+    const t = title.trim(); const m = message.trim()
+    if (!t || !m) return
+    setWarnMessages(prev => [...prev, { id: `wm${Date.now()}`, title: t, message: m }])
+    toast(`Warning template "${t}" added`, 'success')
+  }, [toast])
+
+  const updateWarnMessage = useCallback((id: string, updates: Partial<Pick<WarnMessage, 'title' | 'message'>>) => {
+    setWarnMessages(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w))
+  }, [])
+
+  const removeWarnMessage = useCallback((id: string) => {
+    const w = warnMessages.find(w => w.id === id)
+    setWarnMessages(prev => prev.filter(w => w.id !== id))
+    toast(`Template "${w?.title ?? ''}" removed`, 'info')
+  }, [warnMessages, toast])
 
   /* ── withdrawal helpers ── */
   const setWithdrawalStatus = (id: string, status: WithdrawalStatus) => {
@@ -461,7 +484,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser, adjustWalletBalance,
       terminateStream, warnStreamer,
       resolveReport, dismissReport, reopenReport, banReportTarget, warnReportTarget,
-      warnMessages,
+      warnMessages, addWarnMessage, updateWarnMessage, removeWarnMessage,
       reportReasons, addReportReason, updateReportReason, removeReportReason,
       approveWithdrawal, rejectWithdrawal, holdWithdrawal,
       fraudAlerts, fraudThresholdUSD, approveFraudAlert, rejectFraudAlert, setFraudThreshold,

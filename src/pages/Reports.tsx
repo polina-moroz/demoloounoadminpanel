@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { X, AlertTriangle, Ban, RotateCcw, Plus, Trash2, ExternalLink, ScrollText } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
+import WarnMessagesEditor from '../components/WarnMessagesEditor'
 import { useStore } from '../store'
 import type { ReportType, ReportStatus, ReportReason, ReportLogEntry } from '../types'
 
@@ -489,6 +490,8 @@ export default function Reports() {
           onClose={() => setLogReport(null)}
         />
       )}
+
+      <WarnMessagesEditor />
     </div>
   )
 }

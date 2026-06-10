@@ -24,7 +24,7 @@ export const mockStreams: Stream[] = [
   { id: 's3', streamer: 'Nour Al-Rashid', streamerHandle: 'nourar',     title: 'Cooking With Nour',         category: 'Lifestyle',     viewers: 420,  peakViewers: 610,  duration: '45m',    diamondsEarned: 8800,   status: 'live',       startedAt: '2026-06-03T22:10:00Z', avatarColor: '#D4AF37' },
   { id: 's4', streamer: 'Marco Reyes',    streamerHandle: 'marcoreyes', title: 'Guitar Covers All Night',   category: 'Music',         viewers: 711,  peakViewers: 890,  duration: '3h 02m', diamondsEarned: 31400,  status: 'live',       startedAt: '2026-06-03T20:00:00Z', avatarColor: '#2ECC8A' },
   { id: 's5', streamer: 'Sasha Bloom',    streamerHandle: 'sashabloom', title: 'Sunday Morning Chat',       category: 'Just Chatting', viewers: 0,    peakViewers: 3400, duration: '1h 55m', diamondsEarned: 71000,  status: 'ended',      startedAt: '2026-06-01T10:00:00Z', endedAt: '2026-06-01T11:55:00Z', avatarColor: '#9966CC' },
-  { id: 's6', streamer: 'Tyler Banks',    streamerHandle: 'tylerb',     title: 'Freestyle Rap Session',     category: 'Music',         viewers: 0,    peakViewers: 1100, duration: '58m',    diamondsEarned: 14200,  status: 'terminated', startedAt: '2026-05-29T18:30:00Z', endedAt: '2026-05-29T19:28:00Z', avatarColor: '#C0392B' },
+  { id: 's6', streamer: 'Tyler Banks',    streamerHandle: 'tylerb',     title: 'Freestyle Rap Session',     category: 'Music',         viewers: 0,    peakViewers: 1100, duration: '58m',    diamondsEarned: 14200,  status: 'terminated', startedAt: '2026-05-29T18:30:00Z', endedAt: '2026-05-29T19:28:00Z', avatarColor: '#C0392B', warnings: ['Community Guidelines Violation'] },
   { id: 's7', streamer: 'Aria Voss',      streamerHandle: 'ariavoss',   title: 'Makeup Tutorial GRWM',      category: 'Beauty',        viewers: 0,    peakViewers: 1750, duration: '2h 30m', diamondsEarned: 55000,  status: 'ended',      startedAt: '2026-05-31T15:00:00Z', endedAt: '2026-05-31T17:30:00Z', avatarColor: '#9966CC' },
   { id: 's8', streamer: 'Marco Reyes',    streamerHandle: 'marcoreyes', title: 'VS Battle Night',           category: 'Battle',        viewers: 0,    peakViewers: 2800, duration: '2h 10m', diamondsEarned: 98400,  status: 'ended',      startedAt: '2026-05-30T20:00:00Z', endedAt: '2026-05-30T22:10:00Z', avatarColor: '#2ECC8A' },
 ];
@@ -424,11 +424,11 @@ export const mockFraudAlerts: FraudAlert[] = [
 ];
 
 export const mockWarnMessages: WarnMessage[] = [
-  { id: 'wm1', label: 'Your content violates our community guidelines. Please review them before streaming again.' },
-  { id: 'wm2', label: 'Explicit or adult content is not permitted on this platform.' },
-  { id: 'wm3', label: 'Harassment and bullying are strictly prohibited. Further violations may result in a ban.' },
-  { id: 'wm4', label: 'Your stream title or description was found to be misleading. Please ensure accuracy.' },
-  { id: 'wm5', label: 'Spam or self-promotional content in chat is not allowed.' },
-  { id: 'wm6', label: 'Hate speech or discriminatory language will not be tolerated on this platform.' },
-  { id: 'wm7', label: 'Soliciting other users is prohibited. This is your final warning before account action.' },
+  { id: 'wm1', title: 'Community Guidelines Violation', message: 'Your content violates our community guidelines. Please review them before streaming again.' },
+  { id: 'wm2', title: 'Explicit Content', message: 'Explicit or adult content is not permitted on this platform.' },
+  { id: 'wm3', title: 'Harassment or Bullying', message: 'Harassment and bullying are strictly prohibited. Further violations may result in a ban.' },
+  { id: 'wm4', title: 'Misleading Content', message: 'Your stream title or description was found to be misleading. Please ensure accuracy.' },
+  { id: 'wm5', title: 'Spam in Chat', message: 'Spam or self-promotional content in chat is not allowed.' },
+  { id: 'wm6', title: 'Hate Speech', message: 'Hate speech or discriminatory language will not be tolerated on this platform.' },
+  { id: 'wm7', title: 'Solicitation — Final Warning', message: 'Soliciting other users is prohibited. This is your final warning before account action.' },
 ];

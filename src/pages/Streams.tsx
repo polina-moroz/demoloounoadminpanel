@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { XCircle, AlertTriangle, ExternalLink, RefreshCw } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
+import WarnMessagesEditor from '../components/WarnMessagesEditor'
 import { useStore } from '../store'
 import type { Stream, StreamStatus } from '../types'
 
@@ -181,20 +182,33 @@ export default function Streams() {
                         </div>
                       )}
                     </td>
-                    <td><Badge variant={s.status} dot>{statusLabel(s.status)}</Badge></td>
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <Badge variant={s.status} dot>{statusLabel(s.status)}</Badge>
+                        {s.warnings && s.warnings.length > 0 && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {s.warnings.map((w, i) => (
+                              <span key={i} style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 20, background: 'rgba(243,156,18,0.1)', color: '#F39C12', border: '1px solid rgba(243,156,18,0.25)', whiteSpace: 'nowrap' }}>
+                                {w}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </td>
                     <td>
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                        <a
-                          href={`https://loouno.com/live/${s.streamerHandle}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn btn-ghost btn-sm"
-                          title="Open stream"
-                        >
-                          <ExternalLink size={12} /> View
-                        </a>
                         {s.status === 'live' && (
                           <>
+                            <a
+                              href={`https://loouno.com/live/${s.streamerHandle}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="btn btn-ghost btn-sm"
+                              title="Open stream"
+                            >
+                              <ExternalLink size={12} /> View
+                            </a>
                             <button className="btn btn-danger btn-sm" onClick={() => terminateStream(s.id)}>
                               <XCircle size={12} /> Terminate
                             </button>
@@ -212,6 +226,8 @@ export default function Streams() {
           )}
         </div>
       </div>
+
+      <WarnMessagesEditor />
     </div>
   )
 }

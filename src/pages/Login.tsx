@@ -155,9 +155,6 @@ export default function Login() {
             Demo mode — any non-empty credentials are accepted. Type your email to log in as your account.
           </div>
 
-          <div style={{ marginTop: 16, textAlign: 'center', fontSize: 12, color: 'var(--text-subtle)' }}>
-            Got an invite? <a href="/accept-invite" style={{ color: 'var(--gold)' }}>Accept invite</a>
-          </div>
         </div>
       )}
 

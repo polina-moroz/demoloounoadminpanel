@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, PlusCircle, MinusCircle, Receipt, ChevronDown, ChevronRight, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
+import WarnMessagesEditor from '../components/WarnMessagesEditor'
 import TxHistoryModal from '../components/TxHistoryModal'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
@@ -463,10 +464,12 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
                   <Star size={12} /> Remove Star Badge
                 </button>
               ) : (
-                <button className="btn btn-primary btn-sm" onClick={() => { onPromote(user.id); onClose() }}>
+                <button className="btn btn-primary btn-sm" disabled={user.kyc !== 'approved'} onClick={() => { if (user.kyc === 'approved') { onPromote(user.id); onClose() } }}
+                  style={{ opacity: user.kyc !== 'approved' ? 0.35 : 1, cursor: user.kyc !== 'approved' ? 'not-allowed' : 'pointer' }}>
                   <Star size={12} /> Grant Star Badge
                 </button>
               )}
+              {user.kyc !== 'approved' && <div style={{ fontSize: 11, color: '#F39C12', marginTop: 4 }}>KYC approval required to grant Star Badge.</div>}
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
                 Star Badge streamers appear first on the trending page and receive a boost in visibility.
               </div>
@@ -548,7 +551,6 @@ export default function Users() {
               <tr>
                 <th>User</th>
                 <th>Email</th>
-                <th>Role</th>
                 <th>Status</th>
                 <th>Joined</th>
                 <th>Followers</th>
@@ -572,7 +574,6 @@ export default function Users() {
                     </div>
                   </td>
                   <td style={{ color: 'var(--text-muted)' }}>{u.email}</td>
-                  <td><Badge variant={u.role} dot={false}>{u.role}</Badge></td>
                   <td><Badge variant={u.status} dot>{statusLabel(u.status)}</Badge></td>
                   <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{u.joined}</td>
                   <td style={{ color: 'var(--text-secondary)' }}>{u.followers.toLocaleString()}</td>
@@ -585,9 +586,9 @@ export default function Users() {
                         ⭐ Star
                       </span>
                     ) : (
-                      <button className="btn btn-ghost btn-sm" title="Grant Star Badge"
-                        onClick={() => promoteTopStreamer(u.id)}
-                        style={{ fontSize: 10, padding: '3px 8px' }}>
+                      <button className="btn btn-ghost btn-sm" title={u.kyc !== 'approved' ? 'KYC must be approved to grant Star Badge' : 'Grant Star Badge'}
+                        onClick={() => u.kyc === 'approved' && promoteTopStreamer(u.id)}
+                        style={{ fontSize: 10, padding: '3px 8px', opacity: u.kyc !== 'approved' ? 0.35 : 1, cursor: u.kyc !== 'approved' ? 'not-allowed' : 'pointer' }}>
                         <Star size={11} /> Grant
                       </button>
                     )}
@@ -638,6 +639,8 @@ export default function Users() {
         onIPBan={ipBanUser}
         onAdjustBalance={adjustWalletBalance}
       />
+
+      <WarnMessagesEditor />
     </div>
   )
 }
