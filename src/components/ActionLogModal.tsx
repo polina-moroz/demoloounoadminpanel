@@ -21,7 +21,7 @@ interface Props {
 
 export default function ActionLogModal({ title, entries, onClose }: Props) {
   return (
-    <div className="modal-overlay" style={{ zIndex: 400 }} onClick={onClose}>
+    <div className="modal-overlay" style={{ zIndex: 600 }} onClick={onClose}>
       <div className="modal" style={{ maxWidth: 500, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
         onClick={e => e.stopPropagation()}>
         <div className="modal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

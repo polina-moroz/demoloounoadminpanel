@@ -626,6 +626,17 @@ export default function Users() {
                       <button className="btn btn-ghost btn-icon" title="View" onClick={() => setSelectedUser(u)}>
                         <Eye size={13} />
                       </button>
+                      <button
+                        className="btn btn-ghost btn-icon"
+                        title="Action log"
+                        onClick={() => setLogUser(u)}
+                        style={{ position: 'relative' }}
+                      >
+                        <ScrollText size={13} />
+                        {(u.log?.length ?? 0) > 0 && (
+                          <span style={{ fontSize: 10, marginLeft: 2, color: 'var(--text-muted)' }}>{u.log!.length}</span>
+                        )}
+                      </button>
                       <button className="btn btn-warn btn-icon" title="Warn" onClick={() => setWarnTarget(u)}>
                         <AlertTriangle size={13} />
                       </button>
