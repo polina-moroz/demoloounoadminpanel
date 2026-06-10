@@ -183,18 +183,22 @@ export default function Streams() {
                       )}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         <Badge variant={s.status} dot>{statusLabel(s.status)}</Badge>
                         {s.warnings && s.warnings.length > 0 && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            {s.warnings.map((w, i) => (
-                              <span key={i} style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 20, background: 'rgba(243,156,18,0.1)', color: '#F39C12', border: '1px solid rgba(243,156,18,0.25)', whiteSpace: 'nowrap' }}>
-                                {w}
-                              </span>
-                            ))}
-                          </div>
+                          <span
+                            title={s.warnings.join('\n')}
+                            style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: 'rgba(243,156,18,0.1)', color: '#F39C12', border: '1px solid rgba(243,156,18,0.25)', cursor: 'default', whiteSpace: 'nowrap' }}
+                          >
+                            {s.warnings.length} warn{s.warnings.length > 1 ? 's' : ''}
+                          </span>
                         )}
                       </div>
+                      {s.warnings && s.warnings.length > 0 && (
+                        <div style={{ fontSize: 11, color: '#F39C12', marginTop: 3, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.warnings[s.warnings.length - 1]}>
+                          {s.warnings[s.warnings.length - 1]}
+                        </div>
+                      )}
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
