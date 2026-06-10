@@ -1,11 +1,11 @@
-export type UserRole = 'viewer' | 'creator' | 'admin';
+export type UserRole = 'viewer';
 export type UserStatus = 'active' | 'suspended' | 'banned' | 'unverified';
 export type KYCStatus = 'pending' | 'approved' | 'rejected' | 'not_submitted';
 export type ReportType = 'stream' | 'user' | 'message';
 export type ReportStatus = 'pending' | 'resolved' | 'dismissed';
 export type StreamStatus = 'live' | 'ended' | 'terminated';
 export type WithdrawalStatus = 'pending' | 'approved' | 'rejected' | 'on_hold';
-export type TransactionType = 'coin_purchase' | 'diamond_received' | 'diamond_withdrawal';
+export type TransactionType = 'coin_purchase' | 'diamonds_received' | 'withdrawal';
 export type CompetitionStatus = 'active' | 'upcoming' | 'ended';
 export type NotificationTarget = 'all' | 'creators' | 'viewers' | 'specific';
 
@@ -101,13 +101,16 @@ export interface KYCEntry {
   avatarColor: string;
 }
 
+export type GiftTier = '5A' | '5B' | '5C' | '5D' | '5E';
+
 export interface Gift {
   id: string;
-  emoji: string;
+  animationFileName: string | null;
   name: string;
   coins: number;
-  tier: 1 | 2 | 3 | 4;
+  tier: GiftTier;
   tierName: string;
+  durationSec: number;
   enabled: boolean;
 }
 
@@ -152,16 +155,17 @@ export interface Notification {
 
 export interface PrestigeXPLevel {
   level: number;
+  levelRange: string;
   name: string;
   color: string;
   xpRequired: number;
   perks: string;
 }
 
-export interface PrestigeSPTier {
+export interface PrestigeCPTier {
   tier: string;
   subTier: string;
-  spRequired: number;
+  cpRequired: number;
   perks: string;
   color: string;
 }
@@ -169,7 +173,8 @@ export interface PrestigeSPTier {
 export interface VIPLevel {
   level: number;
   name: string;
-  monthlySpend: number;
+  minSpend: number;
+  maxSpend: number | null;
   badgeColor: string;
   perks: string;
 }
@@ -201,20 +206,7 @@ export interface WarnMessage {
   label: string;
 }
 
-export type WheelPrizeType = 'coins' | 'diamonds' | 'multiplier' | 'miss';
-
-export interface FortuneWheelPrize {
-  id: string;
-  label: string;
-  emoji: string;
-  type: WheelPrizeType;
-  reward: number;
-  probability: number;
-  color: string;
-  enabled: boolean;
-}
-
-export type WheelSegmentType = 'rare' | 'ultra-rare' | 'miss';
+export type WheelSegmentType = 'small_bonus' | 'big_bonus' | 'miss';
 
 export interface WheelSegment {
   id: string;
@@ -222,6 +214,21 @@ export interface WheelSegment {
   label: string;
   color: string;
   animationFileName: string | null;
+}
+
+export interface WheelSlot {
+  id: string;
+  kind: 'reward' | 'small_bonus' | 'big_bonus';
+  rewardName: string;
+  coins: number;
+  animationFileName: string | null;
+}
+
+export interface SeasonalWheel {
+  id: string;
+  name: string;
+  active: boolean;
+  slots: WheelSlot[];
 }
 
 export type FraudAlertStatus = 'pending' | 'approved' | 'rejected';

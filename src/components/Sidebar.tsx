@@ -10,7 +10,6 @@ const roleLabel: Record<string, string> = {
   super_admin: 'Super Admin',
   admin: 'Admin',
   moderator: 'Moderator',
-  support: 'Support',
   viewer: 'Viewer',
 }
 

@@ -9,6 +9,9 @@ import type {
   AdminMember, AdminRole, ReportReason, ReportType, FraudAlert, WarnMessage, ReportLogEntry,
 } from './types'
 
+// Processing fee default (%)
+const DEFAULT_PROCESSING_FEE = 3
+
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   const seg = () => Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
@@ -76,6 +79,10 @@ interface StoreCtx {
   rejectFraudAlert: (id: string) => void
   setFraudThreshold: (usd: number) => void
 
+  // economy settings
+  processingFee: number
+  setProcessingFee: (pct: number) => void
+
   // kyc actions
   approveKYC: (id: string) => void
   rejectKYC: (id: string) => void
@@ -94,6 +101,9 @@ interface StoreCtx {
   adminTeam: AdminMember[]
   inviteAdmin: (email: string, role: AdminRole, fullName: string) => string
   updateAdminRole: (id: string, role: AdminRole) => void
+  updateAdminMember: (id: string, updates: Partial<Pick<AdminMember, 'displayName' | 'email'>>) => void
+  resetAdminPassword: (id: string) => void
+  resendAdminInvite: (id: string) => void
   suspendAdmin: (id: string) => void
   reinstateAdmin: (id: string) => void
   removeAdmin: (id: string) => void
@@ -114,6 +124,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>(mockWithdrawals)
   const [fraudAlerts, setFraudAlerts] = useState<FraudAlert[]>(mockFraudAlerts)
   const [fraudThresholdUSD, setFraudThresholdUSD] = useState(50)
+  const [processingFee, setProcessingFeeState] = useState(DEFAULT_PROCESSING_FEE)
   const [kyc, setKyc] = useState<KYCEntry[]>(mockKYC)
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
   const [reportReasons, setReportReasons] = useState<ReportReason[]>(mockReportReasons)
@@ -318,6 +329,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     toast(`Fraud threshold updated to $${usd} USD`, 'success')
   }, [toast])
 
+  const setProcessingFee = useCallback((pct: number) => {
+    setProcessingFeeState(pct)
+    toast(`Processing fee updated to ${pct}%`, 'success')
+  }, [toast])
+
   /* ── kyc helpers ── */
   const approveKYC = useCallback((id: string) => {
     const k = kyc.find(k => k.id === id)
@@ -380,6 +396,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     toast('Role updated', 'success')
   }, [toast])
 
+  const updateAdminMember = useCallback((id: string, updates: Partial<Pick<AdminMember, 'displayName' | 'email'>>) => {
+    setAdminTeam(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a))
+    toast('Member updated', 'success')
+  }, [toast])
+
+  const resetAdminPassword = useCallback((id: string) => {
+    const a = adminTeam.find(a => a.id === id)
+    toast(`Password reset link sent to ${a?.email ?? id}`, 'success')
+  }, [adminTeam, toast])
+
+  const resendAdminInvite = useCallback((id: string) => {
+    const a = adminTeam.find(a => a.id === id)
+    toast(`Invite resent to ${a?.email ?? id}`, 'success')
+  }, [adminTeam, toast])
+
   const suspendAdmin = useCallback((id: string) => {
     const a = adminTeam.find(a => a.id === id)
     setAdminTeam(prev => prev.map(a => a.id === id ? { ...a, status: 'suspended' } : a))
@@ -434,10 +465,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       reportReasons, addReportReason, updateReportReason, removeReportReason,
       approveWithdrawal, rejectWithdrawal, holdWithdrawal,
       fraudAlerts, fraudThresholdUSD, approveFraudAlert, rejectFraudAlert, setFraudThreshold,
+      processingFee, setProcessingFee,
       approveKYC, rejectKYC, requestMoreInfoKYC,
       sendNotification,
       isAuthenticated, currentAdmin, login, logout,
-      adminTeam, inviteAdmin, updateAdminRole, suspendAdmin, reinstateAdmin, removeAdmin, acceptInvite,
+      adminTeam, inviteAdmin, updateAdminRole, updateAdminMember, resetAdminPassword, resendAdminInvite,
+      suspendAdmin, reinstateAdmin, removeAdmin, acceptInvite,
       toasts, toast, dismissToast,
     }}>
       {children}

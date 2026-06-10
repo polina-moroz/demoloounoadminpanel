@@ -29,12 +29,12 @@ function Row({ label, desc, control }: { label: string; desc?: string; control: 
 }
 
 export default function Settings() {
-  const { fraudThresholdUSD, setFraudThreshold } = useStore()
+  const { fraudThresholdUSD, setFraudThreshold, setProcessingFee } = useStore()
   const [fraudThresholdInput, setFraudThresholdInput] = useState(String(fraudThresholdUSD))
   const [appVersion, setAppVersion] = useState('1.0.0')
-  const [minWithdrawal, setMinWithdrawal] = useState('80000')
-  const [diamondRate, setDiamondRate] = useState('7')
-  const [processingFee, setProcessingFee] = useState('3')
+  const [minWithdrawal, setMinWithdrawal] = useState('10000')
+  const [diamondRate, setDiamondRate] = useState('35')
+  const [processingFeeInput, setProcessingFeeInput] = useState('3')
   const [holdDays, setHoldDays] = useState('7')
   const [autoFlagThreshold, setAutoFlagThreshold] = useState('5')
   const [maxReports, setMaxReports] = useState('10')
@@ -131,7 +131,7 @@ export default function Settings() {
         />
         <Row
           label="Diamond → USD Rate"
-          desc="USD payout per 10,000 diamonds (gross)"
+          desc="USD payout per 10,000 diamonds (gross) — $3.50 per 1,000"
           control={
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>10,000 💎 =</span>
@@ -148,17 +148,26 @@ export default function Settings() {
         />
         <Row
           label="Processing Fee"
-          desc="Percentage deducted before payout"
+          desc="Percentage deducted before payout (net = gross × (1 − fee%))"
           control={
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input
                 className="form-input"
-                value={processingFee}
-                onChange={e => setProcessingFee(e.target.value)}
+                value={processingFeeInput}
+                onChange={e => setProcessingFeeInput(e.target.value)}
                 type="number"
                 style={{ width: 80 }}
               />
               <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>%</span>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => {
+                  const v = Number(processingFeeInput)
+                  if (!isNaN(v) && v >= 0) setProcessingFee(v)
+                }}
+              >
+                Apply
+              </button>
             </div>
           }
         />

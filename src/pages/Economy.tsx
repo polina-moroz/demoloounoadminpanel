@@ -5,23 +5,19 @@ import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
 
 const typeLabels: Record<string, string> = {
-  coin_purchase: 'Coin Purchase',
-  gift_sent: 'Gift Sent',
-  gift_received: 'Gift Received',
-  withdrawal: 'Withdrawal',
-  refund: 'Refund',
+  coin_purchase:    'Coin Purchase',
+  diamonds_received:'Diamonds Received',
+  withdrawal:       'Withdrawal',
 }
 
 const typeColors: Record<string, string> = {
-  coin_purchase: '#2ECC8A',
-  gift_sent: '#9966CC',
-  gift_received: '#D4AF37',
-  withdrawal: '#3498DB',
-  refund: '#C0392B',
+  coin_purchase:    '#2ECC8A',
+  diamonds_received:'#D4AF37',
+  withdrawal:       '#3498DB',
 }
 
 export default function Economy() {
-  const { withdrawals, approveWithdrawal, rejectWithdrawal, holdWithdrawal } = useStore()
+  const { withdrawals, approveWithdrawal, rejectWithdrawal, holdWithdrawal, processingFee } = useStore()
   const pending = withdrawals.filter(w => w.status === 'pending').length
 
   return (
@@ -30,24 +26,23 @@ export default function Economy() {
         <StatCard label="Total Revenue"    value="$48,200" sub="This month (gross)"         icon={<DollarSign size={20} />} />
         <StatCard label="Pending Payouts"  value={String(pending)} sub="Awaiting approval"  icon={<Clock size={20} />} />
         <StatCard label="Diamonds Issued"  value="2.4M"    sub="All-time creator earnings"  icon={<Gem size={20} />} />
-        <StatCard label="Avg Withdrawal"   value="$71"     sub="Per approved request"       icon={<TrendingUp size={20} />} />
+        <StatCard label="Avg Withdrawal"   value="$280"    sub="Per approved request"       icon={<TrendingUp size={20} />} />
       </div>
 
       <div className="callout callout-info mb-24">
         <Info size={15} />
         <div>
-          <strong>Economy rules:</strong> 1 gifted coin = 1 creator diamond (1:1). 10,000 💎 = $7 gross.
-          ~3% processing fee deducted. 7-day hold. 80,000 💎 minimum withdrawal. KYC via Stripe Connect required on first withdrawal.
+          <strong>Economy rules:</strong> 1 gifted coin = 1 creator diamond (1:1). 10,000 💎 = $35 gross.
+          {processingFee}% processing fee deducted. 7-day hold. 10,000 💎 minimum withdrawal. KYC via Stripe Connect required on first withdrawal.
         </div>
       </div>
 
-      {/* Withdrawal Requests */}
       <div className="section">
         <div className="table-wrapper">
           <div className="table-header">
             <div>
               <div className="table-title">Withdrawal Requests</div>
-              <div className="table-subtitle">80,000 💎 minimum · 7-day hold · $7 per 10,000 💎 gross</div>
+              <div className="table-subtitle">10,000 💎 minimum · 7-day hold · $35 per 10,000 💎 gross</div>
             </div>
           </div>
           <div style={{ overflowX: 'auto' }}>
@@ -82,7 +77,7 @@ export default function Economy() {
                     <td>
                       <span style={{ color: 'var(--emerald)', fontWeight: 600 }}>${w.estimatedUSD.toFixed(2)}</span>
                       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        after fee: ${(w.estimatedUSD * 0.97).toFixed(2)}
+                        after fee: ${(w.estimatedUSD * (1 - processingFee / 100)).toFixed(2)}
                       </div>
                     </td>
                     <td><Badge variant={w.kycStatus} dot>{statusLabel(w.kycStatus)}</Badge></td>
@@ -117,7 +112,7 @@ export default function Economy() {
                         </div>
                       ) : (
                         <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                          {w.status === 'approved' ? '✓ Approved' : '✗ Rejected'}
+                          {w.status === 'approved' ? 'Approved' : 'Rejected'}
                         </span>
                       )}
                     </td>
@@ -129,7 +124,6 @@ export default function Economy() {
         </div>
       </div>
 
-      {/* Transaction Log — read-only */}
       <div className="table-wrapper">
         <div className="table-header">
           <div>
@@ -159,9 +153,9 @@ export default function Economy() {
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6,
                       padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-                      color: typeColors[t.type],
-                      background: `${typeColors[t.type]}18`,
-                      border: `1px solid ${typeColors[t.type]}30`,
+                      color: typeColors[t.type] ?? 'var(--text-muted)',
+                      background: `${typeColors[t.type] ?? '#888'}18`,
+                      border: `1px solid ${typeColors[t.type] ?? '#888'}30`,
                     }}>
                       {typeLabels[t.type] ?? t.type}
                     </span>

@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Edit2, Check, X } from 'lucide-react'
-import { mockXPLevels, mockSPTiers, mockVIPLevels } from '../mockData'
+import { mockXPLevels, mockCPTiers, mockVIPLevels } from '../mockData'
 import { useStore } from '../store'
-import type { PrestigeXPLevel, PrestigeSPTier, VIPLevel } from '../types'
+import type { PrestigeXPLevel, PrestigeCPTier, VIPLevel } from '../types'
 
-type Tab = 'xp' | 'sp' | 'vip'
+type Tab = 'xp' | 'cp' | 'vip'
 
 /* ── Inline editable cell ─────────────────────────────────────── */
 
@@ -88,7 +88,7 @@ function XPTab() {
       const next = [...prev]
       next[idx] = {
         ...next[idx],
-        [field]: field === 'xpRequired' ? Number(raw) : raw,
+        [field]: field === 'xpRequired' || field === 'level' ? Number(raw) : raw,
       }
       return next
     })
@@ -100,6 +100,7 @@ function XPTab() {
       <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
           Viewers earn XP by watching streams, sending gifts, and engaging.
+          12 prestige tiers — each spans a level range.
           Click any cell to edit. Press <kbd style={{ background: 'var(--bg-surface-2)', padding: '1px 5px', borderRadius: 4, fontSize: 11 }}>Enter</kbd> to save.
         </div>
       </div>
@@ -107,24 +108,24 @@ function XPTab() {
         <table>
           <thead>
             <tr>
-              <th>Level</th>
+              <th>Levels</th>
               <th>Ring Color</th>
               <th>Name</th>
-              <th>XP Required</th>
+              <th>Total XP Threshold</th>
               <th>Perks</th>
             </tr>
           </thead>
           <tbody>
             {levels.map((lvl, i) => (
-              <tr key={lvl.level}>
+              <tr key={i}>
                 <td>
                   <span style={{
-                    width: 28, height: 28, borderRadius: '50%', display: 'inline-flex',
+                    padding: '3px 10px', borderRadius: 12, display: 'inline-flex',
                     alignItems: 'center', justifyContent: 'center',
                     background: `${lvl.color}20`, border: `2px solid ${lvl.color}`,
-                    fontSize: 11, fontWeight: 700, color: lvl.color,
+                    fontSize: 11, fontWeight: 700, color: lvl.color, whiteSpace: 'nowrap',
                   }}>
-                    {lvl.level}
+                    {lvl.levelRange ?? String(lvl.level)}
                   </span>
                 </td>
                 <td>
@@ -159,29 +160,29 @@ function XPTab() {
   )
 }
 
-/* ── SP Tab ───────────────────────────────────────────────────── */
+/* ── CP Tab ───────────────────────────────────────────────────── */
 
-function SPTab() {
+function CPTab() {
   const { toast } = useStore()
-  const [tiers, setTiers] = useState<PrestigeSPTier[]>(mockSPTiers)
+  const [tiers, setTiers] = useState<PrestigeCPTier[]>(mockCPTiers)
 
-  const update = (idx: number, field: keyof PrestigeSPTier, raw: string) => {
+  const update = (idx: number, field: keyof PrestigeCPTier, raw: string) => {
     setTiers(prev => {
       const next = [...prev]
       next[idx] = {
         ...next[idx],
-        [field]: field === 'spRequired' ? Number(raw) : raw,
+        [field]: field === 'cpRequired' ? Number(raw) : raw,
       }
       return next
     })
-    toast('SP tier updated', 'success')
+    toast('CP tier updated', 'success')
   }
 
   return (
     <div>
       <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-          Streamers earn SP (Streamer Points) from diamonds received. 9 main tiers (Bronze → Celestial), each with 3 sub-tiers.
+          Creators earn CP (Creator Points) from diamonds received. 13 main tiers (Bronze → Loouno Crown), each with 4 Roman sub-tiers I–IV — 52 entries total.
           Click any cell to edit.
         </div>
       </div>
@@ -192,34 +193,34 @@ function SPTab() {
               <th>Tier</th>
               <th>Sub-Tier</th>
               <th>Color</th>
-              <th>SP Required</th>
+              <th>CP Required</th>
               <th>Perks</th>
             </tr>
           </thead>
           <tbody>
-            {tiers.map((sp, i) => (
+            {tiers.map((cp, i) => (
               <tr key={i}>
                 <td>
-                  <EditableCell value={sp.tier} onSave={v => update(i, 'tier', v)}
-                    style={{ color: sp.color, fontWeight: 700 }} />
+                  <EditableCell value={cp.tier} onSave={v => update(i, 'tier', v)}
+                    style={{ color: cp.color, fontWeight: 700 }} />
                 </td>
                 <td>
-                  <EditableCell value={sp.subTier || '—'} onSave={v => update(i, 'subTier', v)}
+                  <EditableCell value={cp.subTier || '—'} onSave={v => update(i, 'subTier', v)}
                     style={{ color: 'var(--text-muted)', fontSize: 12 }} />
                 </td>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <EditableCell value={sp.color} onSave={v => update(i, 'color', v)}
+                    <EditableCell value={cp.color} onSave={v => update(i, 'color', v)}
                       style={{ fontFamily: 'monospace', fontSize: 12 }} />
-                    <div style={{ width: 16, height: 16, borderRadius: '50%', background: sp.color, flexShrink: 0 }} />
+                    <div style={{ width: 16, height: 16, borderRadius: '50%', background: cp.color, flexShrink: 0 }} />
                   </div>
                 </td>
                 <td>
-                  <EditableCell value={sp.spRequired} type="number" onSave={v => update(i, 'spRequired', v)}
+                  <EditableCell value={cp.cpRequired} type="number" onSave={v => update(i, 'cpRequired', v)}
                     style={{ color: 'var(--text-secondary)', fontWeight: 600 }} />
                 </td>
                 <td>
-                  <EditableCell value={sp.perks} onSave={v => update(i, 'perks', v)}
+                  <EditableCell value={cp.perks} onSave={v => update(i, 'perks', v)}
                     style={{ color: 'var(--text-muted)', fontSize: 12 }} />
                 </td>
               </tr>
@@ -242,7 +243,7 @@ function VIPTab() {
       const next = [...prev]
       next[idx] = {
         ...next[idx],
-        [field]: field === 'monthlySpend' || field === 'level' ? Number(raw) : raw,
+        [field]: (field === 'minSpend' || field === 'maxSpend' || field === 'level') ? Number(raw) : raw,
       }
       return next
     })
@@ -253,7 +254,7 @@ function VIPTab() {
     <div>
       <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-          VIP status awarded to the top monthly spenders. 5 levels from VIP 1 Blue ($500/mo) to Boss VIP Cosmic (top spender of the month).
+          VIP status based on cumulative spend. 5 levels — VIP 1 ($500+) through VIP 5 ($10,000+).
           Click any cell to edit.
         </div>
       </div>
@@ -264,7 +265,8 @@ function VIPTab() {
               <th>Level</th>
               <th>Name</th>
               <th>Badge Color</th>
-              <th>Monthly Spend (USD)</th>
+              <th>Min Spend (USD)</th>
+              <th>Max Spend (USD)</th>
               <th>Perks</th>
             </tr>
           </thead>
@@ -293,11 +295,15 @@ function VIPTab() {
                   </div>
                 </td>
                 <td>
-                  {vip.monthlySpend === 0 ? (
-                    <span style={{ color: 'var(--amethyst)', fontWeight: 700, fontSize: 12 }}>Top Spender of Month</span>
+                  <EditableCell value={vip.minSpend} type="number" onSave={v => update(i, 'minSpend', v)}
+                    style={{ color: 'var(--gold)', fontWeight: 700 }} />
+                </td>
+                <td>
+                  {vip.maxSpend === null ? (
+                    <span style={{ color: 'var(--amethyst)', fontWeight: 700, fontSize: 12 }}>No cap</span>
                   ) : (
-                    <EditableCell value={vip.monthlySpend} type="number" onSave={v => update(i, 'monthlySpend', v)}
-                      style={{ color: 'var(--gold)', fontWeight: 700 }} />
+                    <EditableCell value={vip.maxSpend} type="number" onSave={v => update(i, 'maxSpend', v)}
+                      style={{ color: 'var(--text-secondary)', fontWeight: 600 }} />
                   )}
                 </td>
                 <td>
@@ -323,7 +329,7 @@ export default function Prestige() {
       <div className="page-header">
         <div className="page-header-text">
           <div className="title">XP &amp; Levels</div>
-          <div className="subtitle">XP viewer levels · SP streamer tiers · VIP monthly spenders</div>
+          <div className="subtitle">XP viewer levels · CP creator tiers · VIP spenders</div>
         </div>
         <div className="page-header-actions">
           <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -336,8 +342,8 @@ export default function Prestige() {
         <div className="prestige-tabs">
           {([
             { key: 'xp'  as Tab, label: 'XP — Viewer Levels' },
-            { key: 'sp'  as Tab, label: 'SP — Streamer Tiers' },
-            { key: 'vip' as Tab, label: 'VIP — Monthly Spender' },
+            { key: 'cp'  as Tab, label: 'CP — Creator Tiers' },
+            { key: 'vip' as Tab, label: 'VIP — Spender Levels' },
           ]).map(t => (
             <button
               key={t.key}
@@ -350,7 +356,7 @@ export default function Prestige() {
         </div>
 
         {tab === 'xp'  && <XPTab />}
-        {tab === 'sp'  && <SPTab />}
+        {tab === 'cp'  && <CPTab />}
         {tab === 'vip' && <VIPTab />}
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X, Copy, Check, Mail, ShieldCheck, ShieldOff, Trash2, Users } from 'lucide-react'
+import { Plus, X, Copy, Check, Mail, ShieldCheck, ShieldOff, Trash2, Users, Edit2, KeyRound, RefreshCw } from 'lucide-react'
 import StatCard from '../components/StatCard'
 import { useStore } from '../store'
 import type { AdminRole, AdminMember } from '../types'
@@ -60,7 +60,7 @@ function StatusBadge({ status }: { status: AdminMember['status'] }) {
 
 /* ── Invite Modal ─────────────────────────────────────────────── */
 
-function InviteModal({ onClose }: { onClose: () => void }) {
+function InviteModal({ onClose, currentAdminRole }: { onClose: () => void; currentAdminRole: AdminRole }) {
   const { inviteAdmin } = useStore()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -70,6 +70,10 @@ function InviteModal({ onClose }: { onClose: () => void }) {
   const [copied, setCopied] = useState(false)
 
   const canSubmit = fullName.trim().length > 0 && email.trim().length > 0
+
+  const allowedRoles: AdminRole[] = currentAdminRole === 'super_admin'
+    ? ['admin', 'moderator', 'viewer']
+    : ['moderator', 'viewer']
 
   const handleSend = () => {
     if (!canSubmit) return
@@ -83,8 +87,6 @@ function InviteModal({ onClose }: { onClose: () => void }) {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
-
-  const assignableRoles = (Object.keys(roleLabels) as AdminRole[]).filter(r => r !== 'super_admin')
 
   return (
     <>
@@ -100,46 +102,27 @@ function InviteModal({ onClose }: { onClose: () => void }) {
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div className="form-group">
                 <label className="form-label">Full Name</label>
-                <input
-                  className="form-input"
-                  type="text"
-                  placeholder="Jane Smith"
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  autoFocus
-                />
+                <input className="form-input" type="text" placeholder="Jane Smith" value={fullName}
+                  onChange={e => setFullName(e.target.value)} autoFocus />
               </div>
-
               <div className="form-group">
                 <label className="form-label">Email Address</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
-                  <input
-                    className="form-input"
-                    type="email"
-                    placeholder="teammate@example.com"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    style={{ paddingLeft: 36 }}
-                  />
+                  <input className="form-input" type="email" placeholder="teammate@example.com" value={email}
+                    onChange={e => setEmail(e.target.value)} style={{ paddingLeft: 36 }} />
                 </div>
               </div>
-
               <div className="form-group">
                 <label className="form-label">Role</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {assignableRoles.map(r => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setRole(r)}
-                      style={{
-                        padding: '10px 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-                        background: role === r ? `${roleColors[r]}12` : 'var(--bg-surface-2)',
-                        border: `1.5px solid ${role === r ? roleColors[r] : 'var(--border)'}`,
-                        transition: 'all 0.15s',
-                      }}
-                    >
+                  {allowedRoles.map(r => (
+                    <button key={r} type="button" onClick={() => setRole(r)} style={{
+                      padding: '10px 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                      background: role === r ? `${roleColors[r]}12` : 'var(--bg-surface-2)',
+                      border: `1.5px solid ${role === r ? roleColors[r] : 'var(--border)'}`,
+                      transition: 'all 0.15s',
+                    }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: role === r ? roleColors[r] : 'var(--text-secondary)', marginBottom: 2 }}>
                         {roleLabels[r]}
                       </div>
@@ -148,19 +131,13 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                   ))}
                 </div>
               </div>
-
               <div style={{ padding: '10px 14px', background: 'rgba(212,175,55,0.04)', border: '1px solid rgba(212,175,55,0.15)', borderRadius: 8, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                An invite code will be generated. The recipient uses it at <span style={{ color: 'var(--gold)', fontFamily: 'monospace' }}>/accept-invite</span> to set their password. In production this would be sent by email automatically.
+                An invite code will be generated. The recipient uses it at <span style={{ color: 'var(--gold)', fontFamily: 'monospace' }}>/accept-invite</span> to set their password.
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-              <button
-                className="btn btn-primary"
-                disabled={!canSubmit}
-                style={{ opacity: canSubmit ? 1 : 0.45 }}
-                onClick={handleSend}
-              >
+              <button className="btn btn-primary" disabled={!canSubmit} style={{ opacity: canSubmit ? 1 : 0.45 }} onClick={handleSend}>
                 <Mail size={13} /> Generate & Send Invite
               </button>
             </div>
@@ -179,16 +156,10 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>Invite code generated</div>
                 <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                  Share this code with <strong style={{ color: 'var(--text-secondary)' }}>{fullName}</strong> ({email}). They can use it at <span style={{ color: 'var(--gold)', fontFamily: 'monospace' }}>/accept-invite</span> to activate their account.
+                  Share with <strong style={{ color: 'var(--text-secondary)' }}>{fullName}</strong> ({email}) to activate their account.
                 </div>
               </div>
-
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                background: 'var(--bg-surface-2)',
-                border: '1px solid rgba(212,175,55,0.3)',
-                borderRadius: 10, padding: '14px 16px',
-              }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-surface-2)', border: '1px solid rgba(212,175,55,0.3)', borderRadius: 10, padding: '14px 16px' }}>
                 <span style={{ flex: 1, fontFamily: 'monospace', fontSize: 18, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--gold)' }}>
                   {generatedCode}
                 </span>
@@ -196,16 +167,62 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                   {copied ? <><Check size={13} /> Copied</> : <><Copy size={13} /> Copy</>}
                 </button>
               </div>
-
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid var(--border)', lineHeight: 1.5 }}>
-                This invite appears as <strong style={{ color: 'var(--text-secondary)' }}>Pending</strong> in the team table until the recipient activates their account. The code expires when used.
-              </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-primary" onClick={onClose}>Done</button>
             </div>
           </>
         )}
+      </div>
+    </>
+  )
+}
+
+/* ── Edit Member Modal ────────────────────────────────────────── */
+
+function EditMemberModal({ member, onClose }: { member: AdminMember; onClose: () => void }) {
+  const { updateAdminMember, toast } = useStore()
+  const [displayName, setDisplayName] = useState(member.displayName === '—' ? '' : member.displayName)
+  const [email, setEmail] = useState(member.email)
+
+  const valid = email.trim().length > 0
+
+  const handleSave = () => {
+    if (!valid) return
+    updateAdminMember(member.id, { displayName: displayName.trim() || '—', email: email.trim() })
+    toast('Member details updated', 'success')
+    onClose()
+  }
+
+  return (
+    <>
+      <div className="modal-backdrop" onClick={onClose} />
+      <div className="modal-dialog" style={{ maxWidth: 440 }}>
+        <div className="modal-header">
+          <span className="modal-title">Edit Member</span>
+          <button className="modal-close" onClick={onClose}><X size={14} /></button>
+        </div>
+        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="form-group">
+            <label className="form-label">Display Name</label>
+            <input className="form-input" type="text" placeholder="Jane Smith" value={displayName}
+              onChange={e => setDisplayName(e.target.value)} autoFocus />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Email Address</label>
+            <div style={{ position: 'relative' }}>
+              <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+              <input className="form-input" type="email" value={email}
+                onChange={e => setEmail(e.target.value)} style={{ paddingLeft: 36 }} />
+            </div>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!valid} style={{ opacity: valid ? 1 : 0.45 }} onClick={handleSave}>
+            Save Changes
+          </button>
+        </div>
       </div>
     </>
   )
@@ -242,17 +259,101 @@ function ConfirmRemoveModal({ member, onConfirm, onClose }: {
   )
 }
 
+/* ── Access Matrix ────────────────────────────────────────────── */
+
+const MATRIX_ROWS: { label: string; super_admin: string; admin: string; moderator: string; viewer: string }[] = [
+  { label: 'Invite / edit / suspend / remove Admins',      super_admin: '+', admin: '-',         moderator: '-', viewer: '-' },
+  { label: 'Invite / edit / suspend / remove Moderators and Viewers', super_admin: '+', admin: '+', moderator: '-', viewer: '-' },
+  { label: 'Change another member\'s role',                super_admin: '+', admin: '+ (Mod/Viewer only)', moderator: '-', viewer: '-' },
+  { label: 'Access all admin pages',                       super_admin: '+', admin: '+',         moderator: '-', viewer: '-' },
+  { label: 'Content moderation (users, streams, reports)', super_admin: '+', admin: '+',         moderator: '+', viewer: '-' },
+  { label: 'Read-only dashboard access',                   super_admin: '+', admin: '+',         moderator: '+', viewer: '+' },
+  { label: 'Manage economy & payouts',                     super_admin: '+', admin: '+',         moderator: '-', viewer: '-' },
+  { label: 'Edit gift catalog & coin packages',            super_admin: '+', admin: '+',         moderator: '-', viewer: '-' },
+  { label: 'View fraud detection & KYC',                   super_admin: '+', admin: '+',         moderator: '-', viewer: '-' },
+]
+
+function AccessMatrix() {
+  const cols: { key: AdminRole; label: string; color: string }[] = [
+    { key: 'super_admin', label: 'Super Admin', color: '#D4AF37' },
+    { key: 'admin',       label: 'Admin',       color: '#9966CC' },
+    { key: 'moderator',   label: 'Moderator',   color: '#3498DB' },
+    { key: 'viewer',      label: 'Viewer',      color: '#8A8A8E' },
+  ]
+
+  return (
+    <div className="table-wrapper" style={{ marginTop: 24 }}>
+      <div className="table-header">
+        <div>
+          <div className="table-title">Access Matrix</div>
+          <div className="table-subtitle">Permissions by role</div>
+        </div>
+      </div>
+      <div style={{ overflowX: 'auto' }}>
+        <table>
+          <thead>
+            <tr>
+              <th style={{ minWidth: 280 }}>Permission</th>
+              {cols.map(c => (
+                <th key={c.key} style={{ textAlign: 'center', color: c.color, minWidth: 120 }}>{c.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {MATRIX_ROWS.map(row => (
+              <tr key={row.label}>
+                <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{row.label}</td>
+                {cols.map(c => {
+                  const val = row[c.key]
+                  const isPlus = val.startsWith('+')
+                  return (
+                    <td key={c.key} style={{ textAlign: 'center' }}>
+                      <span style={{
+                        fontWeight: 700, fontSize: 13,
+                        color: isPlus ? '#2ECC8A' : 'var(--text-subtle)',
+                        fontFamily: isPlus ? 'inherit' : 'monospace',
+                      }}>
+                        {val}
+                      </span>
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 /* ── Main Page ────────────────────────────────────────────────── */
 
 export default function AdminTeam() {
-  const { adminTeam, updateAdminRole, removeAdmin, currentAdmin } = useStore()
+  const { adminTeam, updateAdminRole, removeAdmin, resetAdminPassword, resendAdminInvite, currentAdmin, toast } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState<AdminMember | null>(null)
+  const [editMember, setEditMember] = useState<AdminMember | null>(null)
 
   const totalActive  = adminTeam.filter(a => a.status === 'active').length
   const totalAdmins  = adminTeam.filter(a => ['super_admin', 'admin'].includes(a.role) && a.status === 'active').length
   const totalMods    = adminTeam.filter(a => a.role === 'moderator' && a.status === 'active').length
   const pendingCount = adminTeam.filter(a => a.status === 'invited').length
+
+  const currentRole = currentAdmin?.role ?? 'viewer'
+
+  const canEditMember = (member: AdminMember) => {
+    if (member.id === currentAdmin?.id) return false
+    if (member.role === 'super_admin') return false
+    if (currentRole === 'admin' && member.role === 'admin') return false
+    return currentRole === 'super_admin' || currentRole === 'admin'
+  }
+
+  const canChangeRole = (member: AdminMember, toRole: AdminRole) => {
+    if (currentRole === 'super_admin') return true
+    if (currentRole === 'admin') return toRole !== 'super_admin' && toRole !== 'admin'
+    return false
+  }
 
   return (
     <div>
@@ -262,16 +363,18 @@ export default function AdminTeam() {
           <div className="subtitle">Manage admin access, roles, and invitations</div>
         </div>
         <div className="page-header-actions">
-          <button className="btn btn-primary" onClick={() => setShowInvite(true)}>
-            <Plus size={14} /> Invite Member
-          </button>
+          {(currentRole === 'super_admin' || currentRole === 'admin') && (
+            <button className="btn btn-primary" onClick={() => setShowInvite(true)}>
+              <Plus size={14} /> Invite Member
+            </button>
+          )}
         </div>
       </div>
 
       <div className="stat-grid">
-        <StatCard label="Total Members"   value={String(totalActive)}  sub="Active accounts"   icon={<Users size={20} />} />
-        <StatCard label="Admins"          value={String(totalAdmins)}  sub="Super admin + Admin"  icon={<ShieldCheck size={20} />} />
-        <StatCard label="Moderators"      value={String(totalMods)}   sub="Active moderators"  icon={<ShieldOff size={20} />} />
+        <StatCard label="Total Members"   value={String(totalActive)}  sub="Active accounts"    icon={<Users size={20} />} />
+        <StatCard label="Admins"          value={String(totalAdmins)}  sub="Super admin + Admin" icon={<ShieldCheck size={20} />} />
+        <StatCard label="Moderators"      value={String(totalMods)}    sub="Active moderators"   icon={<ShieldOff size={20} />} />
         <StatCard label="Pending Invites" value={String(pendingCount)} sub="Awaiting activation" icon={<Mail size={20} />} />
       </div>
 
@@ -292,13 +395,14 @@ export default function AdminTeam() {
                 <th>Status</th>
                 <th>Invite Code</th>
                 <th>Joined</th>
-                <th style={{ width: 160 }}>Actions</th>
+                <th style={{ width: 200 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {adminTeam.map(member => {
                 const isSelf = member.id === currentAdmin?.id
                 const isSuper = member.role === 'super_admin'
+                const editable = canEditMember(member)
                 return (
                   <tr key={member.id} style={{ opacity: member.status === 'suspended' ? 0.6 : 1 }}>
                     <td>
@@ -322,18 +426,23 @@ export default function AdminTeam() {
                     </td>
 
                     <td>
-                      {isSuper || isSelf ? (
+                      {(!editable) ? (
                         <RoleBadge role={member.role} />
                       ) : (
                         <select
                           className="form-select"
                           value={member.role}
-                          onChange={e => updateAdminRole(member.id, e.target.value as AdminRole)}
+                          onChange={e => {
+                            const r = e.target.value as AdminRole
+                            if (canChangeRole(member, r)) updateAdminRole(member.id, r)
+                          }}
                           style={{ width: 130, fontSize: 12 }}
                           disabled={member.status === 'invited'}
                         >
                           {(Object.keys(roleLabels) as AdminRole[]).filter(r => r !== 'super_admin').map(r => (
-                            <option key={r} value={r}>{roleLabels[r]}</option>
+                            <option key={r} value={r} disabled={!canChangeRole(member, r)}>
+                              {roleLabels[r]}
+                            </option>
                           ))}
                         </select>
                       )}
@@ -358,18 +467,35 @@ export default function AdminTeam() {
                     </td>
 
                     <td>
-                      {isSelf || isSuper ? (
-                        <span style={{ fontSize: 12, color: 'var(--text-subtle)' }}>—</span>
-                      ) : (
-                        <button
-                          className="btn btn-ghost btn-icon"
-                          onClick={() => setConfirmRemove(member)}
-                          title="Remove from team"
-                          style={{ color: 'var(--text-muted)' }}
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      )}
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                        {editable && (
+                          <button className="btn btn-ghost btn-icon" title="Edit name & email"
+                            onClick={() => setEditMember(member)}>
+                            <Edit2 size={12} />
+                          </button>
+                        )}
+                        {editable && member.status === 'active' && (
+                          <button className="btn btn-ghost btn-icon" title="Reset password"
+                            onClick={() => resetAdminPassword(member.id)}>
+                            <KeyRound size={12} />
+                          </button>
+                        )}
+                        {editable && member.status === 'invited' && (
+                          <button className="btn btn-ghost btn-sm" title="Resend invite" style={{ gap: 4, fontSize: 11 }}
+                            onClick={() => resendAdminInvite(member.id)}>
+                            <RefreshCw size={11} /> Resend
+                          </button>
+                        )}
+                        {editable && (
+                          <button className="btn btn-ghost btn-icon" onClick={() => setConfirmRemove(member)}
+                            title="Remove from team" style={{ color: 'var(--text-muted)' }}>
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                        {!editable && !isSelf && (
+                          <span style={{ fontSize: 12, color: 'var(--text-subtle)' }}>—</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 )
@@ -380,10 +506,14 @@ export default function AdminTeam() {
 
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', fontSize: 12, color: 'var(--text-muted)' }}>
           Role changes take effect immediately. Removed members lose access at next page load.
+          {currentRole === 'admin' && <span style={{ color: '#F39C12', marginLeft: 8 }}>You can only manage Moderators and Viewers.</span>}
         </div>
       </div>
 
-      {showInvite && <InviteModal onClose={() => setShowInvite(false)} />}
+      <AccessMatrix />
+
+      {showInvite && <InviteModal onClose={() => setShowInvite(false)} currentAdminRole={currentRole} />}
+      {editMember && <EditMemberModal member={editMember} onClose={() => setEditMember(null)} />}
       {confirmRemove && (
         <ConfirmRemoveModal
           member={confirmRemove}

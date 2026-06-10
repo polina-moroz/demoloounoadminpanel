@@ -456,8 +456,7 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
           </div>
 
           {/* Star Badge promotion */}
-          {user.role === 'creator' && (
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 600, marginBottom: 8 }}>Star Badge</div>
               {user.isTopStreamer ? (
                 <button className="btn btn-secondary btn-sm" onClick={() => { onDemote(user.id); onClose() }}>
@@ -472,7 +471,6 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
                 Star Badge streamers appear first on the trending page and receive a boost in visibility.
               </div>
             </div>
-          )}
         </div>
       </aside>
     </>
@@ -586,13 +584,13 @@ export default function Users() {
                         onClick={() => demoteTopStreamer(u.id)}>
                         ⭐ Star
                       </span>
-                    ) : u.role === 'creator' ? (
+                    ) : (
                       <button className="btn btn-ghost btn-sm" title="Grant Star Badge"
                         onClick={() => promoteTopStreamer(u.id)}
                         style={{ fontSize: 10, padding: '3px 8px' }}>
                         <Star size={11} /> Grant
                       </button>
-                    ) : <span style={{ color: 'var(--text-subtle)', fontSize: 12 }}>—</span>}
+                    )}
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 4 }}>

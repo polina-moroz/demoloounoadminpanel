@@ -2,13 +2,16 @@ import { useState, useRef } from 'react'
 import { Edit2, X, Upload } from 'lucide-react'
 import { mockGifts } from '../mockData'
 import { useStore } from '../store'
-import type { Gift } from '../types'
+import type { Gift, GiftTier } from '../types'
 
-const tierMeta: Record<number, { bg: string; color: string; label: string; range: string }> = {
-  1: { bg: 'rgba(138,138,142,0.12)', color: '#8A8A8E', label: 'Tier 1 — Chat Gifts',          range: '10 – 500 coins' },
-  2: { bg: 'rgba(52,152,219,0.12)',  color: '#3498DB', label: 'Tier 2 — Animated',             range: '1K – 8K coins' },
-  3: { bg: 'rgba(153,102,204,0.12)', color: '#9966CC', label: 'Tier 3 — Premium 3D',           range: '10K – 60K coins' },
-  4: { bg: 'rgba(212,175,55,0.12)',  color: '#D4AF37', label: 'Tier 4 — Cinematic / Whale',    range: '70K – 100K coins' },
+const TIERS: GiftTier[] = ['5A', '5B', '5C', '5D', '5E']
+
+const tierMeta: Record<GiftTier, { bg: string; color: string; label: string; range: string; durationRange: string }> = {
+  '5A': { bg: 'rgba(138,138,142,0.12)', color: '#8A8A8E', label: '5A — Reaction / Meme / Chat', range: '10 – 500 coins',       durationRange: '1–2 s' },
+  '5B': { bg: 'rgba(52,152,219,0.12)',  color: '#3498DB', label: '5B — Mid-Tier Animated',       range: '300 – 3,000 coins',    durationRange: '3–5 s' },
+  '5C': { bg: 'rgba(153,102,204,0.12)', color: '#9966CC', label: '5C — Premium 3D',              range: '8,000 – 70,000 coins', durationRange: '6–10 s' },
+  '5D': { bg: 'rgba(212,175,55,0.12)',  color: '#D4AF37', label: '5D — Cinematic / Whale',       range: '90,000 – 150,000 coins',durationRange: '12–15 s' },
+  '5E': { bg: 'rgba(231,76,60,0.12)',   color: '#E74C3C', label: '5E — VIP / Max Cap',           range: '175,000 – 300,000 coins',durationRange: '16–20 s' },
 }
 
 /* ── Add / Edit modal ─────────────────────────────────────────── */
@@ -20,16 +23,15 @@ interface GiftModalProps {
 }
 
 function GiftModal({ initial, onSave, onClose }: GiftModalProps) {
-  const [emoji, setEmoji]   = useState(initial?.emoji ?? '')
-  const [name, setName]     = useState(initial?.name ?? '')
-  const [coins, setCoins]   = useState(initial?.coins ?? 0)
-  const [tier, setTier]     = useState<1|2|3|4>(initial?.tier ?? 1)
-  const [enabled, setEnabled] = useState(initial?.enabled ?? true)
+  const [animationFileName, setAnimationFileName] = useState<string | null>(initial?.animationFileName ?? null)
+  const [name, setName]         = useState(initial?.name ?? '')
+  const [coins, setCoins]       = useState(initial?.coins ?? 0)
+  const [durationSec, setDurationSec] = useState(initial?.durationSec ?? 1)
+  const [tier, setTier]         = useState<GiftTier>(initial?.tier ?? '5A')
+  const [enabled, setEnabled]   = useState(initial?.enabled ?? true)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const tierNames = { 1: 'Chat Gifts', 2: 'Animated', 3: 'Premium 3D', 4: 'Cinematic / Whale' }
-
-  const valid = emoji.trim() !== '' && name.trim() !== '' && coins > 0
+  const valid = name.trim() !== '' && coins > 0 && durationSec > 0
 
   return (
     <>
@@ -41,45 +43,33 @@ function GiftModal({ initial, onSave, onClose }: GiftModalProps) {
         </div>
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-          {/* Emoji / image */}
+          {/* Animation asset */}
           <div className="form-group">
-            <label className="form-label">Emoji or Icon</label>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <div style={{
-                width: 56, height: 56, borderRadius: 12,
-                background: 'var(--bg-surface-2)', border: '1px solid var(--border)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 28, flexShrink: 0,
-              }}>
-                {emoji || '?'}
-              </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <input
-                  className="form-input"
-                  placeholder="Paste emoji e.g. 🎁"
-                  value={emoji}
-                  onChange={e => setEmoji(e.target.value)}
-                  style={{ fontSize: 18 }}
-                />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ height: 1, flex: 1, background: 'var(--border)' }} />
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>or upload image</span>
-                  <div style={{ height: 1, flex: 1, background: 'var(--border)' }} />
-                </div>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  style={{ alignSelf: 'flex-start' }}
-                  onClick={() => fileRef.current?.click()}
-                >
-                  <Upload size={13} /> Upload PNG / SVG
+            <label className="form-label">Gift Animation</label>
+            {animationFileName ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, background: 'var(--bg-surface-2)', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: 12, color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {animationFileName}
+                </span>
+                <button className="btn btn-ghost btn-icon" style={{ width: 22, height: 22, color: 'var(--text-muted)' }}
+                  onClick={() => setAnimationFileName(null)}>
+                  <X size={12} />
                 </button>
-                <input ref={fileRef} type="file" accept="image/png,image/svg+xml,image/webp" style={{ display: 'none' }}
-                  onChange={e => {
-                    const file = e.target.files?.[0]
-                    if (file) setEmoji(`[${file.name}]`)
-                  }}
-                />
               </div>
+            ) : (
+              <button className="btn btn-secondary btn-sm" style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => fileRef.current?.click()}>
+                <Upload size={13} /> Upload .glb (3D) or .json (2D Lottie)
+              </button>
+            )}
+            <input ref={fileRef} type="file" accept=".glb,.json" style={{ display: 'none' }}
+              onChange={e => {
+                const file = e.target.files?.[0]
+                if (file) setAnimationFileName(file.name)
+                e.target.value = ''
+              }} />
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+              .glb for 3D, .json for 2D Lottie
             </div>
           </div>
 
@@ -94,14 +84,10 @@ function GiftModal({ initial, onSave, onClose }: GiftModalProps) {
             />
           </div>
 
-          {/* Coins price */}
-          <div className="form-group">
-            <label className="form-label">Price (coins)</label>
-            <div style={{ position: 'relative' }}>
-              <span style={{
-                position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
-                fontSize: 16, pointerEvents: 'none',
-              }}>🪙</span>
+          {/* Coins */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="form-group">
+              <label className="form-label">Price (coins)</label>
               <input
                 className="form-input"
                 type="number"
@@ -109,7 +95,18 @@ function GiftModal({ initial, onSave, onClose }: GiftModalProps) {
                 placeholder="e.g. 5000"
                 value={coins || ''}
                 onChange={e => setCoins(Number(e.target.value))}
-                style={{ paddingLeft: 36 }}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Duration (sec)</label>
+              <input
+                className="form-input"
+                type="number"
+                min={1}
+                max={60}
+                placeholder="e.g. 5"
+                value={durationSec || ''}
+                onChange={e => setDurationSec(Number(e.target.value))}
               />
             </div>
           </div>
@@ -117,24 +114,23 @@ function GiftModal({ initial, onSave, onClose }: GiftModalProps) {
           {/* Tier */}
           <div className="form-group">
             <label className="form-label">Tier</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {([1,2,3,4] as const).map(t => {
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {TIERS.map(t => {
                 const m = tierMeta[t]
                 return (
                   <button
                     key={t}
                     onClick={() => setTier(t)}
                     style={{
-                      padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                      padding: '9px 12px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
                       background: tier === t ? m.bg : 'var(--bg-surface-2)',
                       border: `1.5px solid ${tier === t ? m.color : 'var(--border)'}`,
-                      display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2,
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       transition: 'all 0.15s',
                     }}
                   >
-                    <span style={{ fontSize: 11, fontWeight: 700, color: m.color }}>Tier {t}</span>
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{tierNames[t]}</span>
-                    <span style={{ fontSize: 10, color: 'var(--text-subtle)' }}>{m.range}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: m.color }}>{m.label}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{m.durationRange} · {m.range}</span>
                   </button>
                 )
               })}
@@ -161,7 +157,7 @@ function GiftModal({ initial, onSave, onClose }: GiftModalProps) {
             disabled={!valid}
             style={{ opacity: valid ? 1 : 0.45 }}
             onClick={() => {
-              onSave({ emoji, name, coins, tier, tierName: tierNames[tier], enabled })
+              onSave({ animationFileName, name, coins, durationSec, tier, tierName: tierMeta[tier].label, enabled })
               onClose()
             }}
           >
@@ -175,11 +171,7 @@ function GiftModal({ initial, onSave, onClose }: GiftModalProps) {
 
 /* ── Gift card ────────────────────────────────────────────────── */
 
-function GiftCard({
-  gift,
-  onToggle,
-  onEdit,
-}: {
+function GiftCard({ gift, onToggle, onEdit }: {
   gift: Gift
   onToggle: (id: string) => void
   onEdit: (gift: Gift) => void
@@ -187,15 +179,21 @@ function GiftCard({
   const m = tierMeta[gift.tier]
   return (
     <div className={`gift-card${!gift.enabled ? ' disabled' : ''}`}>
-      <div className="gift-emoji">{gift.emoji}</div>
+      <div className="gift-emoji" style={{ fontSize: 11, color: 'var(--text-muted)', wordBreak: 'break-all', minHeight: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {gift.animationFileName
+          ? <span style={{ fontSize: 10, background: 'var(--bg-surface-2)', padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)' }}>{gift.animationFileName}</span>
+          : <span style={{ color: 'var(--text-subtle)' }}>No asset</span>
+        }
+      </div>
       <div className="gift-name">{gift.name}</div>
-      <div className="gift-price">{gift.coins.toLocaleString()} 🪙</div>
+      <div className="gift-price">{gift.coins.toLocaleString()} coins</div>
+      <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>{gift.durationSec}s</div>
       <span style={{
         fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px',
         padding: '2px 7px', borderRadius: 20,
         background: m.bg, color: m.color, border: `1px solid ${m.color}25`,
       }}>
-        Tier {gift.tier}
+        {gift.tier}
       </span>
       <div className="gift-card-actions">
         <label className="toggle" title={gift.enabled ? 'Disable' : 'Enable'}>
@@ -225,7 +223,7 @@ export default function GiftCatalog() {
   const handleAdd = (data: Omit<Gift, 'id'>) => {
     const newGift: Gift = { ...data, id: `g${Date.now()}` }
     setGifts(prev => [...prev, newGift])
-    toast(`Gift "${data.name}" added to Tier ${data.tier}`, 'success')
+    toast(`Gift "${data.name}" added to tier ${data.tier}`, 'success')
   }
 
   const handleEdit = (id: string, data: Omit<Gift, 'id'>) => {
@@ -233,7 +231,6 @@ export default function GiftCatalog() {
     toast(`Gift "${data.name}" updated`, 'success')
   }
 
-  const tiers = [1, 2, 3, 4] as const
   const totalEnabled = gifts.filter(g => g.enabled).length
 
   return (
@@ -241,7 +238,7 @@ export default function GiftCatalog() {
       <div className="page-header">
         <div className="page-header-text">
           <div className="title">Gift Catalog</div>
-          <div className="subtitle">Manage virtual gifts, tiers, prices, and visibility</div>
+          <div className="subtitle">Manage virtual gifts, tiers, prices, and animations</div>
         </div>
         <div className="page-header-actions">
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
@@ -253,7 +250,7 @@ export default function GiftCatalog() {
         </div>
       </div>
 
-      {tiers.map(tier => {
+      {TIERS.map(tier => {
         const m = tierMeta[tier]
         const tierGifts = gifts.filter(g => g.tier === tier)
         return (
@@ -265,7 +262,7 @@ export default function GiftCatalog() {
               }}>
                 {m.label}
               </span>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.range}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.durationRange} · {m.range}</span>
               <span style={{ fontSize: 12, color: 'var(--text-subtle)', marginLeft: 'auto' }}>
                 {tierGifts.filter(g => g.enabled).length}/{tierGifts.length} enabled
               </span>
@@ -293,7 +290,7 @@ export default function GiftCatalog() {
                 onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(212,175,55,0.7)')}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(212,175,55,0.3)')}
               >
-                <span style={{ fontSize: 20 }}>＋</span>
+                <span style={{ fontSize: 20 }}>+</span>
                 <span>Add Gift</span>
               </button>
             </div>
@@ -301,12 +298,10 @@ export default function GiftCatalog() {
         )
       })}
 
-      {/* Add modal */}
       {showAddModal && (
         <GiftModal onSave={handleAdd} onClose={() => setShowAddModal(false)} />
       )}
 
-      {/* Edit modal */}
       {editGift && (
         <GiftModal
           initial={editGift}

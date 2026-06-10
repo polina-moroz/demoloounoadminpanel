@@ -17,7 +17,7 @@ function AddTierModal({ platform, nextTier, onSave, onClose }: AddTierModalProps
   const [label, setLabel]         = useState('')
   const [coins, setCoins]         = useState('')
   const [price, setPrice]         = useState('')
-  const [bonus, setBonus]         = useState(platform === 'web' ? '30' : '0')
+  const [bonus, setBonus]         = useState('0')
   const [bestValue, setBestValue] = useState(false)
 
   const valid = label.trim() !== '' && Number(coins) > 0 && Number(price) > 0
@@ -78,7 +78,7 @@ function AddTierModal({ platform, nextTier, onSave, onClose }: AddTierModalProps
             <input className="form-input" type="number" min="0" placeholder="0" value={bonus}
               onChange={e => setBonus(e.target.value)} />
             <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-              {platform === 'web' ? 'Website packages typically give +30%' : 'No bonus for IAP (0)'}
+              Bonus coins for this tier (0 = none)
             </span>
           </div>
 
@@ -219,7 +219,7 @@ export default function CoinPackages() {
       <div className="callout callout-info">
         <Info size={15} />
         <div>
-          <strong>Website packages</strong> give 30% more coins than IAP equivalents (no App Store / Play Store cut).
+          <strong>Website packages</strong> are processed directly — no App Store or Play Store cut.
           Maximum single website purchase is <strong>$4,999.99</strong>. Bulk orders above $5,000 must be arranged manually.
         </div>
       </div>
@@ -232,7 +232,7 @@ export default function CoinPackages() {
       <PackageTable
         platform="web"
         title="Website Purchases"
-        subtitle="Direct website checkout — 30% more coins, no platform fee"
+        subtitle="Direct website checkout — no platform fee"
       />
     </div>
   )

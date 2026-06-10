@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import type { Transaction } from '../types'
 
-const DIAMONDS_TO_USD = 0.0007
+const DIAMONDS_TO_USD = 0.0035  // $3.50 per 1,000 diamonds
 
 const TX_META = {
   coin_purchase: {
@@ -10,13 +10,13 @@ const TX_META = {
     icon: '🪙',
     description: (t: Transaction) => t.note ?? '',
   },
-  diamond_received: {
+  diamonds_received: {
     label: 'Diamonds Received',
     color: '#D4AF37',
     icon: '💎',
     description: (t: Transaction) => t.note ?? '',
   },
-  diamond_withdrawal: {
+  withdrawal: {
     label: 'Withdrawal',
     color: '#3498DB',
     icon: '🏦',
@@ -34,7 +34,7 @@ function TxRow({ tx }: { tx: Transaction }) {
       </div>
       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>USD</div>
     </div>
-  ) : tx.type === 'diamond_received' ? (
+  ) : tx.type === 'diamonds_received' ? (
     <div style={{ textAlign: 'right', flexShrink: 0 }}>
       <div style={{ fontSize: 15, fontWeight: 700, color: '#D4AF37' }}>
         +{tx.amount.toLocaleString()} 💎
@@ -60,7 +60,6 @@ function TxRow({ tx }: { tx: Transaction }) {
       padding: '12px 0',
       borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))',
     }}>
-      {/* Icon circle */}
       <div style={{
         width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -71,7 +70,6 @@ function TxRow({ tx }: { tx: Transaction }) {
         {meta.icon}
       </div>
 
-      {/* Text */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3, flexWrap: 'wrap' }}>
           <span style={{
@@ -107,13 +105,13 @@ interface Props {
 }
 
 export default function TxHistoryModal({ userHandle, userName, transactions, onClose }: Props) {
-  const coinTxs      = transactions.filter(t => t.type === 'coin_purchase')
-  const diamondTxs   = transactions.filter(t => t.type === 'diamond_received')
-  const withdrawalTxs= transactions.filter(t => t.type === 'diamond_withdrawal')
+  const coinTxs       = transactions.filter(t => t.type === 'coin_purchase')
+  const diamondTxs    = transactions.filter(t => t.type === 'diamonds_received')
+  const withdrawalTxs = transactions.filter(t => t.type === 'withdrawal')
 
-  const totalCoinsUSD    = coinTxs.reduce((s, t) => s + t.amount, 0)
-  const totalDiamonds    = diamondTxs.reduce((s, t) => s + t.amount, 0)
-  const totalWithdrawn   = withdrawalTxs.reduce((s, t) => s + t.amount, 0)
+  const totalCoinsUSD  = coinTxs.reduce((s, t) => s + t.amount, 0)
+  const totalDiamonds  = diamondTxs.reduce((s, t) => s + t.amount, 0)
+  const totalWithdrawn = withdrawalTxs.reduce((s, t) => s + t.amount, 0)
 
   return (
     <div className="modal-overlay" style={{ zIndex: 350 }} onClick={onClose}>
@@ -122,7 +120,6 @@ export default function TxHistoryModal({ userHandle, userName, transactions, onC
         style={{ maxWidth: 540, width: '94%', maxHeight: '84vh', display: 'flex', flexDirection: 'column' }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="modal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700 }}>Transaction History</div>
@@ -133,15 +130,14 @@ export default function TxHistoryModal({ userHandle, userName, transactions, onC
           <button className="modal-close" onClick={onClose}><X size={14} /></button>
         </div>
 
-        {/* Summary strip */}
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
           borderBottom: '1px solid var(--border)',
         }}>
           {[
-            { label: 'Coins Purchased', value: `$${totalCoinsUSD.toFixed(2)}`, color: '#2ECC8A', icon: '🪙', count: coinTxs.length },
+            { label: 'Coins Purchased',   value: `$${totalCoinsUSD.toFixed(2)}`,        color: '#2ECC8A', icon: '🪙', count: coinTxs.length },
             { label: 'Diamonds Received', value: `${totalDiamonds.toLocaleString()} 💎`, color: '#D4AF37', icon: '💎', count: diamondTxs.length },
-            { label: 'Withdrawn', value: `${totalWithdrawn.toLocaleString()} 💎`, color: '#3498DB', icon: '🏦', count: withdrawalTxs.length },
+            { label: 'Withdrawn',         value: `${totalWithdrawn.toLocaleString()} 💎`,color: '#3498DB', icon: '🏦', count: withdrawalTxs.length },
           ].map((s, i) => (
             <div key={s.label} style={{
               padding: '12px 16px',
@@ -156,7 +152,6 @@ export default function TxHistoryModal({ userHandle, userName, transactions, onC
           ))}
         </div>
 
-        {/* List */}
         <div style={{ overflowY: 'auto', padding: '4px 20px 16px', flex: 1 }}>
           {transactions.length === 0 ? (
             <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
