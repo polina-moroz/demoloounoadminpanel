@@ -105,7 +105,7 @@ interface StoreCtx {
   inviteAdmin: (email: string, role: AdminRole, fullName: string) => string
   updateAdminRole: (id: string, role: AdminRole) => void
   updateAdminMember: (id: string, updates: Partial<Pick<AdminMember, 'displayName' | 'email'>>) => void
-  resetAdminPassword: (id: string) => void
+  resetAdminPassword: (id: string, newPassword: string) => void
   resendAdminInvite: (id: string) => void
   suspendAdmin: (id: string) => void
   reinstateAdmin: (id: string) => void
@@ -450,9 +450,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     toast('Member updated', 'success')
   }, [toast])
 
-  const resetAdminPassword = useCallback((id: string) => {
+  const resetAdminPassword = useCallback((id: string, _newPassword: string) => {
     const a = adminTeam.find(a => a.id === id)
-    toast(`Password reset link sent to ${a?.email ?? id}`, 'success')
+    toast(`Password changed for ${a?.displayName !== '—' ? a?.displayName : a?.email ?? id}`, 'success')
   }, [adminTeam, toast])
 
   const resendAdminInvite = useCallback((id: string) => {

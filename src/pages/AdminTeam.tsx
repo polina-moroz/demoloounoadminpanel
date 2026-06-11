@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X, Copy, Check, Mail, ShieldCheck, ShieldOff, Trash2, Users, Edit2, KeyRound, RefreshCw } from 'lucide-react'
+import { Plus, X, Copy, Check, Mail, ShieldCheck, ShieldOff, Trash2, Users, Edit2, KeyRound, RefreshCw, Eye, EyeOff } from 'lucide-react'
 import StatCard from '../components/StatCard'
 import { useStore } from '../store'
 import type { AdminRole, AdminMember } from '../types'
@@ -327,13 +327,123 @@ function AccessMatrix() {
   )
 }
 
+/* ── Change Password Modal ────────────────────────────────────── */
+
+function ChangePasswordModal({ member, onClose }: { member: AdminMember; onClose: () => void }) {
+  const { resetAdminPassword } = useStore()
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showNew, setShowNew] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  const mismatch = confirmPassword.length > 0 && newPassword !== confirmPassword
+  const valid = newPassword.length >= 8 && newPassword === confirmPassword
+
+  const handleSave = () => {
+    if (!valid) return
+    resetAdminPassword(member.id, newPassword)
+    onClose()
+  }
+
+  const memberName = member.displayName !== '—' ? member.displayName : member.email
+
+  return (
+    <>
+      <div className="modal-backdrop" onClick={onClose} />
+      <div className="modal-dialog" style={{ maxWidth: 440 }}>
+        <div className="modal-header">
+          <span className="modal-title">Change Password</span>
+          <button className="modal-close" onClick={onClose}><X size={14} /></button>
+        </div>
+        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--bg-surface-2)', borderRadius: 10, border: '1px solid var(--border)' }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: '50%',
+              background: member.avatarColor,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0,
+            }}>
+              {member.displayName !== '—' ? member.displayName[0] : '?'}
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{memberName}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{member.email} · <RoleBadge role={member.role} /></div>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">New Password</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                className="form-input"
+                type={showNew ? 'text' : 'password'}
+                placeholder="Min. 8 characters"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                autoFocus
+                style={{ paddingRight: 40 }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNew(v => !v)}
+                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
+              >
+                {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+            {newPassword.length > 0 && newPassword.length < 8 && (
+              <div style={{ fontSize: 11, color: '#E74C3C', marginTop: 4 }}>Minimum 8 characters</div>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Confirm Password</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                className="form-input"
+                type={showConfirm ? 'text' : 'password'}
+                placeholder="Repeat new password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                style={{ paddingRight: 40, borderColor: mismatch ? '#E74C3C' : undefined }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(v => !v)}
+                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
+              >
+                {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+            {mismatch && (
+              <div style={{ fontSize: 11, color: '#E74C3C', marginTop: 4 }}>Passwords do not match</div>
+            )}
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button
+            className="btn btn-primary"
+            disabled={!valid}
+            style={{ opacity: valid ? 1 : 0.45 }}
+            onClick={handleSave}
+          >
+            <KeyRound size={13} /> Set Password
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 /* ── Main Page ────────────────────────────────────────────────── */
 
 export default function AdminTeam() {
-  const { adminTeam, updateAdminRole, removeAdmin, resetAdminPassword, resendAdminInvite, currentAdmin, toast } = useStore()
+  const { adminTeam, updateAdminRole, removeAdmin, resendAdminInvite, currentAdmin } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState<AdminMember | null>(null)
   const [editMember, setEditMember] = useState<AdminMember | null>(null)
+  const [changePasswordMember, setChangePasswordMember] = useState<AdminMember | null>(null)
 
   const totalActive  = adminTeam.filter(a => a.status === 'active').length
   const totalAdmins  = adminTeam.filter(a => ['super_admin', 'admin'].includes(a.role) && a.status === 'active').length
@@ -475,8 +585,8 @@ export default function AdminTeam() {
                           </button>
                         )}
                         {editable && member.status === 'active' && (
-                          <button className="btn btn-ghost btn-icon" title="Reset password"
-                            onClick={() => resetAdminPassword(member.id)}>
+                          <button className="btn btn-ghost btn-icon" title="Change password"
+                            onClick={() => setChangePasswordMember(member)}>
                             <KeyRound size={12} />
                           </button>
                         )}
@@ -514,6 +624,9 @@ export default function AdminTeam() {
 
       {showInvite && <InviteModal onClose={() => setShowInvite(false)} currentAdminRole={currentRole} />}
       {editMember && <EditMemberModal member={editMember} onClose={() => setEditMember(null)} />}
+      {changePasswordMember && (
+        <ChangePasswordModal member={changePasswordMember} onClose={() => setChangePasswordMember(null)} />
+      )}
       {confirmRemove && (
         <ConfirmRemoveModal
           member={confirmRemove}
