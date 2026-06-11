@@ -635,7 +635,6 @@ export default function AdminTeam() {
         </div>
       </div>
 
-      <AccessMatrix />
 
       {showInvite && <InviteModal onClose={() => setShowInvite(false)} currentAdminRole={currentRole} />}
       {editMember && <EditMemberModal member={editMember} onClose={() => setEditMember(null)} />}
