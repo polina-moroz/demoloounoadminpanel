@@ -329,19 +329,55 @@ function AccessMatrix() {
 
 /* ── Change Password Modal ────────────────────────────────────── */
 
+function PasswordInput({ label, value, onChange, show, onToggle, placeholder, error, autoFocus }: {
+  label: string; value: string; onChange: (v: string) => void
+  show: boolean; onToggle: () => void; placeholder: string
+  error?: string; autoFocus?: boolean
+}) {
+  return (
+    <div className="form-group">
+      <label className="form-label">{label}</label>
+      <div style={{ position: 'relative' }}>
+        <input
+          className="form-input"
+          type={show ? 'text' : 'password'}
+          placeholder={placeholder}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          autoFocus={autoFocus}
+          style={{ paddingRight: 40, borderColor: error ? '#E74C3C' : undefined }}
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
+        >
+          {show ? <EyeOff size={14} /> : <Eye size={14} />}
+        </button>
+      </div>
+      {error && <div style={{ fontSize: 11, color: '#E74C3C', marginTop: 4 }}>{error}</div>}
+    </div>
+  )
+}
+
 function ChangePasswordModal({ member, onClose }: { member: AdminMember; onClose: () => void }) {
   const { resetAdminPassword } = useStore()
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const [current, setCurrent] = useState('')
+  const [newPass, setNewPass] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [showCurrent, setShowCurrent] = useState(false)
   const [showNew, setShowNew] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
 
-  const mismatch = confirmPassword.length > 0 && newPassword !== confirmPassword
-  const valid = newPassword.length >= 8 && newPassword === confirmPassword
+  const newTooShort = newPass.length > 0 && newPass.length < 8
+  const mismatch = confirm.length > 0 && newPass !== confirm
+  const valid = current.length > 0 && newPass.length >= 8 && newPass === confirm
 
   const handleSave = () => {
+    setSubmitted(true)
     if (!valid) return
-    resetAdminPassword(member.id, newPassword)
+    resetAdminPassword(member.id, newPass)
     onClose()
   }
 
@@ -367,68 +403,47 @@ function ChangePasswordModal({ member, onClose }: { member: AdminMember; onClose
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{memberName}</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{member.email} · <RoleBadge role={member.role} /></div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>{member.email} · <RoleBadge role={member.role} /></div>
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">New Password</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                className="form-input"
-                type={showNew ? 'text' : 'password'}
-                placeholder="Min. 8 characters"
-                value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                autoFocus
-                style={{ paddingRight: 40 }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowNew(v => !v)}
-                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
-              >
-                {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
-            </div>
-            {newPassword.length > 0 && newPassword.length < 8 && (
-              <div style={{ fontSize: 11, color: '#E74C3C', marginTop: 4 }}>Minimum 8 characters</div>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Confirm Password</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                className="form-input"
-                type={showConfirm ? 'text' : 'password'}
-                placeholder="Repeat new password"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                style={{ paddingRight: 40, borderColor: mismatch ? '#E74C3C' : undefined }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirm(v => !v)}
-                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
-              >
-                {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
-            </div>
-            {mismatch && (
-              <div style={{ fontSize: 11, color: '#E74C3C', marginTop: 4 }}>Passwords do not match</div>
-            )}
-          </div>
+          <PasswordInput
+            label="Current Password"
+            value={current}
+            onChange={setCurrent}
+            show={showCurrent}
+            onToggle={() => setShowCurrent(v => !v)}
+            placeholder="Enter current password"
+            error={submitted && !current ? 'Required' : undefined}
+            autoFocus
+          />
+          <PasswordInput
+            label="New Password"
+            value={newPass}
+            onChange={setNewPass}
+            show={showNew}
+            onToggle={() => setShowNew(v => !v)}
+            placeholder="Min. 8 characters"
+            error={newTooShort ? 'Minimum 8 characters' : undefined}
+          />
+          <PasswordInput
+            label="Confirm New Password"
+            value={confirm}
+            onChange={setConfirm}
+            show={showConfirm}
+            onToggle={() => setShowConfirm(v => !v)}
+            placeholder="Repeat new password"
+            error={mismatch ? 'Passwords do not match' : undefined}
+          />
         </div>
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button
             className="btn btn-primary"
-            disabled={!valid}
             style={{ opacity: valid ? 1 : 0.45 }}
             onClick={handleSave}
           >
-            <KeyRound size={13} /> Set Password
+            <KeyRound size={13} /> Change Password
           </button>
         </div>
       </div>
