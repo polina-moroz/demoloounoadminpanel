@@ -360,7 +360,7 @@ function PasswordInput({ label, value, onChange, show, onToggle, placeholder, er
   )
 }
 
-function ChangePasswordModal({ member, onClose }: { member: AdminMember; onClose: () => void }) {
+function ChangePasswordModal({ member, requireCurrent, onClose }: { member: AdminMember; requireCurrent: boolean; onClose: () => void }) {
   const { resetAdminPassword } = useStore()
   const [current, setCurrent] = useState('')
   const [newPass, setNewPass] = useState('')
@@ -372,7 +372,8 @@ function ChangePasswordModal({ member, onClose }: { member: AdminMember; onClose
 
   const newTooShort = newPass.length > 0 && newPass.length < 8
   const mismatch = confirm.length > 0 && newPass !== confirm
-  const valid = current.length > 0 && newPass.length >= 8 && newPass === confirm
+  const currentOk = !requireCurrent || current.length > 0
+  const valid = currentOk && newPass.length >= 8 && newPass === confirm
 
   const handleSave = () => {
     setSubmitted(true)
@@ -407,16 +408,18 @@ function ChangePasswordModal({ member, onClose }: { member: AdminMember; onClose
             </div>
           </div>
 
-          <PasswordInput
-            label="Current Password"
-            value={current}
-            onChange={setCurrent}
-            show={showCurrent}
-            onToggle={() => setShowCurrent(v => !v)}
-            placeholder="Enter current password"
-            error={submitted && !current ? 'Required' : undefined}
-            autoFocus
-          />
+          {requireCurrent && (
+            <PasswordInput
+              label="Current Password"
+              value={current}
+              onChange={setCurrent}
+              show={showCurrent}
+              onToggle={() => setShowCurrent(v => !v)}
+              placeholder="Enter current password"
+              error={submitted && !current ? 'Required' : undefined}
+              autoFocus
+            />
+          )}
           <PasswordInput
             label="New Password"
             value={newPass}
@@ -425,6 +428,7 @@ function ChangePasswordModal({ member, onClose }: { member: AdminMember; onClose
             onToggle={() => setShowNew(v => !v)}
             placeholder="Min. 8 characters"
             error={newTooShort ? 'Minimum 8 characters' : undefined}
+            autoFocus={!requireCurrent}
           />
           <PasswordInput
             label="Confirm New Password"
@@ -472,6 +476,11 @@ export default function AdminTeam() {
     if (member.role === 'super_admin') return false
     if (currentRole === 'admin' && member.role === 'admin') return false
     return currentRole === 'super_admin' || currentRole === 'admin'
+  }
+
+  const canChangePassword = (member: AdminMember) => {
+    if (currentRole === 'super_admin') return member.role !== 'super_admin' && member.status === 'active'
+    return member.id === currentAdmin?.id && member.status === 'active'
   }
 
   const canChangeRole = (member: AdminMember, toRole: AdminRole) => {
@@ -599,7 +608,7 @@ export default function AdminTeam() {
                             <Edit2 size={12} />
                           </button>
                         )}
-                        {editable && member.status === 'active' && (
+                        {canChangePassword(member) && (
                           <button className="btn btn-ghost btn-icon" title="Change password"
                             onClick={() => setChangePasswordMember(member)}>
                             <KeyRound size={12} />
@@ -617,7 +626,7 @@ export default function AdminTeam() {
                             <Trash2 size={13} />
                           </button>
                         )}
-                        {!editable && !isSelf && (
+                        {!editable && !isSelf && !canChangePassword(member) && (
                           <span style={{ fontSize: 12, color: 'var(--text-subtle)' }}>—</span>
                         )}
                       </div>
@@ -639,7 +648,11 @@ export default function AdminTeam() {
       {showInvite && <InviteModal onClose={() => setShowInvite(false)} currentAdminRole={currentRole} />}
       {editMember && <EditMemberModal member={editMember} onClose={() => setEditMember(null)} />}
       {changePasswordMember && (
-        <ChangePasswordModal member={changePasswordMember} onClose={() => setChangePasswordMember(null)} />
+        <ChangePasswordModal
+          member={changePasswordMember}
+          requireCurrent={currentRole !== 'super_admin'}
+          onClose={() => setChangePasswordMember(null)}
+        />
       )}
       {confirmRemove && (
         <ConfirmRemoveModal
