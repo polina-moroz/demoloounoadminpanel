@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
-import { X, AlertTriangle, Ban, RotateCcw, Plus, Trash2, ExternalLink, ScrollText } from 'lucide-react'
+import { useState } from 'react'
+import { X, AlertTriangle, Ban, RotateCcw, ExternalLink, ScrollText } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
 import WarnMessagesEditor from '../components/WarnMessagesEditor'
 import { useStore } from '../store'
-import type { ReportType, ReportStatus, ReportReason, ReportLogEntry } from '../types'
+import type { ReportType, ReportStatus, ReportLogEntry } from '../types'
 
 const TYPE_OPTIONS:   { key: ReportType;   label: string }[] = [
   { key: 'stream',  label: 'Stream'  },
@@ -19,112 +19,6 @@ const STATUS_OPTIONS: { key: ReportStatus; label: string }[] = [
 
 function toggle<T>(arr: T[], value: T): T[] {
   return arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value]
-}
-
-const appliesToColors: Record<ReportReason['appliesTo'], string> = {
-  all:     '#8A8A8E',
-  stream:  '#D4AF37',
-  user:    '#9966CC',
-  message: '#3498DB',
-}
-
-const appliesToLabels: Record<ReportReason['appliesTo'], string> = {
-  all:     'All types',
-  stream:  'Stream',
-  user:    'User',
-  message: 'Message',
-}
-
-function AppliesToBadge({ value }: { value: ReportReason['appliesTo'] }) {
-  const color = appliesToColors[value]
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center',
-      padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-      color, background: `${color}18`, border: `1px solid ${color}30`,
-      whiteSpace: 'nowrap',
-    }}>
-      {appliesToLabels[value]}
-    </span>
-  )
-}
-
-/* ── Add Reason Modal ─────────────────────────────────────────── */
-
-function AddReasonModal({ onClose }: { onClose: () => void }) {
-  const { addReportReason } = useStore()
-  const [label, setLabel] = useState('')
-  const [appliesTo, setAppliesTo] = useState<ReportReason['appliesTo']>('all')
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => { inputRef.current?.focus() }, [])
-
-  const handleAdd = () => {
-    if (!label.trim()) return
-    addReportReason(label, appliesTo)
-    onClose()
-  }
-
-  return (
-    <>
-      <div className="modal-backdrop" onClick={onClose} />
-      <div className="modal-dialog" style={{ maxWidth: 440 }}>
-        <div className="modal-header">
-          <span className="modal-title">Add Report Reason</span>
-          <button className="modal-close" onClick={onClose}><X size={14} /></button>
-        </div>
-        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="form-group">
-            <label className="form-label">Reason Label</label>
-            <input
-              ref={inputRef}
-              className="form-input"
-              placeholder="e.g. Inappropriate thumbnail"
-              value={label}
-              onChange={e => setLabel(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAdd()}
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Applies To</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {(Object.keys(appliesToLabels) as ReportReason['appliesTo'][]).map(key => {
-                const color = appliesToColors[key]
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setAppliesTo(key)}
-                    style={{
-                      padding: '9px 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-                      background: appliesTo === key ? `${color}12` : 'var(--bg-surface-2)',
-                      border: `1.5px solid ${appliesTo === key ? color : 'var(--border)'}`,
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    <span style={{ fontSize: 12, fontWeight: 700, color: appliesTo === key ? color : 'var(--text-secondary)' }}>
-                      {appliesToLabels[key]}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-        <div className="modal-footer">
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button
-            className="btn btn-primary"
-            disabled={!label.trim()}
-            style={{ opacity: label.trim() ? 1 : 0.45 }}
-            onClick={handleAdd}
-          >
-            <Plus size={13} /> Add Reason
-          </button>
-        </div>
-      </div>
-    </>
-  )
 }
 
 /* ── Report Log Modal ─────────────────────────────────────────── */
@@ -211,12 +105,10 @@ function ReportLogModal({ log, reportId, onClose }: { log: ReportLogEntry[]; rep
 export default function Reports() {
   const {
     reports, dismissReport, reopenReport, banReportTarget, warnReportTarget,
-    reportReasons, updateReportReason, removeReportReason,
   } = useStore()
 
   const [selectedTypes,    setSelectedTypes]    = useState<ReportType[]>([])
   const [selectedStatuses, setSelectedStatuses] = useState<ReportStatus[]>([])
-  const [showAddReason, setShowAddReason] = useState(false)
   const [warnPickerReport, setWarnPickerReport] = useState<{ id: string; targetHandle: string } | null>(null)
   const [logReport, setLogReport] = useState<{ id: string; log: ReportLogEntry[] } | null>(null)
 
@@ -228,7 +120,6 @@ export default function Reports() {
 
   const pending  = reports.filter(r => r.status === 'pending').length
   const resolved = reports.filter(r => r.status === 'resolved').length
-  const activeReasons = reportReasons.filter(r => r.enabled).length
 
   return (
     <div>
@@ -378,101 +269,6 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* ── Report Reason Presets ─────────────────────────────── */}
-      <div className="table-wrapper" style={{ marginTop: 24 }}>
-        <div className="table-header">
-          <div>
-            <div className="table-title">Report Reason Presets</div>
-            <div className="table-subtitle">
-              Predefined reasons shown to users when submitting a report ·{' '}
-              <span style={{ color: 'var(--emerald)' }}>{activeReasons} active</span>
-              {reportReasons.length - activeReasons > 0 && (
-                <span style={{ color: 'var(--text-subtle)' }}> · {reportReasons.length - activeReasons} disabled</span>
-              )}
-            </div>
-          </div>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowAddReason(true)}>
-            <Plus size={13} /> Add Reason
-          </button>
-        </div>
-
-        <div style={{ overflowX: 'auto' }}>
-          <table>
-            <thead>
-              <tr>
-                <th>Reason</th>
-                <th style={{ width: 130 }}>Applies To</th>
-                <th style={{ width: 80 }}>Enabled</th>
-                <th style={{ width: 40 }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {reportReasons.map(reason => (
-                <tr key={reason.id} style={{ opacity: reason.enabled ? 1 : 0.45 }}>
-                  <td>
-                    <input
-                      className="form-input"
-                      value={reason.label}
-                      onChange={e => updateReportReason(reason.id, { label: e.target.value })}
-                      style={{
-                        background: 'transparent',
-                        border: '1px solid transparent',
-                        fontSize: 13,
-                        padding: '4px 8px',
-                        borderRadius: 6,
-                        width: '100%',
-                        color: 'var(--text-primary)',
-                        transition: 'border-color 0.15s',
-                      }}
-                      onFocus={e => (e.target.style.borderColor = 'var(--border-gold)')}
-                      onBlur={e => (e.target.style.borderColor = 'transparent')}
-                    />
-                  </td>
-                  <td>
-                    <select
-                      className="form-select"
-                      value={reason.appliesTo}
-                      onChange={e => updateReportReason(reason.id, { appliesTo: e.target.value as ReportReason['appliesTo'] })}
-                      style={{ fontSize: 12, width: 120 }}
-                    >
-                      <option value="all">All types</option>
-                      <option value="stream">Stream</option>
-                      <option value="user">User</option>
-                      <option value="message">Message</option>
-                    </select>
-                  </td>
-                  <td>
-                    <label className="toggle">
-                      <input
-                        type="checkbox"
-                        checked={reason.enabled}
-                        onChange={e => updateReportReason(reason.id, { enabled: e.target.checked })}
-                      />
-                      <span className="toggle-track" />
-                    </label>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-ghost btn-icon"
-                      onClick={() => removeReportReason(reason.id)}
-                      title="Remove reason"
-                      style={{ color: 'var(--text-muted)' }}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div style={{ padding: '10px 20px', borderTop: '1px solid var(--border)', fontSize: 12, color: 'var(--text-subtle)' }}>
-          Reason labels are editable inline. Changes apply immediately. Disabled reasons stay in history but are hidden from users.
-        </div>
-      </div>
-
-      {showAddReason && <AddReasonModal onClose={() => setShowAddReason(false)} />}
       {warnPickerReport && (
         <WarnModal
           targetLabel={`@${warnPickerReport.targetHandle}`}
