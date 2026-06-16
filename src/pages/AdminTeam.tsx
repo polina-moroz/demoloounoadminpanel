@@ -527,7 +527,6 @@ export default function AdminTeam() {
                 <th>Member</th>
                 <th>Role</th>
                 <th>Status</th>
-                <th>Invite Code</th>
                 <th>Joined</th>
                 <th style={{ width: 200 }}>Actions</th>
               </tr>
@@ -583,16 +582,6 @@ export default function AdminTeam() {
                     </td>
 
                     <td><StatusBadge status={member.status} /></td>
-
-                    <td>
-                      {member.inviteCode ? (
-                        <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--gold)', letterSpacing: '0.04em' }}>
-                          {member.inviteCode}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-subtle)', fontSize: 12 }}>—</span>
-                      )}
-                    </td>
 
                     <td style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                       {member.joinedAt
