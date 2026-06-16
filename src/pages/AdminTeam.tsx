@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X, Copy, Check, Mail, ShieldCheck, ShieldOff, Trash2, Users, Edit2, KeyRound, RefreshCw, Eye, EyeOff } from 'lucide-react'
+import { Plus, X, Copy, Check, Mail, ShieldCheck, ShieldOff, Trash2, Users, Edit2, KeyRound, RefreshCw } from 'lucide-react'
 import StatCard from '../components/StatCard'
 import { useStore } from '../store'
 import type { AdminRole, AdminMember } from '../types'
@@ -329,60 +329,11 @@ function AccessMatrix() {
 
 /* ── Change Password Modal ────────────────────────────────────── */
 
-function PasswordInput({ label, value, onChange, show, onToggle, placeholder, error, autoFocus }: {
-  label: string; value: string; onChange: (v: string) => void
-  show: boolean; onToggle: () => void; placeholder: string
-  error?: string; autoFocus?: boolean
-}) {
-  return (
-    <div className="form-group">
-      <label className="form-label">{label}</label>
-      <div style={{ position: 'relative' }}>
-        <input
-          className="form-input"
-          type={show ? 'text' : 'password'}
-          placeholder={placeholder}
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          autoFocus={autoFocus}
-          style={{ paddingRight: 40, borderColor: error ? '#E74C3C' : undefined }}
-        />
-        <button
-          type="button"
-          onClick={onToggle}
-          style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
-        >
-          {show ? <EyeOff size={14} /> : <Eye size={14} />}
-        </button>
-      </div>
-      {error && <div style={{ fontSize: 11, color: '#E74C3C', marginTop: 4 }}>{error}</div>}
-    </div>
-  )
-}
-
-function ChangePasswordModal({ member, requireCurrent, onClose }: { member: AdminMember; requireCurrent: boolean; onClose: () => void }) {
-  const { resetAdminPassword } = useStore()
-  const [current, setCurrent] = useState('')
-  const [newPass, setNewPass] = useState('')
-  const [confirm, setConfirm] = useState('')
-  const [showCurrent, setShowCurrent] = useState(false)
-  const [showNew, setShowNew] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-
-  const newTooShort = newPass.length > 0 && newPass.length < 8
-  const mismatch = confirm.length > 0 && newPass !== confirm
-  const currentOk = !requireCurrent || current.length > 0
-  const valid = currentOk && newPass.length >= 8 && newPass === confirm
-
-  const handleSave = () => {
-    setSubmitted(true)
-    if (!valid) return
-    resetAdminPassword(member.id, newPass)
-    onClose()
-  }
-
+function ChangePasswordModal({ member, onClose }: { member: AdminMember; onClose: () => void }) {
+  const [sent, setSent] = useState(false)
   const memberName = member.displayName !== '—' ? member.displayName : member.email
+
+  const handleSend = () => setSent(true)
 
   return (
     <>
@@ -408,47 +359,33 @@ function ChangePasswordModal({ member, requireCurrent, onClose }: { member: Admi
             </div>
           </div>
 
-          {requireCurrent && (
-            <PasswordInput
-              label="Current Password"
-              value={current}
-              onChange={setCurrent}
-              show={showCurrent}
-              onToggle={() => setShowCurrent(v => !v)}
-              placeholder="Enter current password"
-              error={submitted && !current ? 'Required' : undefined}
-              autoFocus
-            />
+          {sent ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '18px 0' }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Mail size={18} color="var(--gold)" />
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Link sent</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.5 }}>
+                A password reset link has been sent to <span style={{ color: 'var(--text-primary)' }}>{member.email}</span>. The link expires in 24 hours.
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              A password reset link will be sent to <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{member.email}</span>. They will use it to set a new password.
+            </div>
           )}
-          <PasswordInput
-            label="New Password"
-            value={newPass}
-            onChange={setNewPass}
-            show={showNew}
-            onToggle={() => setShowNew(v => !v)}
-            placeholder="Min. 8 characters"
-            error={newTooShort ? 'Minimum 8 characters' : undefined}
-            autoFocus={!requireCurrent}
-          />
-          <PasswordInput
-            label="Confirm New Password"
-            value={confirm}
-            onChange={setConfirm}
-            show={showConfirm}
-            onToggle={() => setShowConfirm(v => !v)}
-            placeholder="Repeat new password"
-            error={mismatch ? 'Passwords do not match' : undefined}
-          />
         </div>
         <div className="modal-footer">
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button
-            className="btn btn-primary"
-            style={{ opacity: valid ? 1 : 0.45 }}
-            onClick={handleSave}
-          >
-            <KeyRound size={13} /> Change Password
-          </button>
+          {sent ? (
+            <button className="btn btn-primary" onClick={onClose}>Done</button>
+          ) : (
+            <>
+              <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleSend}>
+                <Mail size={13} /> Send Reset Link
+              </button>
+            </>
+          )}
         </div>
       </div>
     </>
@@ -639,7 +576,6 @@ export default function AdminTeam() {
       {changePasswordMember && (
         <ChangePasswordModal
           member={changePasswordMember}
-          requireCurrent={currentRole !== 'super_admin'}
           onClose={() => setChangePasswordMember(null)}
         />
       )}
