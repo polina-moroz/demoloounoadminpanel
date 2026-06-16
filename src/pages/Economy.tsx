@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DollarSign, Clock, Gem, TrendingUp, CheckCircle, XCircle, PauseCircle, Info, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { DollarSign, Clock, Gem, TrendingUp, CheckCircle, XCircle, Info, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import StatCard from '../components/StatCard'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
@@ -59,7 +59,7 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
 }
 
 export default function Economy() {
-  const { withdrawals, approveWithdrawal, rejectWithdrawal, holdWithdrawal, processingFee } = useStore()
+  const { withdrawals, approveWithdrawal, rejectWithdrawal, processingFee } = useStore()
   const pending = withdrawals.filter(w => w.status === 'pending').length
 
   /* ── View switcher ── */
@@ -265,7 +265,7 @@ export default function Economy() {
                     </td>
                     <td><Badge variant={w.status} dot>{statusLabel(w.status)}</Badge></td>
                     <td>
-                      {(w.status === 'pending' || w.status === 'on_hold') ? (
+                      {w.status === 'pending' ? (
                         <div style={{ display: 'flex', gap: 4 }}>
                           <button
                             className="btn btn-success btn-sm"
@@ -278,11 +278,6 @@ export default function Economy() {
                           <button className="btn btn-danger btn-sm" onClick={() => rejectWithdrawal(w.id)} title="Reject">
                             <XCircle size={12} />
                           </button>
-                          {w.status !== 'on_hold' && (
-                            <button className="btn btn-secondary btn-sm" onClick={() => holdWithdrawal(w.id)} title="Place on hold">
-                              <PauseCircle size={12} />
-                            </button>
-                          )}
                         </div>
                       ) : (
                         <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
