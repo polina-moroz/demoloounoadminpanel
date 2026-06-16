@@ -175,7 +175,6 @@ export default function Economy() {
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
-                <option value="on_hold">On Hold</option>
               </select>
             </div>
 
