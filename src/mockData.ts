@@ -46,7 +46,7 @@ export const mockReports: Report[] = [
 
 export const mockWithdrawals: WithdrawalRequest[] = [
   { id: 'w1', user: 'Sasha Bloom',    userHandle: 'sashabloom', diamonds: 80000,  estimatedUSD: 280,   kycStatus: 'approved', requestedAt: '2026-06-03T10:00:00Z', holdUntil: '2026-06-10T10:00:00Z', status: 'pending',  avatarColor: '#9966CC' },
-  { id: 'w2', user: 'Aria Voss',      userHandle: 'ariavoss',   diamonds: 50000,  estimatedUSD: 175,   kycStatus: 'approved', requestedAt: '2026-06-02T14:30:00Z', holdUntil: '2026-06-09T14:30:00Z', status: 'on_hold',  avatarColor: '#9966CC' },
+  { id: 'w2', user: 'Aria Voss',      userHandle: 'ariavoss',   diamonds: 50000,  estimatedUSD: 175,   kycStatus: 'approved', requestedAt: '2026-06-02T14:30:00Z', holdUntil: '2026-06-09T14:30:00Z', status: 'pending',  avatarColor: '#9966CC' },
   { id: 'w3', user: 'Marco Reyes',    userHandle: 'marcoreyes', diamonds: 30000,  estimatedUSD: 105,   kycStatus: 'approved', requestedAt: '2026-06-01T09:00:00Z', holdUntil: '2026-06-08T09:00:00Z', status: 'approved', avatarColor: '#2ECC8A' },
   { id: 'w4', user: 'Nour Al-Rashid', userHandle: 'nourar',     diamonds: 20000,  estimatedUSD: 70,    kycStatus: 'approved', requestedAt: '2026-06-01T16:15:00Z', holdUntil: '2026-06-08T16:15:00Z', status: 'pending',  avatarColor: '#D4AF37' },
   { id: 'w5', user: 'Tyler Banks',    userHandle: 'tylerb',     diamonds: 15000,  estimatedUSD: 52.50, kycStatus: 'approved', requestedAt: '2026-05-29T20:00:00Z', holdUntil: '2026-06-05T20:00:00Z', status: 'rejected', avatarColor: '#C0392B' },
