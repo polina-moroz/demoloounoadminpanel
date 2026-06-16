@@ -207,12 +207,31 @@ function PackageTable({ platform, title, subtitle }: { platform: 'iap' | 'web'; 
 /* ── Page ─────────────────────────────────────────────────────── */
 
 export default function CoinPackages() {
+  const [activeTab, setActiveTab] = useState<'iap' | 'web'>('iap')
+
   return (
     <div>
       <div className="page-header">
         <div className="page-header-text">
           <div className="title">Coin Packages</div>
           <div className="subtitle">In-app purchases and website tiers</div>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <div className="filter-tabs" style={{ display: 'inline-flex' }}>
+          <button
+            className={`filter-tab${activeTab === 'iap' ? ' active' : ''}`}
+            onClick={() => setActiveTab('iap')}
+          >
+            In-App Purchases (IAP)
+          </button>
+          <button
+            className={`filter-tab${activeTab === 'web' ? ' active' : ''}`}
+            onClick={() => setActiveTab('web')}
+          >
+            Website Purchases
+          </button>
         </div>
       </div>
 
@@ -224,16 +243,20 @@ export default function CoinPackages() {
         </div>
       </div>
 
-      <PackageTable
-        platform="iap"
-        title="In-App Purchases (IAP)"
-        subtitle="Apple App Store & Google Play — standard pricing"
-      />
-      <PackageTable
-        platform="web"
-        title="Website Purchases"
-        subtitle="Direct website checkout — no platform fee"
-      />
+      {activeTab === 'iap' && (
+        <PackageTable
+          platform="iap"
+          title="In-App Purchases (IAP)"
+          subtitle="Apple App Store & Google Play — standard pricing"
+        />
+      )}
+      {activeTab === 'web' && (
+        <PackageTable
+          platform="web"
+          title="Website Purchases"
+          subtitle="Direct website checkout — no platform fee"
+        />
+      )}
     </div>
   )
 }

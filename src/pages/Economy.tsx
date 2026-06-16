@@ -4,7 +4,7 @@ import StatCard from '../components/StatCard'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
-import type { KYCStatus, WithdrawalStatus, TransactionType } from '../types'
+import type { WithdrawalStatus, TransactionType } from '../types'
 
 const PAGE_SIZE = 20
 
@@ -62,9 +62,11 @@ export default function Economy() {
   const { withdrawals, approveWithdrawal, rejectWithdrawal, holdWithdrawal, processingFee } = useStore()
   const pending = withdrawals.filter(w => w.status === 'pending').length
 
+  /* ── View switcher ── */
+  const [activeView, setActiveView] = useState<'withdrawals' | 'transactions'>('withdrawals')
+
   /* ── Withdrawal filters ── */
   const [wSearch, setWSearch]           = useState('')
-  const [wKyc, setWKyc]                 = useState<'all' | KYCStatus>('all')
   const [wStatus, setWStatus]           = useState<'all' | WithdrawalStatus>('all')
   const [wDiamondsMin, setWDiamondsMin] = useState('')
   const [wDiamondsMax, setWDiamondsMax] = useState('')
@@ -79,7 +81,6 @@ export default function Economy() {
   const filteredWithdrawals = withdrawals.filter(w => {
     const q = wSearch.toLowerCase()
     if (q && !w.user.toLowerCase().includes(q) && !w.userHandle.toLowerCase().includes(q)) return false
-    if (wKyc !== 'all' && w.kycStatus !== wKyc) return false
     if (wStatus !== 'all' && w.status !== wStatus) return false
     if (wDiamondsMin !== '' && w.diamonds < Number(wDiamondsMin)) return false
     if (wDiamondsMax !== '' && w.diamonds > Number(wDiamondsMax)) return false
@@ -122,8 +123,26 @@ export default function Economy() {
         </div>
       </div>
 
+      {/* ── View switcher ── */}
+      <div style={{ marginBottom: 20 }}>
+        <div className="filter-tabs" style={{ display: 'inline-flex' }}>
+          <button
+            className={`filter-tab${activeView === 'withdrawals' ? ' active' : ''}`}
+            onClick={() => setActiveView('withdrawals')}
+          >
+            Withdrawal Requests
+          </button>
+          <button
+            className={`filter-tab${activeView === 'transactions' ? ' active' : ''}`}
+            onClick={() => setActiveView('transactions')}
+          >
+            Transaction Log
+          </button>
+        </div>
+      </div>
+
       {/* ── Withdrawal Requests ── */}
-      <div className="section">
+      {activeView === 'withdrawals' && <div className="section">
         <div className="table-wrapper">
           <div className="table-header">
             <div>
@@ -142,22 +161,6 @@ export default function Economy() {
                 value={wSearch}
                 onChange={e => { setWSearch(e.target.value); resetWPage() }}
               />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <label style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>KYC Status</label>
-              <select
-                className="form-select"
-                style={{ width: 150, padding: '7px 30px 7px 10px' }}
-                value={wKyc}
-                onChange={e => { setWKyc(e.target.value as 'all' | KYCStatus); resetWPage() }}
-              >
-                <option value="all">All</option>
-                <option value="approved">Approved</option>
-                <option value="pending">Pending</option>
-                <option value="rejected">Rejected</option>
-                <option value="not_submitted">Not Submitted</option>
-              </select>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -201,11 +204,11 @@ export default function Economy() {
               </div>
             </div>
 
-            {(wSearch || wKyc !== 'all' || wStatus !== 'all' || wDiamondsMin || wDiamondsMax) && (
+            {(wSearch || wStatus !== 'all' || wDiamondsMin || wDiamondsMax) && (
               <button
                 className="btn btn-ghost btn-sm"
                 style={{ alignSelf: 'flex-end', fontSize: 12 }}
-                onClick={() => { setWSearch(''); setWKyc('all'); setWStatus('all'); setWDiamondsMin(''); setWDiamondsMax(''); setWPage(1) }}
+                onClick={() => { setWSearch(''); setWStatus('all'); setWDiamondsMin(''); setWDiamondsMax(''); setWPage(1) }}
               >
                 Clear filters
               </button>
@@ -219,7 +222,6 @@ export default function Economy() {
                   <th>User</th>
                   <th>Diamonds</th>
                   <th>Est. USD</th>
-                  <th>KYC</th>
                   <th>Requested</th>
                   <th>Hold Until</th>
                   <th>Status</th>
@@ -229,7 +231,7 @@ export default function Economy() {
               <tbody>
                 {pagedWithdrawals.length === 0 ? (
                   <tr>
-                    <td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0', fontSize: 13 }}>
+                    <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0', fontSize: 13 }}>
                       No withdrawal requests match the current filters.
                     </td>
                   </tr>
@@ -253,7 +255,6 @@ export default function Economy() {
                         after fee: ${(w.estimatedUSD * (1 - processingFee / 100)).toFixed(2)}
                       </div>
                     </td>
-                    <td><Badge variant={w.kycStatus} dot>{statusLabel(w.kycStatus)}</Badge></td>
                     <td style={{ color: 'var(--text-muted)', fontSize: 12, whiteSpace: 'nowrap' }}>
                       {new Date(w.requestedAt).toLocaleDateString()}
                     </td>
@@ -297,10 +298,10 @@ export default function Economy() {
 
           <Pagination page={wPageSafe} total={filteredWithdrawals.length} onChange={setWPage} />
         </div>
-      </div>
+      </div>}
 
       {/* ── Transaction Log ── */}
-      <div className="table-wrapper">
+      {activeView === 'transactions' && <div className="table-wrapper">
         <div className="table-header">
           <div>
             <div className="table-title">Transaction Log</div>
@@ -399,7 +400,7 @@ export default function Economy() {
         </div>
 
         <Pagination page={tPageSafe} total={filteredTransactions.length} onChange={setTPage} />
-      </div>
+      </div>}
     </div>
   )
 }
