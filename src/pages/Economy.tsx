@@ -222,7 +222,6 @@ export default function Economy() {
                   <th>Diamonds</th>
                   <th>Est. USD</th>
                   <th>Requested</th>
-                  <th>Hold Until</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -230,7 +229,7 @@ export default function Economy() {
               <tbody>
                 {pagedWithdrawals.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0', fontSize: 13 }}>
+                    <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0', fontSize: 13 }}>
                       No withdrawal requests match the current filters.
                     </td>
                   </tr>
@@ -256,11 +255,6 @@ export default function Economy() {
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: 12, whiteSpace: 'nowrap' }}>
                       {new Date(w.requestedAt).toLocaleDateString()}
-                    </td>
-                    <td style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
-                      <span style={{ color: new Date(w.holdUntil) > new Date() ? '#F39C12' : 'var(--emerald)', fontWeight: 600 }}>
-                        {new Date(w.holdUntil).toLocaleDateString()}
-                      </span>
                     </td>
                     <td><Badge variant={w.status} dot>{statusLabel(w.status)}</Badge></td>
                     <td>
