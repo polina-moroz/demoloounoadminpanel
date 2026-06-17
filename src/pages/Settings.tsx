@@ -29,8 +29,7 @@ function Row({ label, desc, control }: { label: string; desc?: string; control: 
 }
 
 export default function Settings() {
-  const { fraudThresholdUSD, setFraudThreshold, setProcessingFee } = useStore()
-  const [fraudThresholdInput, setFraudThresholdInput] = useState(String(fraudThresholdUSD))
+  const { setProcessingFee } = useStore()
   const [appVersion, setAppVersion] = useState('1.0.0')
   const [minWithdrawal, setMinWithdrawal] = useState('10000')
   const [diamondRate, setDiamondRate] = useState('35')
@@ -76,40 +75,6 @@ export default function Settings() {
           }
         />
       </Section>
-
-      {/* Fraud Detection */}
-      <div className="settings-section">
-        <div className="settings-section-header">
-          <div className="settings-section-title">Fraud Detection</div>
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() => {
-              const v = Number(fraudThresholdInput)
-              if (!isNaN(v) && v > 0) setFraudThreshold(v)
-            }}
-          >
-            <Save size={12} /> Save
-          </button>
-        </div>
-        <Row
-          label="Fraud Alert Threshold"
-          desc="Withdrawal requests above this amount are automatically flagged for manual review in Fraud Detection"
-          control={
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>$</span>
-              <input
-                className="form-input"
-                value={fraudThresholdInput}
-                onChange={e => setFraudThresholdInput(e.target.value)}
-                type="number"
-                min={1}
-                style={{ width: 100 }}
-              />
-              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>USD</span>
-            </div>
-          }
-        />
-      </div>
 
       {/* Economy */}
       <Section title="Economy">
