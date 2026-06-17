@@ -7,10 +7,8 @@ import ActionLogModal from '../components/ActionLogModal'
 import { useStore } from '../store'
 import type { Stream, StreamStatus } from '../types'
 
-const STATUS_OPTIONS: { key: StreamStatus; label: string }[] = [
-  { key: 'live',       label: 'Live Now' },
-  { key: 'ended',      label: 'Ended' },
-  { key: 'terminated', label: 'Terminated' },
+const PAST_STATUS_OPTIONS: { key: StreamStatus; label: string }[] = [
+  { key: 'ended', label: 'Ended' },
 ]
 
 function toggle<T>(arr: T[], value: T): T[] {
@@ -20,6 +18,7 @@ function toggle<T>(arr: T[], value: T): T[] {
 export default function Streams() {
   const { streams, terminateStream, warnStreamer } = useStore()
 
+  const [activeTab, setActiveTab] = useState<'live' | 'past'>('live')
   const [selectedStatuses, setSelectedStatuses] = useState<StreamStatus[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
@@ -27,13 +26,24 @@ export default function Streams() {
   const [logTarget, setLogTarget] = useState<Stream | null>(null)
 
   const liveCount = streams.filter(s => s.status === 'live').length
-  const allCategories = Array.from(new Set(streams.map(s => s.category))).sort()
 
-  const visible = streams.filter(s => {
+  const tabBase = activeTab === 'live'
+    ? streams.filter(s => s.status === 'live')
+    : streams.filter(s => s.status === 'ended' || s.status === 'terminated')
+
+  const allCategories = Array.from(new Set(tabBase.map(s => s.category))).sort()
+
+  const visible = tabBase.filter(s => {
     const statusOk = selectedStatuses.length === 0 || selectedStatuses.includes(s.status)
     const catOk    = selectedCategories.length === 0 || selectedCategories.includes(s.category)
     return statusOk && catOk
   })
+
+  function switchTab(tab: 'live' | 'past') {
+    setActiveTab(tab)
+    setSelectedStatuses([])
+    setSelectedCategories([])
+  }
 
   return (
     <div>
@@ -79,40 +89,78 @@ export default function Streams() {
         </div>
       </div>
 
-      {/* Multi-picker filters */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20, alignItems: 'flex-start' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</span>
-          <div className="filter-tabs" style={{ display: 'inline-flex' }}>
-            {STATUS_OPTIONS.map(({ key, label }) => (
-              <button
-                key={key}
-                className={`filter-tab${selectedStatuses.includes(key) ? ' active' : ''}`}
-                onClick={() => setSelectedStatuses(prev => toggle(prev, key))}
-              >
-                {key === 'live' && (
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: selectedStatuses.includes(key) ? '#fff' : '#E05C6A', display: 'inline-block', marginRight: 5, flexShrink: 0, animation: 'pulse 1.5s infinite' }} />
-                )}
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Tab switcher */}
+      <div style={{ display: 'flex', gap: 2, marginBottom: 20, borderBottom: '1px solid var(--border)', paddingBottom: 0 }}>
+        <button
+          onClick={() => switchTab('live')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: '8px 16px', fontSize: 14, fontWeight: 500,
+            color: activeTab === 'live' ? 'var(--text-primary)' : 'var(--text-muted)',
+            borderBottom: activeTab === 'live' ? '2px solid var(--gold)' : '2px solid transparent',
+            marginBottom: -1, transition: 'color 0.15s',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}
+        >
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#E05C6A', display: 'inline-block', animation: 'pulse 1.5s infinite' }} />
+          Live Now
+          <span style={{
+            background: activeTab === 'live' ? 'var(--gold)' : 'var(--border)',
+            color: activeTab === 'live' ? '#000' : 'var(--text-muted)',
+            borderRadius: 10, padding: '1px 7px', fontSize: 11, fontWeight: 600,
+          }}>
+            {liveCount}
+          </span>
+        </button>
+        <button
+          onClick={() => switchTab('past')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: '8px 16px', fontSize: 14, fontWeight: 500,
+            color: activeTab === 'past' ? 'var(--text-primary)' : 'var(--text-muted)',
+            borderBottom: activeTab === 'past' ? '2px solid var(--gold)' : '2px solid transparent',
+            marginBottom: -1, transition: 'color 0.15s',
+          }}
+        >
+          Past Streams
+        </button>
+      </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Category</span>
-          <div className="filter-tabs" style={{ display: 'inline-flex', flexWrap: 'wrap' }}>
-            {allCategories.map(cat => (
-              <button
-                key={cat}
-                className={`filter-tab${selectedCategories.includes(cat) ? ' active' : ''}`}
-                onClick={() => setSelectedCategories(prev => toggle(prev, cat))}
-              >
-                {cat}
-              </button>
-            ))}
+      {/* Filters */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20, alignItems: 'flex-start' }}>
+        {activeTab === 'past' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</span>
+            <div className="filter-tabs" style={{ display: 'inline-flex' }}>
+              {PAST_STATUS_OPTIONS.map(({ key, label }) => (
+                <button
+                  key={key}
+                  className={`filter-tab${selectedStatuses.includes(key) ? ' active' : ''}`}
+                  onClick={() => setSelectedStatuses(prev => toggle(prev, key))}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {allCategories.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Category</span>
+            <div className="filter-tabs" style={{ display: 'inline-flex', flexWrap: 'wrap' }}>
+              {allCategories.map(cat => (
+                <button
+                  key={cat}
+                  className={`filter-tab${selectedCategories.includes(cat) ? ' active' : ''}`}
+                  onClick={() => setSelectedCategories(prev => toggle(prev, cat))}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {(selectedStatuses.length > 0 || selectedCategories.length > 0) && (
           <button
@@ -128,12 +176,14 @@ export default function Streams() {
       <div className="table-wrapper">
         <div className="table-header">
           <div>
-            <div className="table-title">Streams ({visible.length})</div>
+            <div className="table-title">
+              {activeTab === 'live' ? 'Live Streams' : 'Past Streams'} ({visible.length})
+            </div>
             <div className="table-subtitle">
               {selectedStatuses.length === 0 && selectedCategories.length === 0
-                ? 'All streams'
+                ? activeTab === 'live' ? 'All active streams' : 'Ended & terminated streams'
                 : [
-                    selectedStatuses.length > 0 && selectedStatuses.map(s => STATUS_OPTIONS.find(o => o.key === s)?.label).join(', '),
+                    selectedStatuses.length > 0 && selectedStatuses.map(s => PAST_STATUS_OPTIONS.find(o => o.key === s)?.label).join(', '),
                     selectedCategories.length > 0 && selectedCategories.join(', '),
                   ].filter(Boolean).join(' · ')}
             </div>
@@ -142,7 +192,7 @@ export default function Streams() {
         <div style={{ overflowX: 'auto' }}>
           {visible.length === 0 ? (
             <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              No streams match the selected filters.
+              {activeTab === 'live' ? 'No streams are live right now.' : 'No past streams match the selected filters.'}
             </div>
           ) : (
             <table>
