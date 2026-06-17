@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Info, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { mockCoinPackages } from '../mockData'
 import { useStore } from '../store'
 import type { CoinPackage } from '../types'
@@ -227,19 +227,13 @@ export default function CoinPackages() {
             In-App Purchases (IAP)
           </button>
           <button
-            className={`filter-tab${activeTab === 'web' ? ' active' : ''}`}
-            onClick={() => setActiveTab('web')}
+            className="filter-tab"
+            disabled
+            title="Coming soon"
+            style={{ opacity: 0.4, cursor: 'not-allowed' }}
           >
             Website Purchases
           </button>
-        </div>
-      </div>
-
-      <div className="callout callout-info">
-        <Info size={15} />
-        <div>
-          <strong>Website packages</strong> are processed directly — no App Store or Play Store cut.
-          Maximum single website purchase is <strong>$4,999.99</strong>. Bulk orders above $5,000 must be arranged manually.
         </div>
       </div>
 

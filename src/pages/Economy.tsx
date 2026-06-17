@@ -1,9 +1,117 @@
 import { useState } from 'react'
-import { CheckCircle, XCircle, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle, XCircle, Search, ChevronLeft, ChevronRight, Trash2, Plus, Check, X } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
 import type { WithdrawalStatus, TransactionType } from '../types'
+
+/* ── Rejection Reasons Editor ────────────────────────────────── */
+
+interface RejectionReason { id: string; name: string; message: string }
+
+const INITIAL_REASONS: RejectionReason[] = [
+  { id: 'rr1', name: 'KYC not verified',    message: 'Your withdrawal request has been rejected. Please complete identity verification (KYC) before requesting a payout.' },
+  { id: 'rr2', name: 'Suspicious activity', message: 'Your account has been flagged for unusual activity. This withdrawal is on hold pending a manual review by our team.' },
+  { id: 'rr3', name: 'Insufficient balance', message: 'Your diamond balance does not meet the minimum withdrawal threshold.' },
+  { id: 'rr4', name: 'Policy violation',    message: 'A recent policy violation on your account has resulted in this withdrawal being rejected. Please contact support.' },
+]
+
+function RejectionReasonsEditor() {
+  const [reasons, setReasons] = useState<RejectionReason[]>(INITIAL_REASONS)
+  const [adding, setAdding]   = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newMsg, setNewMsg]   = useState('')
+
+  const update = (id: string, patch: Partial<RejectionReason>) =>
+    setReasons(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r))
+  const remove = (id: string) => setReasons(prev => prev.filter(r => r.id !== id))
+  const add = () => {
+    if (!newName.trim() || !newMsg.trim()) return
+    setReasons(prev => [...prev, { id: `rr${Date.now()}`, name: newName.trim(), message: newMsg.trim() }])
+    setNewName(''); setNewMsg(''); setAdding(false)
+  }
+
+  const inputStyle = (bold?: boolean): React.CSSProperties => ({
+    background: 'transparent', border: '1px solid transparent', borderRadius: 6,
+    padding: '4px 8px', width: '100%', color: 'var(--text-primary)',
+    fontSize: bold ? 13 : 12, fontWeight: bold ? 600 : 400,
+    fontFamily: 'inherit', lineHeight: 1.5, resize: 'vertical' as const,
+    transition: 'border-color 0.15s',
+  })
+
+  return (
+    <div className="table-wrapper" style={{ marginTop: 24 }}>
+      <div className="table-header">
+        <div>
+          <div className="table-title">Rejection Reason Templates</div>
+          <div className="table-subtitle">Shown to admins when rejecting a withdrawal — message is sent to the user</div>
+        </div>
+        <button className="btn btn-primary btn-sm" onClick={() => setAdding(v => !v)}>
+          <Plus size={13} /> Add Reason
+        </button>
+      </div>
+      <div style={{ overflowX: 'auto' }}>
+        <table>
+          <thead>
+            <tr>
+              <th style={{ width: 220 }}>Name</th>
+              <th>Message (sent to user)</th>
+              <th style={{ width: 40 }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {reasons.map(r => (
+              <tr key={r.id}>
+                <td>
+                  <input value={r.name} onChange={e => update(r.id, { name: e.target.value })}
+                    style={inputStyle(true)}
+                    onFocus={e => (e.target.style.borderColor = 'rgba(212,175,55,0.5)')}
+                    onBlur={e => (e.target.style.borderColor = 'transparent')} />
+                </td>
+                <td>
+                  <textarea value={r.message} onChange={e => update(r.id, { message: e.target.value })} rows={2}
+                    style={inputStyle()}
+                    onFocus={e => (e.target.style.borderColor = 'rgba(212,175,55,0.5)')}
+                    onBlur={e => (e.target.style.borderColor = 'transparent')} />
+                </td>
+                <td>
+                  <button className="btn btn-ghost btn-icon" onClick={() => remove(r.id)} title="Delete"
+                    style={{ color: 'var(--text-muted)' }}>
+                    <Trash2 size={13} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {adding && (
+              <tr style={{ background: 'rgba(212,175,55,0.03)' }}>
+                <td>
+                  <input className="form-input" placeholder="Reason name" value={newName}
+                    onChange={e => setNewName(e.target.value)} autoFocus style={{ fontSize: 13, fontWeight: 600 }} />
+                </td>
+                <td>
+                  <textarea className="form-input" placeholder="Message sent to the user" value={newMsg}
+                    onChange={e => setNewMsg(e.target.value)} rows={2}
+                    style={{ fontSize: 12, width: '100%', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }} />
+                </td>
+                <td>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <button className="btn btn-success btn-icon" style={{ width: 24, height: 24 }} onClick={add}
+                      disabled={!newName.trim() || !newMsg.trim()} title="Save"><Check size={11} /></button>
+                    <button className="btn btn-ghost btn-icon" style={{ width: 24, height: 24 }}
+                      onClick={() => { setAdding(false); setNewName(''); setNewMsg('') }} title="Cancel"><X size={11} /></button>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div style={{ padding: '10px 20px', borderTop: '1px solid var(--border)', fontSize: 12, color: 'var(--text-subtle)' }}>
+        Name and message fields are editable inline. Changes apply immediately.
+      </div>
+    </div>
+  )
+}
 
 const PAGE_SIZE = 20
 
@@ -108,21 +216,36 @@ export default function Economy() {
   return (
     <div>
       {/* ── View switcher ── */}
-      <div style={{ marginBottom: 20 }}>
-        <div className="filter-tabs" style={{ display: 'inline-flex' }}>
-          <button
-            className={`filter-tab${activeView === 'withdrawals' ? ' active' : ''}`}
-            onClick={() => setActiveView('withdrawals')}
-          >
-            Withdrawal Requests
-          </button>
-          <button
-            className={`filter-tab${activeView === 'transactions' ? ' active' : ''}`}
-            onClick={() => setActiveView('transactions')}
-          >
-            Transaction Log
-          </button>
-        </div>
+      <div style={{ display: 'flex', gap: 2, marginBottom: 20, borderBottom: '1px solid var(--border)' }}>
+        <button
+          onClick={() => setActiveView('withdrawals')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: 14, fontWeight: 500,
+            color: activeView === 'withdrawals' ? 'var(--text-primary)' : 'var(--text-muted)',
+            borderBottom: activeView === 'withdrawals' ? '2px solid var(--gold)' : '2px solid transparent',
+            marginBottom: -1, transition: 'color 0.15s', display: 'flex', alignItems: 'center', gap: 8,
+          }}
+        >
+          Withdrawal Requests
+          {pending > 0 && (
+            <span style={{
+              background: activeView === 'withdrawals' ? 'var(--gold)' : 'var(--border)',
+              color: activeView === 'withdrawals' ? '#000' : 'var(--text-muted)',
+              borderRadius: 10, padding: '1px 7px', fontSize: 11, fontWeight: 600,
+            }}>{pending}</span>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveView('transactions')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: 14, fontWeight: 500,
+            color: activeView === 'transactions' ? 'var(--text-primary)' : 'var(--text-muted)',
+            borderBottom: activeView === 'transactions' ? '2px solid var(--gold)' : '2px solid transparent',
+            marginBottom: -1, transition: 'color 0.15s',
+          }}
+        >
+          Transaction Log
+        </button>
       </div>
 
       {/* ── Withdrawal Requests ── */}
@@ -131,7 +254,6 @@ export default function Economy() {
           <div className="table-header">
             <div>
               <div className="table-title">Withdrawal Requests</div>
-              <div className="table-subtitle">10,000 💎 minimum · 7-day hold · $35 per 10,000 💎 gross</div>
             </div>
           </div>
 
@@ -270,6 +392,8 @@ export default function Economy() {
 
           <Pagination page={wPageSafe} total={filteredWithdrawals.length} onChange={setWPage} />
         </div>
+
+        <RejectionReasonsEditor />
       </div>}
 
       {/* ── Transaction Log ── */}
