@@ -87,6 +87,8 @@ export interface WithdrawalRequest {
   holdUntil: string;
   status: WithdrawalStatus;
   avatarColor: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
 }
 
 export interface Transaction {

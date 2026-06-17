@@ -476,6 +476,7 @@ export default function Economy() {
                   <th>Est. USD</th>
                   <th>Requested</th>
                   <th>Status</th>
+                  <th>Reviewed by</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -508,6 +509,14 @@ export default function Economy() {
                       {new Date(w.requestedAt).toLocaleDateString()}
                     </td>
                     <td><Badge variant={w.status} dot>{statusLabel(w.status)}</Badge></td>
+                    <td style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                      {w.reviewedBy ? (
+                        <>
+                          <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{w.reviewedBy}</span>
+                          <div style={{ fontSize: 11 }}>{new Date(w.reviewedAt!).toLocaleDateString()}</div>
+                        </>
+                      ) : '—'}
+                    </td>
                     <td>
                       {w.status === 'pending' ? (
                         <div style={{ display: 'flex', gap: 4 }}>

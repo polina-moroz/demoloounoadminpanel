@@ -331,8 +331,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [warnMessages, toast])
 
   /* ── withdrawal helpers ── */
-  const setWithdrawalStatus = (id: string, status: WithdrawalStatus) => {
-    setWithdrawals(prev => prev.map(w => w.id === id ? { ...w, status } : w))
+  const setWithdrawalStatus = (id: string, status: WithdrawalStatus, reviewedBy?: string) => {
+    const reviewedAt = new Date().toISOString()
+    setWithdrawals(prev => prev.map(w => w.id === id ? { ...w, status, reviewedBy, reviewedAt } : w))
   }
 
   const approveWithdrawal = useCallback((id: string) => {
@@ -340,14 +341,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (w && w.kycStatus !== 'approved') {
       toast('Cannot approve: KYC not verified', 'error'); return
     }
-    setWithdrawalStatus(id, 'approved')
+    setWithdrawalStatus(id, 'approved', currentAdmin?.displayName ?? 'Admin')
     toast('Withdrawal approved ✓', 'success')
-  }, [withdrawals, toast])
+  }, [withdrawals, currentAdmin, toast])
 
   const rejectWithdrawal = useCallback((id: string) => {
-    setWithdrawalStatus(id, 'rejected')
+    setWithdrawalStatus(id, 'rejected', currentAdmin?.displayName ?? 'Admin')
     toast('Withdrawal rejected', 'error')
-  }, [toast])
+  }, [currentAdmin, toast])
 
   const holdWithdrawal = useCallback((id: string) => {
     setWithdrawalStatus(id, 'on_hold')
