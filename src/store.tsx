@@ -447,6 +447,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const updateAdminMember = useCallback((id: string, updates: Partial<Pick<AdminMember, 'displayName' | 'email'>>) => {
     setAdminTeam(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a))
+    setCurrentAdmin(prev => prev?.id === id ? { ...prev, ...updates } : prev)
     toast('Member updated', 'success')
   }, [toast])
 
