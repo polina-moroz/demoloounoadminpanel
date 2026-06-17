@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { DollarSign, Clock, Gem, TrendingUp, CheckCircle, XCircle, Info, Search, ChevronLeft, ChevronRight } from 'lucide-react'
-import StatCard from '../components/StatCard'
+import { CheckCircle, XCircle, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
@@ -108,21 +107,6 @@ export default function Economy() {
 
   return (
     <div>
-      <div className="stat-grid">
-        <StatCard label="Total Revenue"    value="$48,200" sub="This month (gross)"         icon={<DollarSign size={20} />} />
-        <StatCard label="Pending Payouts"  value={String(pending)} sub="Awaiting approval"  icon={<Clock size={20} />} />
-        <StatCard label="Diamonds Issued"  value="2.4M"    sub="All-time creator earnings"  icon={<Gem size={20} />} />
-        <StatCard label="Avg Withdrawal"   value="$280"    sub="Per approved request"       icon={<TrendingUp size={20} />} />
-      </div>
-
-      <div className="callout callout-info mb-24">
-        <Info size={15} />
-        <div>
-          <strong>Economy rules:</strong> 1 gifted coin = 1 creator diamond (1:1). 10,000 💎 = $35 gross.
-          {processingFee}% processing fee deducted. 7-day hold. 10,000 💎 minimum withdrawal. KYC via Stripe Connect required on first withdrawal.
-        </div>
-      </div>
-
       {/* ── View switcher ── */}
       <div style={{ marginBottom: 20 }}>
         <div className="filter-tabs" style={{ display: 'inline-flex' }}>
