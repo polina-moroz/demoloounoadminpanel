@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Edit2, X, Upload } from 'lucide-react'
+import { Edit2, X, Upload, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { mockGifts } from '../mockData'
 import { useStore } from '../store'
 import type { Gift, GiftTier } from '../types'
@@ -224,14 +224,18 @@ function GiftCard({ gift, onToggle, onEdit }: {
   )
 }
 
+const PAGE_SIZE = 8
+
 /* ── Main page ────────────────────────────────────────────────── */
 
 export default function GiftCatalog() {
   const { toast } = useStore()
-  const [gifts, setGifts]         = useState<Gift[]>(mockGifts)
+  const [gifts, setGifts]           = useState<Gift[]>(mockGifts)
   const [activeTier, setActiveTier] = useState<GiftTier>('5A')
-  const [addOpen, setAddOpen]     = useState(false)
-  const [editGift, setEditGift]   = useState<Gift | null>(null)
+  const [search, setSearch]         = useState('')
+  const [page, setPage]             = useState(1)
+  const [addOpen, setAddOpen]       = useState(false)
+  const [editGift, setEditGift]     = useState<Gift | null>(null)
 
   const toggleGift = (id: string) =>
     setGifts(prev => prev.map(g => g.id === id ? { ...g, enabled: !g.enabled } : g))
@@ -246,8 +250,20 @@ export default function GiftCatalog() {
     toast(`Gift "${data.name}" updated`, 'success')
   }
 
-  const activeMeta  = tierMeta[activeTier]
-  const tierGifts   = gifts.filter(g => g.tier === activeTier)
+  function switchTier(tier: GiftTier) {
+    setActiveTier(tier)
+    setSearch('')
+    setPage(1)
+  }
+
+  const activeMeta   = tierMeta[activeTier]
+  const tierGifts    = gifts.filter(g => g.tier === activeTier)
+  const filtered     = search.trim()
+    ? tierGifts.filter(g => g.name.toLowerCase().includes(search.toLowerCase().trim()))
+    : tierGifts
+  const totalPages   = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const pageSafe     = Math.min(page, totalPages)
+  const paged        = filtered.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE)
   const enabledCount = tierGifts.filter(g => g.enabled).length
   const totalEnabled = gifts.filter(g => g.enabled).length
 
@@ -277,7 +293,7 @@ export default function GiftCatalog() {
           return (
             <button
               key={tier}
-              onClick={() => setActiveTier(tier)}
+              onClick={() => switchTier(tier)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '10px 16px', borderRadius: 10, cursor: 'pointer',
@@ -341,6 +357,27 @@ export default function GiftCatalog() {
         </button>
       </div>
 
+      {/* ── Search ── */}
+      <div style={{ marginBottom: 16 }}>
+        <div className="search-input-wrapper" style={{ maxWidth: 280 }}>
+          <Search size={14} />
+          <input
+            className="search-input"
+            placeholder={`Search in ${activeTier}…`}
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1) }}
+          />
+          {search && (
+            <button
+              onClick={() => { setSearch(''); setPage(1) }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2, display: 'flex' }}
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* ── Gift grid ── */}
       {tierGifts.length === 0 ? (
         <div style={{
@@ -358,41 +395,91 @@ export default function GiftCatalog() {
             + Add first gift
           </button>
         </div>
-      ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))',
-          gap: 12,
-        }}>
-          {tierGifts.map(g => (
-            <GiftCard key={g.id} gift={g} onToggle={toggleGift} onEdit={g => setEditGift(g)} />
-          ))}
-          <button
-            onClick={() => setAddOpen(true)}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', gap: 8,
-              background: 'transparent',
-              border: `1.5px dashed ${activeMeta.color}35`,
-              borderRadius: 12, padding: '24px 8px', minHeight: 180,
-              cursor: 'pointer', color: 'var(--text-subtle)',
-              fontSize: 12, transition: 'all 0.15s',
-            }}
-            onMouseEnter={e => {
-              const el = e.currentTarget as HTMLButtonElement
-              el.style.borderColor = `${activeMeta.color}80`
-              el.style.color = activeMeta.color
-            }}
-            onMouseLeave={e => {
-              const el = e.currentTarget as HTMLButtonElement
-              el.style.borderColor = `${activeMeta.color}35`
-              el.style.color = 'var(--text-subtle)'
-            }}
-          >
-            <span style={{ fontSize: 22 }}>+</span>
-            <span>Add Gift</span>
-          </button>
+      ) : filtered.length === 0 ? (
+        <div style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+          No gifts match "{search}"
         </div>
+      ) : (
+        <>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))',
+            gap: 12,
+          }}>
+            {paged.map(g => (
+              <GiftCard key={g.id} gift={g} onToggle={toggleGift} onEdit={g => setEditGift(g)} />
+            ))}
+            {pageSafe === totalPages && (
+              <button
+                onClick={() => setAddOpen(true)}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  justifyContent: 'center', gap: 8,
+                  background: 'transparent',
+                  border: `1.5px dashed ${activeMeta.color}35`,
+                  borderRadius: 12, padding: '24px 8px', minHeight: 180,
+                  cursor: 'pointer', color: 'var(--text-subtle)',
+                  fontSize: 12, transition: 'all 0.15s',
+                }}
+                onMouseEnter={e => {
+                  const el = e.currentTarget as HTMLButtonElement
+                  el.style.borderColor = `${activeMeta.color}80`
+                  el.style.color = activeMeta.color
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget as HTMLButtonElement
+                  el.style.borderColor = `${activeMeta.color}35`
+                  el.style.color = 'var(--text-subtle)'
+                }}
+              >
+                <span style={{ fontSize: 22 }}>+</span>
+                <span>Add Gift</span>
+              </button>
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                {(pageSafe - 1) * PAGE_SIZE + 1}–{Math.min(pageSafe * PAGE_SIZE, filtered.length)} of {filtered.length}
+              </span>
+              <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setPage(p => p - 1)}
+                  disabled={pageSafe === 1}
+                  style={{ padding: '4px 8px', opacity: pageSafe === 1 ? 0.4 : 1 }}
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    style={{
+                      padding: '4px 10px', minWidth: 32, borderRadius: 6, fontSize: 12,
+                      fontWeight: p === pageSafe ? 700 : 400,
+                      cursor: 'pointer', border: 'none',
+                      background: p === pageSafe ? `${activeMeta.color}20` : 'var(--bg)',
+                      color: p === pageSafe ? activeMeta.color : 'var(--text-muted)',
+                      outline: p === pageSafe ? `1.5px solid ${activeMeta.color}50` : 'none',
+                    }}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={pageSafe === totalPages}
+                  style={{ padding: '4px 8px', opacity: pageSafe === totalPages ? 0.4 : 1 }}
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {addOpen && (
