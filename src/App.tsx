@@ -16,7 +16,6 @@ import FortuneWheel from './pages/FortuneWheel'
 import Notifications from './pages/Notifications'
 import Settings from './pages/Settings'
 import AdminTeam from './pages/AdminTeam'
-import FraudDetect from './pages/FraudDetect'
 import Login from './pages/Login'
 import AcceptInvite from './pages/AcceptInvite'
 
@@ -42,7 +41,6 @@ function AppRoutes() {
         <Route path="reports" element={<Reports />} />
         <Route path="economy" element={<Economy />} />
         <Route path="kyc" element={<KYC />} />
-        <Route path="fraud-detect" element={<FraudDetect />} />
         <Route path="gift-catalog" element={<GiftCatalog />} />
         <Route path="coin-packages" element={<CoinPackages />} />
         <Route path="competitions" element={<Competitions />} />

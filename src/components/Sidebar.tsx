@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, Radio, Flag, Coins, BadgeCheck,
   Gift, Package, Trophy, Star, Bell, Settings, X, Dices,
-  Shield, LogOut, ShieldAlert, Pencil,
+  Shield, LogOut, Pencil,
 } from 'lucide-react'
 import { useStore } from '../store'
 
@@ -34,7 +34,6 @@ const sections = [
     items: [
       { to: '/economy', icon: Coins, label: 'Economy' },
       { to: '/kyc', icon: BadgeCheck, label: 'KYC' },
-      { to: '/fraud-detect', icon: ShieldAlert, label: 'Fraud Detection' },
       { to: '/gift-catalog', icon: Gift, label: 'Gift Catalog' },
       { to: '/coin-packages', icon: Package, label: 'Coin Packages' },
     ],

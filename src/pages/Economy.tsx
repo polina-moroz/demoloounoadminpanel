@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { CheckCircle, XCircle, Search, ChevronLeft, ChevronRight, Trash2, Plus, Check, X } from 'lucide-react'
+import { CheckCircle, XCircle, Search, ChevronLeft, ChevronRight, Trash2, Plus, Check, X, AlertCircle } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
 import type { WithdrawalStatus, TransactionType } from '../types'
 
-/* ── Rejection Reasons Editor ────────────────────────────────── */
+/* ── Types ────────────────────────────────────────────────────── */
 
 interface RejectionReason { id: string; name: string; message: string }
 
@@ -14,18 +14,53 @@ const INITIAL_REASONS: RejectionReason[] = [
   { id: 'rr4', name: 'Policy violation',    message: 'A recent policy violation on your account has resulted in this withdrawal being rejected. Please contact support.' },
 ]
 
-function RejectionReasonsEditor() {
-  const [reasons, setReasons] = useState<RejectionReason[]>(INITIAL_REASONS)
+/* ── Pagination ───────────────────────────────────────────────── */
+
+const W_PAGE_SIZE = 10
+const T_PAGE_SIZE = 20
+const AUTO_THRESHOLD = 25000
+
+function Pagination({ page, total, pageSize, onChange }: { page: number; total: number; pageSize: number; onChange: (p: number) => void }) {
+  const pages = Math.max(1, Math.ceil(total / pageSize))
+  if (pages <= 1) return null
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, padding: '12px 16px', borderTop: '1px solid var(--border)' }}>
+      <span style={{ fontSize: 12, color: 'var(--text-muted)', marginRight: 8 }}>
+        {Math.min((page - 1) * pageSize + 1, total)}–{Math.min(page * pageSize, total)} of {total}
+      </span>
+      <button className="btn btn-secondary btn-sm" onClick={() => onChange(page - 1)} disabled={page === 1}
+        style={{ padding: '4px 8px', opacity: page === 1 ? 0.4 : 1 }}>
+        <ChevronLeft size={14} />
+      </button>
+      {Array.from({ length: pages }, (_, i) => i + 1).map(p => (
+        <button key={p} className={`btn btn-sm ${p === page ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => onChange(p)} style={{ padding: '4px 10px', minWidth: 32 }}>{p}</button>
+      ))}
+      <button className="btn btn-secondary btn-sm" onClick={() => onChange(page + 1)} disabled={page === pages}
+        style={{ padding: '4px 8px', opacity: page === pages ? 0.4 : 1 }}>
+        <ChevronRight size={14} />
+      </button>
+    </div>
+  )
+}
+
+/* ── Rejection Reasons Editor ─────────────────────────────────── */
+
+interface RejectionReasonsEditorProps {
+  reasons: RejectionReason[]
+  onUpdate: (id: string, patch: Partial<RejectionReason>) => void
+  onRemove: (id: string) => void
+  onAdd: (r: RejectionReason) => void
+}
+
+function RejectionReasonsEditor({ reasons, onUpdate, onRemove, onAdd }: RejectionReasonsEditorProps) {
   const [adding, setAdding]   = useState(false)
   const [newName, setNewName] = useState('')
   const [newMsg, setNewMsg]   = useState('')
 
-  const update = (id: string, patch: Partial<RejectionReason>) =>
-    setReasons(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r))
-  const remove = (id: string) => setReasons(prev => prev.filter(r => r.id !== id))
-  const add = () => {
+  const handleAdd = () => {
     if (!newName.trim() || !newMsg.trim()) return
-    setReasons(prev => [...prev, { id: `rr${Date.now()}`, name: newName.trim(), message: newMsg.trim() }])
+    onAdd({ id: `rr${Date.now()}`, name: newName.trim(), message: newMsg.trim() })
     setNewName(''); setNewMsg(''); setAdding(false)
   }
 
@@ -61,19 +96,19 @@ function RejectionReasonsEditor() {
             {reasons.map(r => (
               <tr key={r.id}>
                 <td>
-                  <input value={r.name} onChange={e => update(r.id, { name: e.target.value })}
+                  <input value={r.name} onChange={e => onUpdate(r.id, { name: e.target.value })}
                     style={inputStyle(true)}
                     onFocus={e => (e.target.style.borderColor = 'rgba(212,175,55,0.5)')}
                     onBlur={e => (e.target.style.borderColor = 'transparent')} />
                 </td>
                 <td>
-                  <textarea value={r.message} onChange={e => update(r.id, { message: e.target.value })} rows={2}
+                  <textarea value={r.message} onChange={e => onUpdate(r.id, { message: e.target.value })} rows={2}
                     style={inputStyle()}
                     onFocus={e => (e.target.style.borderColor = 'rgba(212,175,55,0.5)')}
                     onBlur={e => (e.target.style.borderColor = 'transparent')} />
                 </td>
                 <td>
-                  <button className="btn btn-ghost btn-icon" onClick={() => remove(r.id)} title="Delete"
+                  <button className="btn btn-ghost btn-icon" onClick={() => onRemove(r.id)} title="Delete"
                     style={{ color: 'var(--text-muted)' }}>
                     <Trash2 size={13} />
                   </button>
@@ -93,7 +128,7 @@ function RejectionReasonsEditor() {
                 </td>
                 <td>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <button className="btn btn-success btn-icon" style={{ width: 24, height: 24 }} onClick={add}
+                    <button className="btn btn-success btn-icon" style={{ width: 24, height: 24 }} onClick={handleAdd}
                       disabled={!newName.trim() || !newMsg.trim()} title="Save"><Check size={11} /></button>
                     <button className="btn btn-ghost btn-icon" style={{ width: 24, height: 24 }}
                       onClick={() => { setAdding(false); setNewName(''); setNewMsg('') }} title="Cancel"><X size={11} /></button>
@@ -111,8 +146,7 @@ function RejectionReasonsEditor() {
   )
 }
 
-const W_PAGE_SIZE = 10
-const T_PAGE_SIZE = 20
+/* ── Transaction type metadata ────────────────────────────────── */
 
 const typeLabels: Record<string, string> = {
   coin_purchase:     'Coin Purchase',
@@ -126,50 +160,47 @@ const typeColors: Record<string, string> = {
   withdrawal:        '#3498DB',
 }
 
-function Pagination({ page, total, pageSize, onChange }: { page: number; total: number; pageSize: number; onChange: (p: number) => void }) {
-  const pages = Math.max(1, Math.ceil(total / pageSize))
-  if (pages <= 1) return null
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, padding: '12px 16px', borderTop: '1px solid var(--border)' }}>
-      <span style={{ fontSize: 12, color: 'var(--text-muted)', marginRight: 8 }}>
-        {Math.min((page - 1) * pageSize + 1, total)}–{Math.min(page * pageSize, total)} of {total}
-      </span>
-      <button
-        className="btn btn-secondary btn-sm"
-        onClick={() => onChange(page - 1)}
-        disabled={page === 1}
-        style={{ padding: '4px 8px', opacity: page === 1 ? 0.4 : 1 }}
-      >
-        <ChevronLeft size={14} />
-      </button>
-      {Array.from({ length: pages }, (_, i) => i + 1).map(p => (
-        <button
-          key={p}
-          className={`btn btn-sm ${p === page ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => onChange(p)}
-          style={{ padding: '4px 10px', minWidth: 32 }}
-        >
-          {p}
-        </button>
-      ))}
-      <button
-        className="btn btn-secondary btn-sm"
-        onClick={() => onChange(page + 1)}
-        disabled={page === pages}
-        style={{ padding: '4px 8px', opacity: page === pages ? 0.4 : 1 }}
-      >
-        <ChevronRight size={14} />
-      </button>
-    </div>
-  )
-}
+/* ── Main page ────────────────────────────────────────────────── */
 
 export default function Economy() {
   const { withdrawals, approveWithdrawal, rejectWithdrawal, processingFee } = useStore()
-  const pending = withdrawals.filter(w => w.status === 'pending').length
+
+  /* ── Rejection reasons state (lifted) ── */
+  const [reasons, setReasons] = useState<RejectionReason[]>(INITIAL_REASONS)
+  const updateReason = (id: string, patch: Partial<RejectionReason>) =>
+    setReasons(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r))
+  const removeReason = (id: string) => setReasons(prev => prev.filter(r => r.id !== id))
+  const addReason = (r: RejectionReason) => setReasons(prev => [...prev, r])
+
+  /* ── Modal state ── */
+  const [approveTarget, setApproveTarget] = useState<string | null>(null)
+  const [rejectTarget,  setRejectTarget]  = useState<string | null>(null)
+  const [selectedReason, setSelectedReason] = useState<string>('')
+
+  function openReject(id: string) {
+    setRejectTarget(id)
+    setSelectedReason(reasons[0]?.id ?? '')
+  }
+
+  function confirmApprove() {
+    if (!approveTarget) return
+    approveWithdrawal(approveTarget)
+    setApproveTarget(null)
+  }
+
+  function confirmReject() {
+    if (!rejectTarget) return
+    rejectWithdrawal(rejectTarget)
+    setRejectTarget(null)
+    setSelectedReason('')
+  }
 
   /* ── View switcher ── */
   const [activeView, setActiveView] = useState<'withdrawals' | 'transactions'>('withdrawals')
+
+  /* ── Threshold filter — only requests above AUTO_THRESHOLD need manual review ── */
+  const manualWithdrawals = withdrawals.filter(w => w.diamonds >= AUTO_THRESHOLD)
+  const pending = manualWithdrawals.filter(w => w.status === 'pending').length
 
   /* ── Withdrawal filters ── */
   const [wSearch, setWSearch]           = useState('')
@@ -184,7 +215,7 @@ export default function Economy() {
   const [tPage, setTPage]     = useState(1)
 
   /* ── Apply withdrawal filters ── */
-  const filteredWithdrawals = withdrawals.filter(w => {
+  const filteredWithdrawals = manualWithdrawals.filter(w => {
     const q = wSearch.toLowerCase()
     if (q && !w.user.toLowerCase().includes(q) && !w.userHandle.toLowerCase().includes(q)) return false
     if (wStatus !== 'all' && w.status !== wStatus) return false
@@ -212,8 +243,113 @@ export default function Economy() {
   function resetWPage() { setWPage(1) }
   function resetTPage() { setTPage(1) }
 
+  /* ── Modals data ── */
+  const approveW = approveTarget ? withdrawals.find(w => w.id === approveTarget) : null
+  const rejectW  = rejectTarget  ? withdrawals.find(w => w.id === rejectTarget)  : null
+  const chosenReason = reasons.find(r => r.id === selectedReason)
+
   return (
     <div>
+      {/* ── Approve confirmation modal ── */}
+      {approveW && (
+        <>
+          <div className="modal-backdrop" onClick={() => setApproveTarget(null)} />
+          <div className="modal-dialog" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <span className="modal-title">Confirm Approval</span>
+              <button className="modal-close" onClick={() => setApproveTarget(null)}><X size={14} /></button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div className="avatar" style={{ background: approveW.avatarColor }}>{approveW.user[0]}</div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{approveW.user}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>@{approveW.userHandle}</div>
+                </div>
+              </div>
+              <div style={{ background: 'var(--bg)', borderRadius: 8, padding: '12px 14px', display: 'flex', gap: 20 }}>
+                <div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>Diamonds</div>
+                  <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{approveW.diamonds.toLocaleString()} 💎</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>Est. payout</div>
+                  <div style={{ fontWeight: 700, color: 'var(--emerald)' }}>${approveW.estimatedUSD.toFixed(2)}</div>
+                </div>
+              </div>
+              <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+                Are you sure you want to approve this withdrawal?
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={() => setApproveTarget(null)}>Cancel</button>
+              <button className="btn btn-success" onClick={confirmApprove}>
+                <CheckCircle size={14} /> Approve
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Reject reason modal ── */}
+      {rejectW && (
+        <>
+          <div className="modal-backdrop" onClick={() => setRejectTarget(null)} />
+          <div className="modal-dialog" style={{ maxWidth: 460 }}>
+            <div className="modal-header">
+              <span className="modal-title">Select Rejection Reason</span>
+              <button className="modal-close" onClick={() => setRejectTarget(null)}><X size={14} /></button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div className="avatar" style={{ background: rejectW.avatarColor }}>{rejectW.user[0]}</div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{rejectW.user}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{rejectW.diamonds.toLocaleString()} 💎 · ${rejectW.estimatedUSD.toFixed(2)}</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {reasons.length === 0 ? (
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '12px 0' }}>
+                    No rejection reasons defined. Add some in the templates section below.
+                  </div>
+                ) : reasons.map(r => (
+                  <button
+                    key={r.id}
+                    onClick={() => setSelectedReason(r.id)}
+                    style={{
+                      textAlign: 'left', padding: '12px 14px', borderRadius: 10, cursor: 'pointer',
+                      background: selectedReason === r.id ? 'rgba(231,76,60,0.08)' : 'var(--bg)',
+                      border: `1.5px solid ${selectedReason === r.id ? 'rgba(231,76,60,0.5)' : 'var(--border)'}`,
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <div style={{ fontWeight: 600, fontSize: 13, color: selectedReason === r.id ? '#E74C3C' : 'var(--text-primary)', marginBottom: 4 }}>
+                      {r.name}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4 }}>{r.message}</div>
+                  </button>
+                ))}
+              </div>
+              {chosenReason && (
+                <div style={{ display: 'flex', gap: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(231,76,60,0.06)', border: '1px solid rgba(231,76,60,0.2)' }}>
+                  <AlertCircle size={14} style={{ color: '#E74C3C', flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    The user will receive: <em>"{chosenReason.message}"</em>
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={() => setRejectTarget(null)}>Cancel</button>
+              <button className="btn btn-danger" onClick={confirmReject} disabled={!selectedReason} style={{ opacity: selectedReason ? 1 : 0.45 }}>
+                <XCircle size={14} /> Reject
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* ── View switcher ── */}
       <div style={{ display: 'flex', gap: 2, marginBottom: 20, borderBottom: '1px solid var(--border)' }}>
         <button
@@ -253,6 +389,9 @@ export default function Economy() {
           <div className="table-header">
             <div>
               <div className="table-title">Withdrawal Requests</div>
+              <div className="table-subtitle" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                Manual review required · requests above {AUTO_THRESHOLD.toLocaleString()} 💎
+              </div>
             </div>
           </div>
 
@@ -260,22 +399,14 @@ export default function Economy() {
           <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div className="search-input-wrapper">
               <Search size={14} />
-              <input
-                className="search-input"
-                placeholder="Search user…"
-                value={wSearch}
-                onChange={e => { setWSearch(e.target.value); resetWPage() }}
-              />
+              <input className="search-input" placeholder="Search user…" value={wSearch}
+                onChange={e => { setWSearch(e.target.value); resetWPage() }} />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <label style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</label>
-              <select
-                className="form-select"
-                style={{ width: 140, padding: '7px 30px 7px 10px' }}
-                value={wStatus}
-                onChange={e => { setWStatus(e.target.value as 'all' | WithdrawalStatus); resetWPage() }}
-              >
+              <select className="form-select" style={{ width: 140, padding: '7px 30px 7px 10px' }}
+                value={wStatus} onChange={e => { setWStatus(e.target.value as 'all' | WithdrawalStatus); resetWPage() }}>
                 <option value="all">All</option>
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
@@ -286,34 +417,19 @@ export default function Economy() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <label style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Diamonds</label>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <input
-                  type="number"
-                  className="form-input"
-                  placeholder="Min"
-                  value={wDiamondsMin}
+                <input type="number" className="form-input" placeholder="Min" value={wDiamondsMin}
                   onChange={e => { setWDiamondsMin(e.target.value); resetWPage() }}
-                  style={{ width: 90, padding: '7px 10px' }}
-                  min={0}
-                />
+                  style={{ width: 90, padding: '7px 10px' }} min={0} />
                 <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>–</span>
-                <input
-                  type="number"
-                  className="form-input"
-                  placeholder="Max"
-                  value={wDiamondsMax}
+                <input type="number" className="form-input" placeholder="Max" value={wDiamondsMax}
                   onChange={e => { setWDiamondsMax(e.target.value); resetWPage() }}
-                  style={{ width: 90, padding: '7px 10px' }}
-                  min={0}
-                />
+                  style={{ width: 90, padding: '7px 10px' }} min={0} />
               </div>
             </div>
 
             {(wSearch || wStatus !== 'all' || wDiamondsMin || wDiamondsMax) && (
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ alignSelf: 'flex-end', fontSize: 12 }}
-                onClick={() => { setWSearch(''); setWStatus('all'); setWDiamondsMin(''); setWDiamondsMax(''); setWPage(1) }}
-              >
+              <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-end', fontSize: 12 }}
+                onClick={() => { setWSearch(''); setWStatus('all'); setWDiamondsMin(''); setWDiamondsMax(''); setWPage(1) }}>
                 Clear filters
               </button>
             )}
@@ -349,9 +465,7 @@ export default function Economy() {
                         </div>
                       </div>
                     </td>
-                    <td>
-                      <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{w.diamonds.toLocaleString()} 💎</span>
-                    </td>
+                    <td><span style={{ color: 'var(--gold)', fontWeight: 700 }}>{w.diamonds.toLocaleString()} 💎</span></td>
                     <td>
                       <span style={{ color: 'var(--emerald)', fontWeight: 600 }}>${w.estimatedUSD.toFixed(2)}</span>
                       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
@@ -367,13 +481,13 @@ export default function Economy() {
                         <div style={{ display: 'flex', gap: 4 }}>
                           <button
                             className="btn btn-success btn-sm"
-                            onClick={() => approveWithdrawal(w.id)}
+                            onClick={() => setApproveTarget(w.id)}
                             style={{ opacity: w.kycStatus !== 'approved' ? 0.45 : 1 }}
                             title={w.kycStatus !== 'approved' ? 'KYC not verified' : 'Approve withdrawal'}
                           >
                             <CheckCircle size={12} /> Approve
                           </button>
-                          <button className="btn btn-danger btn-sm" onClick={() => rejectWithdrawal(w.id)} title="Reject">
+                          <button className="btn btn-danger btn-sm" onClick={() => openReject(w.id)} title="Reject">
                             <XCircle size={12} />
                           </button>
                         </div>
@@ -392,7 +506,12 @@ export default function Economy() {
           <Pagination page={wPageSafe} total={filteredWithdrawals.length} pageSize={W_PAGE_SIZE} onChange={setWPage} />
         </div>
 
-        <RejectionReasonsEditor />
+        <RejectionReasonsEditor
+          reasons={reasons}
+          onUpdate={updateReason}
+          onRemove={removeReason}
+          onAdd={addReason}
+        />
       </div>}
 
       {/* ── Transaction Log ── */}
@@ -408,22 +527,14 @@ export default function Economy() {
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div className="search-input-wrapper">
             <Search size={14} />
-            <input
-              className="search-input"
-              placeholder="Search user…"
-              value={tSearch}
-              onChange={e => { setTSearch(e.target.value); resetTPage() }}
-            />
+            <input className="search-input" placeholder="Search user…" value={tSearch}
+              onChange={e => { setTSearch(e.target.value); resetTPage() }} />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <label style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</label>
-            <select
-              className="form-select"
-              style={{ width: 180, padding: '7px 30px 7px 10px' }}
-              value={tType}
-              onChange={e => { setTType(e.target.value as 'all' | TransactionType); resetTPage() }}
-            >
+            <select className="form-select" style={{ width: 180, padding: '7px 30px 7px 10px' }}
+              value={tType} onChange={e => { setTType(e.target.value as 'all' | TransactionType); resetTPage() }}>
               <option value="all">All Types</option>
               <option value="coin_purchase">Coin Purchase</option>
               <option value="diamonds_received">Diamonds Received</option>
@@ -432,11 +543,8 @@ export default function Economy() {
           </div>
 
           {(tSearch || tType !== 'all') && (
-            <button
-              className="btn btn-ghost btn-sm"
-              style={{ alignSelf: 'flex-end', fontSize: 12 }}
-              onClick={() => { setTSearch(''); setTType('all'); setTPage(1) }}
-            >
+            <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-end', fontSize: 12 }}
+              onClick={() => { setTSearch(''); setTType('all'); setTPage(1) }}>
               Clear filters
             </button>
           )}
