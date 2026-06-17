@@ -10,9 +10,7 @@ import type { WithdrawalStatus, TransactionType } from '../types'
 interface RejectionReason { id: string; name: string; message: string }
 
 const INITIAL_REASONS: RejectionReason[] = [
-  { id: 'rr1', name: 'KYC not verified',    message: 'Your withdrawal request has been rejected. Please complete identity verification (KYC) before requesting a payout.' },
   { id: 'rr2', name: 'Suspicious activity', message: 'Your account has been flagged for unusual activity. This withdrawal is on hold pending a manual review by our team.' },
-  { id: 'rr3', name: 'Insufficient balance', message: 'Your diamond balance does not meet the minimum withdrawal threshold.' },
   { id: 'rr4', name: 'Policy violation',    message: 'A recent policy violation on your account has resulted in this withdrawal being rejected. Please contact support.' },
 ]
 
@@ -113,7 +111,8 @@ function RejectionReasonsEditor() {
   )
 }
 
-const PAGE_SIZE = 20
+const W_PAGE_SIZE = 10
+const T_PAGE_SIZE = 20
 
 const typeLabels: Record<string, string> = {
   coin_purchase:     'Coin Purchase',
@@ -127,13 +126,13 @@ const typeColors: Record<string, string> = {
   withdrawal:        '#3498DB',
 }
 
-function Pagination({ page, total, onChange }: { page: number; total: number; onChange: (p: number) => void }) {
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+function Pagination({ page, total, pageSize, onChange }: { page: number; total: number; pageSize: number; onChange: (p: number) => void }) {
+  const pages = Math.max(1, Math.ceil(total / pageSize))
   if (pages <= 1) return null
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, padding: '12px 16px', borderTop: '1px solid var(--border)' }}>
       <span style={{ fontSize: 12, color: 'var(--text-muted)', marginRight: 8 }}>
-        {Math.min((page - 1) * PAGE_SIZE + 1, total)}–{Math.min(page * PAGE_SIZE, total)} of {total}
+        {Math.min((page - 1) * pageSize + 1, total)}–{Math.min(page * pageSize, total)} of {total}
       </span>
       <button
         className="btn btn-secondary btn-sm"
@@ -194,9 +193,9 @@ export default function Economy() {
     return true
   })
 
-  const wTotalPages = Math.ceil(filteredWithdrawals.length / PAGE_SIZE)
+  const wTotalPages = Math.ceil(filteredWithdrawals.length / W_PAGE_SIZE)
   const wPageSafe   = Math.min(wPage, Math.max(1, wTotalPages))
-  const pagedWithdrawals = filteredWithdrawals.slice((wPageSafe - 1) * PAGE_SIZE, wPageSafe * PAGE_SIZE)
+  const pagedWithdrawals = filteredWithdrawals.slice((wPageSafe - 1) * W_PAGE_SIZE, wPageSafe * W_PAGE_SIZE)
 
   /* ── Apply transaction filters ── */
   const filteredTransactions = mockTransactions.filter(t => {
@@ -206,9 +205,9 @@ export default function Economy() {
     return true
   })
 
-  const tTotalPages = Math.ceil(filteredTransactions.length / PAGE_SIZE)
+  const tTotalPages = Math.ceil(filteredTransactions.length / T_PAGE_SIZE)
   const tPageSafe   = Math.min(tPage, Math.max(1, tTotalPages))
-  const pagedTransactions = filteredTransactions.slice((tPageSafe - 1) * PAGE_SIZE, tPageSafe * PAGE_SIZE)
+  const pagedTransactions = filteredTransactions.slice((tPageSafe - 1) * T_PAGE_SIZE, tPageSafe * T_PAGE_SIZE)
 
   function resetWPage() { setWPage(1) }
   function resetTPage() { setTPage(1) }
@@ -390,7 +389,7 @@ export default function Economy() {
             </table>
           </div>
 
-          <Pagination page={wPageSafe} total={filteredWithdrawals.length} onChange={setWPage} />
+          <Pagination page={wPageSafe} total={filteredWithdrawals.length} pageSize={W_PAGE_SIZE} onChange={setWPage} />
         </div>
 
         <RejectionReasonsEditor />
@@ -495,7 +494,7 @@ export default function Economy() {
           </table>
         </div>
 
-        <Pagination page={tPageSafe} total={filteredTransactions.length} onChange={setTPage} />
+        <Pagination page={tPageSafe} total={filteredTransactions.length} pageSize={T_PAGE_SIZE} onChange={setTPage} />
       </div>}
     </div>
   )
