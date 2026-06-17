@@ -18,7 +18,7 @@ const INITIAL_REASONS: RejectionReason[] = [
 
 const W_PAGE_SIZE = 10
 const T_PAGE_SIZE = 20
-const AUTO_THRESHOLD = 25000
+// diamond constant kept for reference but threshold comparison uses USD from store
 
 function Pagination({ page, total, pageSize, onChange }: { page: number; total: number; pageSize: number; onChange: (p: number) => void }) {
   const pages = Math.max(1, Math.ceil(total / pageSize))
@@ -163,7 +163,8 @@ const typeColors: Record<string, string> = {
 /* ── Main page ────────────────────────────────────────────────── */
 
 export default function Economy() {
-  const { withdrawals, approveWithdrawal, rejectWithdrawal, processingFee } = useStore()
+  const { withdrawals, approveWithdrawal, rejectWithdrawal, processingFee, fraudThresholdUSD, setFraudThreshold } = useStore()
+  const [fraudThresholdInput, setFraudThresholdInput] = useState(String(fraudThresholdUSD))
 
   /* ── Rejection reasons state (lifted) ── */
   const [reasons, setReasons] = useState<RejectionReason[]>(INITIAL_REASONS)
@@ -198,8 +199,8 @@ export default function Economy() {
   /* ── View switcher ── */
   const [activeView, setActiveView] = useState<'withdrawals' | 'transactions'>('withdrawals')
 
-  /* ── Threshold filter — only requests above AUTO_THRESHOLD need manual review ── */
-  const manualWithdrawals = withdrawals.filter(w => w.diamonds >= AUTO_THRESHOLD)
+  /* ── Threshold filter — only requests above fraudThresholdUSD need manual review ── */
+  const manualWithdrawals = withdrawals.filter(w => w.estimatedUSD >= fraudThresholdUSD)
   const pending = manualWithdrawals.filter(w => w.status === 'pending').length
 
   /* ── Withdrawal filters ── */
@@ -389,9 +390,40 @@ export default function Economy() {
           <div className="table-header">
             <div>
               <div className="table-title">Withdrawal Requests</div>
-              <div className="table-subtitle" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                Manual review required · requests above {AUTO_THRESHOLD.toLocaleString()} 💎
+              <div className="table-subtitle">
+                Manual review required · requests above ${fraudThresholdUSD} USD
               </div>
+            </div>
+          </div>
+
+          {/* Fraud alert threshold setting */}
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, background: 'rgba(212,175,55,0.02)' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>Fraud Alert Threshold</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 460 }}>
+                Withdrawal requests above this amount are automatically flagged for manual review
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>$</span>
+              <input
+                className="form-input"
+                type="number"
+                min={1}
+                value={fraudThresholdInput}
+                onChange={e => setFraudThresholdInput(e.target.value)}
+                style={{ width: 90 }}
+              />
+              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>USD</span>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => {
+                  const v = Number(fraudThresholdInput)
+                  if (!isNaN(v) && v > 0) setFraudThreshold(v)
+                }}
+              >
+                Save
+              </button>
             </div>
           </div>
 
