@@ -26,16 +26,19 @@ interface GiftModalProps {
   onClose: () => void
 }
 
+const tierDefaultDuration: Record<GiftTier, number> = {
+  '5A': 1, '5B': 3, '5C': 6, '5D': 12, '5E': 16,
+}
+
 function GiftModal({ initial, defaultTier = '5A', onSave, onClose }: GiftModalProps) {
   const [animationFileName, setAnimationFileName] = useState<string | null>(initial?.animationFileName ?? null)
-  const [name, setName]               = useState(initial?.name ?? '')
-  const [coins, setCoins]             = useState(initial?.coins ?? 0)
-  const [durationSec, setDurationSec] = useState(initial?.durationSec ?? 1)
-  const [tier, setTier]               = useState<GiftTier>(initial?.tier ?? defaultTier)
-  const [enabled, setEnabled]         = useState(initial?.enabled ?? true)
+  const [name, setName]     = useState(initial?.name ?? '')
+  const [coins, setCoins]   = useState(initial?.coins ?? 0)
+  const [tier, setTier]     = useState<GiftTier>(initial?.tier ?? defaultTier)
+  const [enabled, setEnabled] = useState(initial?.enabled ?? true)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const valid = name.trim() !== '' && coins > 0 && durationSec > 0
+  const valid = name.trim() !== '' && coins > 0
 
   return (
     <>
@@ -75,17 +78,10 @@ function GiftModal({ initial, defaultTier = '5A', onSave, onClose }: GiftModalPr
             <input className="form-input" placeholder="e.g. Shooting Star" value={name} onChange={e => setName(e.target.value)} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div className="form-group">
-              <label className="form-label">Price (coins)</label>
-              <input className="form-input" type="number" min={1} placeholder="e.g. 5000"
-                value={coins || ''} onChange={e => setCoins(Number(e.target.value))} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Duration (sec)</label>
-              <input className="form-input" type="number" min={1} max={60} placeholder="e.g. 5"
-                value={durationSec || ''} onChange={e => setDurationSec(Number(e.target.value))} />
-            </div>
+          <div className="form-group">
+            <label className="form-label">Price (coins)</label>
+            <input className="form-input" type="number" min={1} placeholder="e.g. 5000"
+              value={coins || ''} onChange={e => setCoins(Number(e.target.value))} />
           </div>
 
           <div className="form-group">
@@ -124,7 +120,7 @@ function GiftModal({ initial, defaultTier = '5A', onSave, onClose }: GiftModalPr
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" disabled={!valid} style={{ opacity: valid ? 1 : 0.45 }}
-            onClick={() => { onSave({ animationFileName, name, coins, durationSec, tier, tierName: tierMeta[tier].label, enabled }); onClose() }}>
+            onClick={() => { onSave({ animationFileName, name, coins, durationSec: initial?.durationSec ?? tierDefaultDuration[tier], tier, tierName: tierMeta[tier].label, enabled }); onClose() }}>
             {initial ? 'Save Changes' : 'Add Gift'}
           </button>
         </div>
@@ -278,9 +274,6 @@ export default function GiftCatalog() {
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             {totalEnabled}/{gifts.length} enabled
           </span>
-          <button className="btn btn-primary" onClick={() => setAddOpen(true)}>
-            + Add Gift
-          </button>
         </div>
       </div>
 
@@ -329,32 +322,19 @@ export default function GiftCatalog() {
 
       {/* ── Active tier header ── */}
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center',
         padding: '12px 16px', borderRadius: 10, marginBottom: 20,
         background: activeMeta.bg, border: `1px solid ${activeMeta.color}30`,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 22 }}>{activeMeta.emoji}</span>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: activeMeta.color }}>
-              {activeTier} — {activeMeta.label}
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-              {activeMeta.range} · {activeMeta.durationRange} · {enabledCount}/{tierGifts.length} enabled
-            </div>
+        <span style={{ fontSize: 22, marginRight: 12 }}>{activeMeta.emoji}</span>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: activeMeta.color }}>
+            {activeTier} — {activeMeta.label}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+            {activeMeta.range} · {activeMeta.durationRange}
           </div>
         </div>
-        <button
-          className="btn btn-sm"
-          style={{
-            background: `${activeMeta.color}18`,
-            border: `1px solid ${activeMeta.color}40`,
-            color: activeMeta.color, fontWeight: 600,
-          }}
-          onClick={() => setAddOpen(true)}
-        >
-          + Add to {activeTier}
-        </button>
       </div>
 
       {/* ── Search ── */}
@@ -381,18 +361,34 @@ export default function GiftCatalog() {
       {/* ── Gift grid ── */}
       {tierGifts.length === 0 ? (
         <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '60px 24px', gap: 12,
-          border: `1.5px dashed ${activeMeta.color}40`, borderRadius: 12,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))',
+          gap: 12,
         }}>
-          <span style={{ fontSize: 32 }}>{activeMeta.emoji}</span>
-          <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>No gifts in this tier yet</div>
           <button
-            className="btn btn-sm"
-            style={{ background: `${activeMeta.color}18`, border: `1px solid ${activeMeta.color}40`, color: activeMeta.color }}
             onClick={() => setAddOpen(true)}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', gap: 8,
+              background: 'transparent',
+              border: `1.5px dashed ${activeMeta.color}35`,
+              borderRadius: 12, padding: '24px 8px', minHeight: 180,
+              cursor: 'pointer', color: 'var(--text-subtle)',
+              fontSize: 12, transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => {
+              const el = e.currentTarget as HTMLButtonElement
+              el.style.borderColor = `${activeMeta.color}80`
+              el.style.color = activeMeta.color
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget as HTMLButtonElement
+              el.style.borderColor = `${activeMeta.color}35`
+              el.style.color = 'var(--text-subtle)'
+            }}
           >
-            + Add first gift
+            <span style={{ fontSize: 22 }}>+</span>
+            <span>Add Gift</span>
           </button>
         </div>
       ) : filtered.length === 0 ? (
@@ -406,10 +402,7 @@ export default function GiftCatalog() {
             gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))',
             gap: 12,
           }}>
-            {paged.map(g => (
-              <GiftCard key={g.id} gift={g} onToggle={toggleGift} onEdit={g => setEditGift(g)} />
-            ))}
-            {pageSafe === totalPages && (
+            {pageSafe === 1 && (
               <button
                 onClick={() => setAddOpen(true)}
                 style={{
@@ -436,6 +429,9 @@ export default function GiftCatalog() {
                 <span>Add Gift</span>
               </button>
             )}
+            {paged.map(g => (
+              <GiftCard key={g.id} gift={g} onToggle={toggleGift} onEdit={g => setEditGift(g)} />
+            ))}
           </div>
 
           {totalPages > 1 && (
