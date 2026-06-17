@@ -14,7 +14,7 @@ function toggle<T>(arr: T[], value: T): T[] {
 export default function Streams() {
   const { streams, terminateStream, warnStreamer } = useStore()
 
-  const [activeTab, setActiveTab] = useState<'live' | 'past'>('live')
+  const [activeTab, setActiveTab] = useState<'live' | 'past' | 'templates'>('live')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [warnTarget, setWarnTarget] = useState<Stream | null>(null)
@@ -32,7 +32,7 @@ export default function Streams() {
     selectedCategories.length === 0 || selectedCategories.includes(s.category)
   )
 
-  function switchTab(tab: 'live' | 'past') {
+  function switchTab(tab: 'live' | 'past' | 'templates') {
     setActiveTab(tab)
     setSelectedCategories([])
   }
@@ -116,146 +116,162 @@ export default function Streams() {
         >
           Past Streams
         </button>
+        <button
+          onClick={() => switchTab('templates')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: '8px 16px', fontSize: 14, fontWeight: 500,
+            color: activeTab === 'templates' ? 'var(--text-primary)' : 'var(--text-muted)',
+            borderBottom: activeTab === 'templates' ? '2px solid var(--gold)' : '2px solid transparent',
+            marginBottom: -1, transition: 'color 0.15s',
+          }}
+        >
+          Warn Templates
+        </button>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20, alignItems: 'flex-start' }}>
-        {allCategories.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Category</span>
-            <div className="filter-tabs" style={{ display: 'inline-flex', flexWrap: 'wrap' }}>
-              {allCategories.map(cat => (
-                <button
-                  key={cat}
-                  className={`filter-tab${selectedCategories.includes(cat) ? ' active' : ''}`}
-                  onClick={() => setSelectedCategories(prev => toggle(prev, cat))}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+      {activeTab === 'templates' ? (
+        <WarnMessagesEditor />
+      ) : (
+        <>
+          {/* Filters */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20, alignItems: 'flex-start' }}>
+            {allCategories.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Category</span>
+                <div className="filter-tabs" style={{ display: 'inline-flex', flexWrap: 'wrap' }}>
+                  {allCategories.map(cat => (
+                    <button
+                      key={cat}
+                      className={`filter-tab${selectedCategories.includes(cat) ? ' active' : ''}`}
+                      onClick={() => setSelectedCategories(prev => toggle(prev, cat))}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {selectedCategories.length > 0 && (
-          <button
-            className="btn btn-ghost btn-sm"
-            style={{ alignSelf: 'flex-end', marginBottom: 2 }}
-            onClick={() => setSelectedCategories([])}
-          >
-            Clear filters
-          </button>
-        )}
-      </div>
-
-      <div className="table-wrapper">
-        <div className="table-header">
-          <div>
-            <div className="table-title">
-              {activeTab === 'live' ? 'Live Streams' : 'Past Streams'} ({visible.length})
-            </div>
-            <div className="table-subtitle">
-              {selectedCategories.length === 0
-                ? activeTab === 'live' ? 'All active streams' : 'Ended & terminated streams'
-                : selectedCategories.join(', ')}
-            </div>
+            {selectedCategories.length > 0 && (
+              <button
+                className="btn btn-ghost btn-sm"
+                style={{ alignSelf: 'flex-end', marginBottom: 2 }}
+                onClick={() => setSelectedCategories([])}
+              >
+                Clear filters
+              </button>
+            )}
           </div>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          {visible.length === 0 ? (
-            <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              {activeTab === 'live' ? 'No streams are live right now.' : 'No past streams match the selected filters.'}
+
+          <div className="table-wrapper">
+            <div className="table-header">
+              <div>
+                <div className="table-title">
+                  {activeTab === 'live' ? 'Live Streams' : 'Past Streams'} ({visible.length})
+                </div>
+                <div className="table-subtitle">
+                  {selectedCategories.length === 0
+                    ? activeTab === 'live' ? 'All active streams' : 'Ended & terminated streams'
+                    : selectedCategories.join(', ')}
+                </div>
+              </div>
             </div>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Streamer</th>
-                  <th>Title</th>
-                  <th>Category</th>
-                  <th>Viewers</th>
-                  <th>Duration</th>
-                  <th>Diamonds</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visible.map(s => (
-                  <tr key={s.id}>
-                    <td>
-                      <div className="avatar-row">
-                        <div className="avatar" style={{ background: s.avatarColor }}>{s.streamer[0]}</div>
-                        <div>
-                          <div className="user-name">{s.streamer}</div>
-                          <div className="user-handle">@{s.streamerHandle}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{s.title}</span>
-                        {s.status === 'live' && <Badge variant="live" dot>Live</Badge>}
-                      </div>
-                    </td>
-                    <td>
-                      <span style={{ background: 'var(--bg-surface-2)', padding: '3px 8px', borderRadius: 20, fontSize: 12, color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>
-                        {s.category}
-                      </span>
-                    </td>
-                    <td><span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{s.viewers.toLocaleString()}</span></td>
-                    <td style={{ color: 'var(--text-muted)' }}>{s.duration}</td>
-                    <td>
-                      <span style={{ color: 'var(--gold)', fontWeight: 600 }}>{s.diamondsEarned.toLocaleString()} 💎</span>
-                      {s.status !== 'live' && (
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                          {new Date(s.startedAt).toLocaleDateString()}
-                        </div>
-                      )}
-                    </td>
-                    <td><Badge variant={s.status} dot>{statusLabel(s.status)}</Badge></td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                        <button
-                          className="btn btn-ghost btn-icon"
-                          title="View action log"
-                          onClick={() => setLogTarget(s)}
-                        >
-                          <ScrollText size={12} />
-                          {(s.log?.length ?? 0) > 0 && (
-                            <span style={{ fontSize: 10, marginLeft: 2, color: 'var(--text-muted)' }}>{s.log!.length}</span>
+            <div style={{ overflowX: 'auto' }}>
+              {visible.length === 0 ? (
+                <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  {activeTab === 'live' ? 'No streams are live right now.' : 'No past streams match the selected filters.'}
+                </div>
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Streamer</th>
+                      <th>Title</th>
+                      <th>Category</th>
+                      <th>Viewers</th>
+                      <th>Duration</th>
+                      <th>Diamonds</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visible.map(s => (
+                      <tr key={s.id}>
+                        <td>
+                          <div className="avatar-row">
+                            <div className="avatar" style={{ background: s.avatarColor }}>{s.streamer[0]}</div>
+                            <div>
+                              <div className="user-name">{s.streamer}</div>
+                              <div className="user-handle">@{s.streamerHandle}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{s.title}</span>
+                            {s.status === 'live' && <Badge variant="live" dot>Live</Badge>}
+                          </div>
+                        </td>
+                        <td>
+                          <span style={{ background: 'var(--bg-surface-2)', padding: '3px 8px', borderRadius: 20, fontSize: 12, color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>
+                            {s.category}
+                          </span>
+                        </td>
+                        <td><span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{s.viewers.toLocaleString()}</span></td>
+                        <td style={{ color: 'var(--text-muted)' }}>{s.duration}</td>
+                        <td>
+                          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>{s.diamondsEarned.toLocaleString()} 💎</span>
+                          {s.status !== 'live' && (
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                              {new Date(s.startedAt).toLocaleDateString()}
+                            </div>
                           )}
-                        </button>
-                        {s.status === 'live' && (
-                          <>
-                            <a
-                              href={`https://loouno.com/live/${s.streamerHandle}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="btn btn-ghost btn-sm"
-                              title="Open stream"
+                        </td>
+                        <td><Badge variant={s.status} dot>{statusLabel(s.status)}</Badge></td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                            <button
+                              className="btn btn-ghost btn-icon"
+                              title="View action log"
+                              onClick={() => setLogTarget(s)}
                             >
-                              <ExternalLink size={12} /> View
-                            </a>
-                            <button className="btn btn-danger btn-sm" onClick={() => terminateStream(s.id)}>
-                              <XCircle size={12} /> Terminate
+                              <ScrollText size={12} />
+                              {(s.log?.length ?? 0) > 0 && (
+                                <span style={{ fontSize: 10, marginLeft: 2, color: 'var(--text-muted)' }}>{s.log!.length}</span>
+                              )}
                             </button>
-                            <button className="btn btn-warn btn-sm" onClick={() => setWarnTarget(s)}>
-                              <AlertTriangle size={12} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-
-      <WarnMessagesEditor />
+                            {s.status === 'live' && (
+                              <>
+                                <a
+                                  href={`https://loouno.com/live/${s.streamerHandle}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="btn btn-ghost btn-sm"
+                                  title="Open stream"
+                                >
+                                  <ExternalLink size={12} /> View
+                                </a>
+                                <button className="btn btn-danger btn-sm" onClick={() => terminateStream(s.id)}>
+                                  <XCircle size={12} /> Terminate
+                                </button>
+                                <button className="btn btn-warn btn-sm" onClick={() => setWarnTarget(s)}>
+                                  <AlertTriangle size={12} />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

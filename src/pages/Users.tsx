@@ -509,6 +509,7 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
 
 export default function Users() {
   const { users, warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser, adjustWalletBalance } = useStore()
+  const [activeSection, setActiveSection] = useState<'users' | 'templates'>('users')
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterTab>('all')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -548,147 +549,173 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Search + filter */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        <div className="search-input-wrapper">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input
-            className="search-input"
-            placeholder="Search users..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="filter-tabs">
-          {filterTabs.map(t => (
-            <button
-              key={t.key}
-              className={`filter-tab${filter === t.key ? ' active' : ''}`}
-              onClick={() => setFilter(t.key)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: 2, marginBottom: 20, borderBottom: '1px solid var(--border)', paddingBottom: 0 }}>
+        {([
+          { key: 'users', label: 'Users' },
+          { key: 'templates', label: 'Warn Templates' },
+        ] as const).map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveSection(tab.key)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '8px 16px', fontSize: 14, fontWeight: 500,
+              color: activeSection === tab.key ? 'var(--text-primary)' : 'var(--text-muted)',
+              borderBottom: activeSection === tab.key ? '2px solid var(--gold)' : '2px solid transparent',
+              marginBottom: -1, transition: 'color 0.15s',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      <div className="table-wrapper">
-        <div style={{ overflowX: 'auto' }}>
-          <table>
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th>Joined</th>
-                <th>Followers</th>
-                <th>KYC</th>
-                <th>Badge</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(u => (
-                <tr key={u.id}>
-                  <td>
-                    <div className="avatar-row">
-                      <div className="avatar" style={{ background: u.avatarColor }}>
-                        {u.displayName[0]}
-                      </div>
-                      <div>
-                        <div className="user-name">{u.displayName}</div>
-                        <div className="user-handle">@{u.handle}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{ color: 'var(--text-muted)' }}>{u.email}</td>
-                  <td><Badge variant={u.status} dot>{statusLabel(u.status)}</Badge></td>
-                  <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{u.joined}</td>
-                  <td style={{ color: 'var(--text-secondary)' }}>{u.followers.toLocaleString()}</td>
-                  <td><Badge variant={u.kyc} dot>{statusLabel(u.kyc)}</Badge></td>
-                  <td>
-                    {u.isTopStreamer ? (
-                      <span className="badge badge-top-streamer" style={{ cursor: 'pointer' }}
-                        title="Remove Star Badge"
-                        onClick={() => demoteTopStreamer(u.id)}>
-                        ⭐ Star
-                      </span>
-                    ) : (
-                      <button className="btn btn-ghost btn-sm" title={u.kyc !== 'approved' ? 'KYC must be approved to grant Star Badge' : 'Grant Star Badge'}
-                        onClick={() => u.kyc === 'approved' && promoteTopStreamer(u.id)}
-                        style={{ fontSize: 10, padding: '3px 8px', opacity: u.kyc !== 'approved' ? 0.35 : 1, cursor: u.kyc !== 'approved' ? 'not-allowed' : 'pointer' }}>
-                        <Star size={11} /> Grant
-                      </button>
-                    )}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button className="btn btn-ghost btn-icon" title="View" onClick={() => setSelectedUser(u)}>
-                        <Eye size={13} />
-                      </button>
-                      <button
-                        className="btn btn-ghost btn-icon"
-                        title="Action log"
-                        onClick={() => setLogUser(u)}
-                        style={{ position: 'relative' }}
-                      >
-                        <ScrollText size={13} />
-                        {(u.log?.length ?? 0) > 0 && (
-                          <span style={{ fontSize: 10, marginLeft: 2, color: 'var(--text-muted)' }}>{u.log!.length}</span>
-                        )}
-                      </button>
-                      <button className="btn btn-warn btn-icon" title="Warn" onClick={() => setWarnTarget(u)}>
-                        <AlertTriangle size={13} />
-                      </button>
-                      {u.status === 'active' || u.status === 'unverified' ? (
-                        <button className="btn btn-secondary btn-icon" title="Suspend" onClick={() => setUserStatus(u.id, 'suspended')}>
-                          <PauseCircle size={13} />
-                        </button>
-                      ) : u.status === 'suspended' ? (
-                        <button className="btn btn-success btn-icon" title="Reinstate" onClick={() => setUserStatus(u.id, 'active')}>
-                          <RotateCcw size={13} />
-                        </button>
-                      ) : null}
-                      {u.status !== 'banned' ? (
-                        <button className="btn btn-danger btn-icon" title="Ban" onClick={() => ipBanUser(u.id)}>
-                          <Ban size={13} />
-                        </button>
-                      ) : (
-                        <button className="btn btn-success btn-icon" title="Unban" onClick={() => setUserStatus(u.id, 'active')}>
-                          <RotateCcw size={13} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+      {activeSection === 'templates' ? (
+        <WarnMessagesEditor />
+      ) : (
+        <>
+          {/* Search + filter */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+            <div className="search-input-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input
+                className="search-input"
+                placeholder="Search users..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="filter-tabs">
+              {filterTabs.map(t => (
+                <button
+                  key={t.key}
+                  className={`filter-tab${filter === t.key ? ' active' : ''}`}
+                  onClick={() => setFilter(t.key)}
+                >
+                  {t.label}
+                </button>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </div>
+          </div>
 
-      <UserSlideOver
-        user={liveSelectedUser}
-        onClose={() => setSelectedUser(null)}
-        onWarn={(id, msg) => warnUser(id, msg)}
-        onSuspend={id => setUserStatus(id, 'suspended')}
-        onReinstate={id => setUserStatus(id, 'active')}
-        onPromote={promoteTopStreamer}
-        onDemote={demoteTopStreamer}
-        onIPBan={ipBanUser}
-        onAdjustBalance={adjustWalletBalance}
-        onViewLog={() => setLogUser(liveSelectedUser)}
-      />
+          <div className="table-wrapper">
+            <div style={{ overflowX: 'auto' }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Followers</th>
+                    <th>KYC</th>
+                    <th>Badge</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(u => (
+                    <tr key={u.id}>
+                      <td>
+                        <div className="avatar-row">
+                          <div className="avatar" style={{ background: u.avatarColor }}>
+                            {u.displayName[0]}
+                          </div>
+                          <div>
+                            <div className="user-name">{u.displayName}</div>
+                            <div className="user-handle">@{u.handle}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ color: 'var(--text-muted)' }}>{u.email}</td>
+                      <td><Badge variant={u.status} dot>{statusLabel(u.status)}</Badge></td>
+                      <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{u.joined}</td>
+                      <td style={{ color: 'var(--text-secondary)' }}>{u.followers.toLocaleString()}</td>
+                      <td><Badge variant={u.kyc} dot>{statusLabel(u.kyc)}</Badge></td>
+                      <td>
+                        {u.isTopStreamer ? (
+                          <span className="badge badge-top-streamer" style={{ cursor: 'pointer' }}
+                            title="Remove Star Badge"
+                            onClick={() => demoteTopStreamer(u.id)}>
+                            ⭐ Star
+                          </span>
+                        ) : (
+                          <button className="btn btn-ghost btn-sm" title={u.kyc !== 'approved' ? 'KYC must be approved to grant Star Badge' : 'Grant Star Badge'}
+                            onClick={() => u.kyc === 'approved' && promoteTopStreamer(u.id)}
+                            style={{ fontSize: 10, padding: '3px 8px', opacity: u.kyc !== 'approved' ? 0.35 : 1, cursor: u.kyc !== 'approved' ? 'not-allowed' : 'pointer' }}>
+                            <Star size={11} /> Grant
+                          </button>
+                        )}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button className="btn btn-ghost btn-icon" title="View" onClick={() => setSelectedUser(u)}>
+                            <Eye size={13} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-icon"
+                            title="Action log"
+                            onClick={() => setLogUser(u)}
+                            style={{ position: 'relative' }}
+                          >
+                            <ScrollText size={13} />
+                            {(u.log?.length ?? 0) > 0 && (
+                              <span style={{ fontSize: 10, marginLeft: 2, color: 'var(--text-muted)' }}>{u.log!.length}</span>
+                            )}
+                          </button>
+                          <button className="btn btn-warn btn-icon" title="Warn" onClick={() => setWarnTarget(u)}>
+                            <AlertTriangle size={13} />
+                          </button>
+                          {u.status === 'active' || u.status === 'unverified' ? (
+                            <button className="btn btn-secondary btn-icon" title="Suspend" onClick={() => setUserStatus(u.id, 'suspended')}>
+                              <PauseCircle size={13} />
+                            </button>
+                          ) : u.status === 'suspended' ? (
+                            <button className="btn btn-success btn-icon" title="Reinstate" onClick={() => setUserStatus(u.id, 'active')}>
+                              <RotateCcw size={13} />
+                            </button>
+                          ) : null}
+                          {u.status !== 'banned' ? (
+                            <button className="btn btn-danger btn-icon" title="Ban" onClick={() => ipBanUser(u.id)}>
+                              <Ban size={13} />
+                            </button>
+                          ) : (
+                            <button className="btn btn-success btn-icon" title="Unban" onClick={() => setUserStatus(u.id, 'active')}>
+                              <RotateCcw size={13} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-      {logUser && (
-        <ActionLogModal
-          title={`@${logUser.handle} — ${logUser.displayName}`}
-          entries={logUser.log ?? []}
-          onClose={() => setLogUser(null)}
-        />
+          <UserSlideOver
+            user={liveSelectedUser}
+            onClose={() => setSelectedUser(null)}
+            onWarn={(id, msg) => warnUser(id, msg)}
+            onSuspend={id => setUserStatus(id, 'suspended')}
+            onReinstate={id => setUserStatus(id, 'active')}
+            onPromote={promoteTopStreamer}
+            onDemote={demoteTopStreamer}
+            onIPBan={ipBanUser}
+            onAdjustBalance={adjustWalletBalance}
+            onViewLog={() => setLogUser(liveSelectedUser)}
+          />
+
+          {logUser && (
+            <ActionLogModal
+              title={`@${logUser.handle} — ${logUser.displayName}`}
+              entries={logUser.log ?? []}
+              onClose={() => setLogUser(null)}
+            />
+          )}
+        </>
       )}
-
-      <WarnMessagesEditor />
     </div>
   )
 }

@@ -107,6 +107,7 @@ export default function Reports() {
     reports, dismissReport, reopenReport, banReportTarget, warnReportTarget,
   } = useStore()
 
+  const [activeSection, setActiveSection] = useState<'reports' | 'templates'>('reports')
   const [selectedTypes,    setSelectedTypes]    = useState<ReportType[]>([])
   const [selectedStatuses, setSelectedStatuses] = useState<ReportStatus[]>([])
   const [warnPickerReport, setWarnPickerReport] = useState<{ id: string; targetHandle: string } | null>(null)
@@ -138,156 +139,182 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Multi-picker filters */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20, alignItems: 'flex-end' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Type</span>
-          <div className="filter-tabs" style={{ display: 'inline-flex' }}>
-            {TYPE_OPTIONS.map(({ key, label }) => (
-              <button
-                key={key}
-                className={`filter-tab${selectedTypes.includes(key) ? ' active' : ''}`}
-                onClick={() => setSelectedTypes(prev => toggle(prev, key))}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</span>
-          <div className="filter-tabs" style={{ display: 'inline-flex' }}>
-            {STATUS_OPTIONS.map(({ key, label }) => (
-              <button
-                key={key}
-                className={`filter-tab${selectedStatuses.includes(key) ? ' active' : ''}`}
-                onClick={() => setSelectedStatuses(prev => toggle(prev, key))}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {(selectedTypes.length > 0 || selectedStatuses.length > 0) && (
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: 2, marginBottom: 20, borderBottom: '1px solid var(--border)', paddingBottom: 0 }}>
+        {([
+          { key: 'reports', label: 'Reports' },
+          { key: 'templates', label: 'Warn Templates' },
+        ] as const).map(tab => (
           <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => { setSelectedTypes([]); setSelectedStatuses([]) }}
+            key={tab.key}
+            onClick={() => setActiveSection(tab.key)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '8px 16px', fontSize: 14, fontWeight: 500,
+              color: activeSection === tab.key ? 'var(--text-primary)' : 'var(--text-muted)',
+              borderBottom: activeSection === tab.key ? '2px solid var(--gold)' : '2px solid transparent',
+              marginBottom: -1, transition: 'color 0.15s',
+            }}
           >
-            Clear
+            {tab.label}
           </button>
-        )}
+        ))}
       </div>
 
-      {/* Reports table */}
-      <div className="table-wrapper">
-        <div className="table-header">
-          <div><div className="table-title">Reports ({filtered.length})</div></div>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Reporter</th>
-                <th>Type</th>
-                <th>Target</th>
-                <th>Reason</th>
-                <th>Reported At</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((r, i) => (
-                <tr key={r.id}>
-                  <td style={{ color: 'var(--text-subtle)', fontFamily: 'monospace', fontSize: 12 }}>
-                    #{String(i + 1).padStart(4, '0')}
-                  </td>
-                  <td>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{r.reporter}</div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>@{r.reporterHandle}</div>
-                  </td>
-                  <td><Badge variant={r.type} dot={false}>{r.type}</Badge></td>
-                  <td>
-                    <div style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{r.target}</div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>@{r.targetHandle}</div>
-                  </td>
-                  <td style={{ color: 'var(--text-secondary)', maxWidth: 200, fontSize: 12 }}>{r.reason}</td>
-                  <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap', fontSize: 12 }}>
-                    {new Date(r.reportedAt).toLocaleDateString()}<br />
-                    <span style={{ fontSize: 11 }}>{new Date(r.reportedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  </td>
-                  <td><Badge variant={r.status} dot>{statusLabel(r.status)}</Badge></td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                      <button
-                        className="btn btn-ghost btn-icon"
-                        title="View action log"
-                        onClick={() => setLogReport({ id: r.id, log: r.log ?? [] })}
-                      >
-                        <ScrollText size={12} />
-                        {(r.log?.length ?? 0) > 0 && (
-                          <span style={{ fontSize: 10, marginLeft: 2, color: 'var(--text-muted)' }}>{r.log!.length}</span>
-                        )}
-                      </button>
-                      {r.type === 'stream' && (
-                        <a
-                          href={`https://loouno.com/live/${r.targetHandle}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn btn-ghost btn-sm"
-                          title="Open stream"
-                        >
-                          <ExternalLink size={12} /> Stream
-                        </a>
-                      )}
-                      {r.status === 'pending' ? (
-                        <>
-                          <button className="btn btn-ghost btn-sm" title="Dismiss" onClick={() => dismissReport(r.id)}>
-                            <X size={12} /> Dismiss
-                          </button>
-                          <button className="btn btn-warn btn-sm" title="Warn target" onClick={() => setWarnPickerReport({ id: r.id, targetHandle: r.targetHandle })}>
-                            <AlertTriangle size={12} />
-                          </button>
-                          <button className="btn btn-danger btn-sm" title="Ban target" onClick={() => banReportTarget(r.id)}>
-                            <Ban size={12} />
-                          </button>
-                        </>
-                      ) : (
-                        <button className="btn btn-ghost btn-sm" title="Reopen report" onClick={() => reopenReport(r.id)}>
-                          <RotateCcw size={12} /> Reopen
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {activeSection === 'templates' ? (
+        <WarnMessagesEditor />
+      ) : (
+        <>
+          {/* Multi-picker filters */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20, alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Type</span>
+              <div className="filter-tabs" style={{ display: 'inline-flex' }}>
+                {TYPE_OPTIONS.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    className={`filter-tab${selectedTypes.includes(key) ? ' active' : ''}`}
+                    onClick={() => setSelectedTypes(prev => toggle(prev, key))}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-      {warnPickerReport && (
-        <WarnModal
-          targetLabel={`@${warnPickerReport.targetHandle}`}
-          onConfirm={msg => {
-            warnReportTarget(warnPickerReport.id, msg)
-            setWarnPickerReport(null)
-          }}
-          onClose={() => setWarnPickerReport(null)}
-        />
-      )}
-      {logReport && (
-        <ReportLogModal
-          log={logReport.log}
-          reportId={logReport.id}
-          onClose={() => setLogReport(null)}
-        />
-      )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</span>
+              <div className="filter-tabs" style={{ display: 'inline-flex' }}>
+                {STATUS_OPTIONS.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    className={`filter-tab${selectedStatuses.includes(key) ? ' active' : ''}`}
+                    onClick={() => setSelectedStatuses(prev => toggle(prev, key))}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-      <WarnMessagesEditor />
+            {(selectedTypes.length > 0 || selectedStatuses.length > 0) && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => { setSelectedTypes([]); setSelectedStatuses([]) }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {/* Reports table */}
+          <div className="table-wrapper">
+            <div className="table-header">
+              <div><div className="table-title">Reports ({filtered.length})</div></div>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Reporter</th>
+                    <th>Type</th>
+                    <th>Target</th>
+                    <th>Reason</th>
+                    <th>Reported At</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((r, i) => (
+                    <tr key={r.id}>
+                      <td style={{ color: 'var(--text-subtle)', fontFamily: 'monospace', fontSize: 12 }}>
+                        #{String(i + 1).padStart(4, '0')}
+                      </td>
+                      <td>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{r.reporter}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>@{r.reporterHandle}</div>
+                      </td>
+                      <td><Badge variant={r.type} dot={false}>{r.type}</Badge></td>
+                      <td>
+                        <div style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{r.target}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>@{r.targetHandle}</div>
+                      </td>
+                      <td style={{ color: 'var(--text-secondary)', maxWidth: 200, fontSize: 12 }}>{r.reason}</td>
+                      <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap', fontSize: 12 }}>
+                        {new Date(r.reportedAt).toLocaleDateString()}<br />
+                        <span style={{ fontSize: 11 }}>{new Date(r.reportedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </td>
+                      <td><Badge variant={r.status} dot>{statusLabel(r.status)}</Badge></td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                          <button
+                            className="btn btn-ghost btn-icon"
+                            title="View action log"
+                            onClick={() => setLogReport({ id: r.id, log: r.log ?? [] })}
+                          >
+                            <ScrollText size={12} />
+                            {(r.log?.length ?? 0) > 0 && (
+                              <span style={{ fontSize: 10, marginLeft: 2, color: 'var(--text-muted)' }}>{r.log!.length}</span>
+                            )}
+                          </button>
+                          {r.type === 'stream' && (
+                            <a
+                              href={`https://loouno.com/live/${r.targetHandle}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="btn btn-ghost btn-sm"
+                              title="Open stream"
+                            >
+                              <ExternalLink size={12} /> Stream
+                            </a>
+                          )}
+                          {r.status === 'pending' ? (
+                            <>
+                              <button className="btn btn-ghost btn-sm" title="Dismiss" onClick={() => dismissReport(r.id)}>
+                                <X size={12} /> Dismiss
+                              </button>
+                              <button className="btn btn-warn btn-sm" title="Warn target" onClick={() => setWarnPickerReport({ id: r.id, targetHandle: r.targetHandle })}>
+                                <AlertTriangle size={12} />
+                              </button>
+                              <button className="btn btn-danger btn-sm" title="Ban target" onClick={() => banReportTarget(r.id)}>
+                                <Ban size={12} />
+                              </button>
+                            </>
+                          ) : (
+                            <button className="btn btn-ghost btn-sm" title="Reopen report" onClick={() => reopenReport(r.id)}>
+                              <RotateCcw size={12} /> Reopen
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {warnPickerReport && (
+            <WarnModal
+              targetLabel={`@${warnPickerReport.targetHandle}`}
+              onConfirm={msg => {
+                warnReportTarget(warnPickerReport.id, msg)
+                setWarnPickerReport(null)
+              }}
+              onClose={() => setWarnPickerReport(null)}
+            />
+          )}
+          {logReport && (
+            <ReportLogModal
+              log={logReport.log}
+              reportId={logReport.id}
+              onClose={() => setLogReport(null)}
+            />
+          )}
+        </>
+      )}
     </div>
   )
 }
