@@ -5,11 +5,7 @@ import WarnModal from '../components/WarnModal'
 import WarnMessagesEditor from '../components/WarnMessagesEditor'
 import ActionLogModal from '../components/ActionLogModal'
 import { useStore } from '../store'
-import type { Stream, StreamStatus } from '../types'
-
-const PAST_STATUS_OPTIONS: { key: StreamStatus; label: string }[] = [
-  { key: 'ended', label: 'Ended' },
-]
+import type { Stream } from '../types'
 
 function toggle<T>(arr: T[], value: T): T[] {
   return arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value]
@@ -19,7 +15,6 @@ export default function Streams() {
   const { streams, terminateStream, warnStreamer } = useStore()
 
   const [activeTab, setActiveTab] = useState<'live' | 'past'>('live')
-  const [selectedStatuses, setSelectedStatuses] = useState<StreamStatus[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [warnTarget, setWarnTarget] = useState<Stream | null>(null)
@@ -33,15 +28,12 @@ export default function Streams() {
 
   const allCategories = Array.from(new Set(tabBase.map(s => s.category))).sort()
 
-  const visible = tabBase.filter(s => {
-    const statusOk = selectedStatuses.length === 0 || selectedStatuses.includes(s.status)
-    const catOk    = selectedCategories.length === 0 || selectedCategories.includes(s.category)
-    return statusOk && catOk
-  })
+  const visible = tabBase.filter(s =>
+    selectedCategories.length === 0 || selectedCategories.includes(s.category)
+  )
 
   function switchTab(tab: 'live' | 'past') {
     setActiveTab(tab)
-    setSelectedStatuses([])
     setSelectedCategories([])
   }
 
@@ -128,23 +120,6 @@ export default function Streams() {
 
       {/* Filters */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20, alignItems: 'flex-start' }}>
-        {activeTab === 'past' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</span>
-            <div className="filter-tabs" style={{ display: 'inline-flex' }}>
-              {PAST_STATUS_OPTIONS.map(({ key, label }) => (
-                <button
-                  key={key}
-                  className={`filter-tab${selectedStatuses.includes(key) ? ' active' : ''}`}
-                  onClick={() => setSelectedStatuses(prev => toggle(prev, key))}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {allCategories.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Category</span>
@@ -162,11 +137,11 @@ export default function Streams() {
           </div>
         )}
 
-        {(selectedStatuses.length > 0 || selectedCategories.length > 0) && (
+        {selectedCategories.length > 0 && (
           <button
             className="btn btn-ghost btn-sm"
             style={{ alignSelf: 'flex-end', marginBottom: 2 }}
-            onClick={() => { setSelectedStatuses([]); setSelectedCategories([]) }}
+            onClick={() => setSelectedCategories([])}
           >
             Clear filters
           </button>
@@ -180,12 +155,9 @@ export default function Streams() {
               {activeTab === 'live' ? 'Live Streams' : 'Past Streams'} ({visible.length})
             </div>
             <div className="table-subtitle">
-              {selectedStatuses.length === 0 && selectedCategories.length === 0
+              {selectedCategories.length === 0
                 ? activeTab === 'live' ? 'All active streams' : 'Ended & terminated streams'
-                : [
-                    selectedStatuses.length > 0 && selectedStatuses.map(s => PAST_STATUS_OPTIONS.find(o => o.key === s)?.label).join(', '),
-                    selectedCategories.length > 0 && selectedCategories.join(', '),
-                  ].filter(Boolean).join(' · ')}
+                : selectedCategories.join(', ')}
             </div>
           </div>
         </div>
