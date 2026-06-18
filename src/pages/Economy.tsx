@@ -401,9 +401,6 @@ export default function Economy() {
           <div className="table-header">
             <div>
               <div className="table-title">Withdrawal Requests</div>
-              <div className="table-subtitle">
-                Manual review required · requests above ${fraudThresholdUSD} USD
-              </div>
             </div>
           </div>
 
