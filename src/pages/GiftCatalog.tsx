@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+﻿import { useState, useRef } from 'react'
 import { Edit2, X, Upload, Search, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
 import { mockGifts } from '../mockData'
 import { useStore } from '../store'
@@ -10,37 +10,27 @@ interface CustomTier {
   id: string
   name: string
   minCoins: number
-  color: string
-  emoji: string
 }
 
-const PALETTE = ['#8A8A8E', '#3498DB', '#9966CC', '#D4AF37', '#E74C3C', '#2ECC8A', '#E67E22', '#1ABC9C']
-const EMOJIS  = ['💬', '✨', '🔮', '🎬', '👑', '🎁', '💫', '🌟', '🏆', '💎', '⚡', '🔥', '🌈', '🎯', '🚀', '❤️']
-
 const INITIAL_TIERS: CustomTier[] = [
-  { id: '5A', name: 'Reaction / Meme',  minCoins: 10,     color: '#8A8A8E', emoji: '💬' },
-  { id: '5B', name: 'Mid-Tier Animated', minCoins: 300,   color: '#3498DB', emoji: '✨' },
-  { id: '5C', name: 'Premium 3D',        minCoins: 8000,  color: '#9966CC', emoji: '🔮' },
-  { id: '5D', name: 'Cinematic',         minCoins: 90000, color: '#D4AF37', emoji: '🎬' },
-  { id: '5E', name: 'VIP / Max Cap',     minCoins: 175000,color: '#E74C3C', emoji: '👑' },
+  { id: '5A', name: 'Reaction / Meme',   minCoins: 10     },
+  { id: '5B', name: 'Mid-Tier Animated', minCoins: 300    },
+  { id: '5C', name: 'Premium 3D',        minCoins: 8000   },
+  { id: '5D', name: 'Cinematic',         minCoins: 90000  },
+  { id: '5E', name: 'VIP / Max Cap',     minCoins: 175000 },
 ]
 
 /* ── Tier modal (add / edit) ──────────────────────────────────── */
 
-function TierModal({ initial, usedColors, onSave, onClose }: {
+function TierModal({ initial, onSave, onClose }: {
   initial?: CustomTier | null
-  usedColors: string[]
   onSave: (t: Omit<CustomTier, 'id'>) => void
   onClose: () => void
 }) {
-  const defaultColor = PALETTE.find(c => !usedColors.includes(c)) ?? PALETTE[0]
   const [name,     setName]     = useState(initial?.name ?? '')
   const [minCoins, setMinCoins] = useState(String(initial?.minCoins ?? ''))
 
   const valid = name.trim().length > 0 && minCoins !== '' && Number(minCoins) >= 0
-
-  const autoEmoji = initial?.emoji ?? '🎁'
-  const autoColor = initial?.color ?? defaultColor
 
   return (
     <>
@@ -74,7 +64,7 @@ function TierModal({ initial, usedColors, onSave, onClose }: {
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" disabled={!valid} style={{ opacity: valid ? 1 : 0.45 }}
-            onClick={() => { onSave({ name: name.trim(), minCoins: Number(minCoins), emoji: autoEmoji, color: autoColor }); onClose() }}>
+            onClick={() => { onSave({ name: name.trim(), minCoins: Number(minCoins) }); onClose() }}>
             {initial ? 'Save Changes' : 'Add Tier'}
           </button>
         </div>
@@ -160,12 +150,11 @@ function GiftModal({ initial, defaultTierId, tiers, onSave, onClose }: GiftModal
                   return (
                     <button key={t.id} onClick={() => setTierId(t.id)} type="button" style={{
                       padding: '9px 12px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-                      background: active ? `${t.color}15` : 'var(--bg-surface-2)',
-                      border: `1.5px solid ${active ? t.color : 'var(--border)'}`,
+                      background: 'var(--bg-surface-2)',
+                      border: `1.5px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
                       display: 'flex', alignItems: 'center', gap: 10, transition: 'all 0.15s',
                     }}>
-                      <span style={{ fontSize: 16, lineHeight: 1 }}>{t.emoji}</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: active ? t.color : 'var(--text-secondary)', flex: 1, textAlign: 'left' }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: active ? 'var(--gold)' : 'var(--text-secondary)', flex: 1, textAlign: 'left' }}>
                         {t.name}
                       </span>
                       <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
@@ -207,37 +196,33 @@ function GiftModal({ initial, defaultTierId, tiers, onSave, onClose }: GiftModal
 
 /* ── Gift card ────────────────────────────────────────────────── */
 
-function GiftCard({ gift, tier, onToggle, onEdit }: {
+function GiftCard({ gift, onToggle, onEdit }: {
   gift: Gift
-  tier: CustomTier | undefined
   onToggle: (id: string) => void
   onEdit: (gift: Gift) => void
 }) {
-  const color = tier?.color ?? '#8A8A8E'
-  const emoji = tier?.emoji ?? '🎁'
-  const ext   = gift.animationFileName?.split('.').pop()?.toLowerCase()
+  const ext        = gift.animationFileName?.split('.').pop()?.toLowerCase()
   const assetLabel = ext === 'glb' ? '3D' : ext === 'json' ? '2D' : null
 
   return (
     <div style={{
       background: 'var(--surface)', border: '1px solid var(--border)',
-      borderTop: `3px solid ${color}`, borderRadius: 12, overflow: 'hidden',
-      display: 'flex', flexDirection: 'column', transition: 'border-color 0.15s, box-shadow 0.15s',
+      borderTop: '3px solid var(--border)', borderRadius: 12, overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', transition: 'box-shadow 0.15s',
       opacity: gift.enabled ? 1 : 0.45,
     }}
-      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 20px ${color}20` }}
+      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
     >
       <div style={{
-        background: `${color}15`, padding: '16px 12px 12px',
+        background: 'var(--bg-surface-2)', padding: '16px 12px 12px',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         gap: 8, minHeight: 80, justifyContent: 'center',
       }}>
-        <span style={{ fontSize: 26, lineHeight: 1 }}>{emoji}</span>
         {gift.animationFileName ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             {assetLabel && (
-              <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: `${color}25`, color, letterSpacing: '0.05em' }}>{assetLabel}</span>
+              <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: 'var(--bg)', color: 'var(--text-secondary)', border: '1px solid var(--border)', letterSpacing: '0.05em' }}>{assetLabel}</span>
             )}
             <span style={{ fontSize: 10, color: 'var(--text-muted)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {gift.animationFileName}
@@ -333,12 +318,12 @@ export default function GiftCatalog() {
 
   function switchTier(id: string) { setActiveTierId(id); setSearch(''); setPage(1) }
 
-  const addCardStyle = (color: string): React.CSSProperties => ({
+  const addCardStyle: React.CSSProperties = {
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
-    background: 'transparent', border: `1.5px dashed ${color}35`, borderRadius: 12,
+    background: 'transparent', border: '1.5px dashed var(--border)', borderRadius: 12,
     padding: '24px 8px', minHeight: 180, cursor: 'pointer', color: 'var(--text-subtle)',
     fontSize: 12, transition: 'all 0.15s',
-  })
+  }
 
   return (
     <div>
@@ -353,7 +338,7 @@ export default function GiftCatalog() {
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
-                Delete tier <strong style={{ color: 'var(--text-primary)' }}>{confirmDeleteTier.emoji} {confirmDeleteTier.name}</strong>?
+                Delete tier <strong style={{ color: 'var(--text-primary)' }}>{confirmDeleteTier.name}</strong>?
                 {gifts.filter(g => g.tier === confirmDeleteTier.id).length > 0 && (
                   <span style={{ color: '#E74C3C' }}>{' '}This will also remove {gifts.filter(g => g.tier === confirmDeleteTier.id).length} gift{gifts.filter(g => g.tier === confirmDeleteTier.id).length > 1 ? 's' : ''} in this tier.</span>
                 )}
@@ -389,27 +374,26 @@ export default function GiftCatalog() {
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '10px 16px', borderRadius: 10, cursor: 'pointer',
               whiteSpace: 'nowrap', flexShrink: 0,
-              background: active ? `${tier.color}18` : 'var(--surface)',
-              border: `1.5px solid ${active ? tier.color : 'var(--border)'}`,
+              background: active ? 'rgba(212,175,55,0.08)' : 'var(--surface)',
+              border: `1.5px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
               transition: 'all 0.15s',
             }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.borderColor = `${tier.color}60` }}
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-muted)' }}
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)' }}
             >
-              <span style={{ fontSize: 18, lineHeight: 1 }}>{tier.emoji}</span>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: active ? tier.color : 'var(--text-primary)' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: active ? 'var(--gold)' : 'var(--text-primary)' }}>
                   {tier.name}
                 </span>
-                <span style={{ fontSize: 11, color: active ? tier.color : 'var(--text-muted)', opacity: 0.85 }}>
+                <span style={{ fontSize: 11, color: active ? 'var(--gold)' : 'var(--text-muted)', opacity: 0.85 }}>
                   {tier.minCoins > 0 ? `${tier.minCoins.toLocaleString()}+ 🪙` : 'Any price'}
                 </span>
               </div>
               <span style={{
                 fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 10, marginLeft: 2,
-                background: active ? `${tier.color}25` : 'var(--bg)',
-                color: active ? tier.color : 'var(--text-muted)',
-                border: `1px solid ${active ? `${tier.color}40` : 'var(--border)'}`,
+                background: active ? 'rgba(212,175,55,0.15)' : 'var(--bg)',
+                color: active ? 'var(--gold)' : 'var(--text-muted)',
+                border: `1px solid ${active ? 'rgba(212,175,55,0.3)' : 'var(--border)'}`,
               }}>{count}</span>
             </button>
           )
@@ -439,15 +423,12 @@ export default function GiftCatalog() {
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '12px 16px', borderRadius: 10, marginBottom: 20,
-            background: `${activeTier.color}12`, border: `1px solid ${activeTier.color}30`,
+            background: 'var(--bg-surface-2)', border: '1px solid var(--border)',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 22 }}>{activeTier.emoji}</span>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: activeTier.color }}>{activeTier.name}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                  {activeTier.minCoins > 0 ? `${activeTier.minCoins.toLocaleString()}+ coins required` : 'Any price'}
-                </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{activeTier.name}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                {activeTier.minCoins > 0 ? `${activeTier.minCoins.toLocaleString()}+ coins required` : 'Any price'}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
@@ -479,9 +460,9 @@ export default function GiftCatalog() {
           {/* ── Gift grid ── */}
           {tierGifts.length === 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 12 }}>
-              <button onClick={() => setAddGiftOpen(true)} style={addCardStyle(activeTier.color)}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${activeTier.color}80`; (e.currentTarget as HTMLButtonElement).style.color = activeTier.color }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${activeTier.color}35`; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-subtle)' }}>
+              <button onClick={() => setAddGiftOpen(true)} style={addCardStyle}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-subtle)' }}>
                 <span style={{ fontSize: 22 }}>+</span>
                 <span>Add Gift</span>
               </button>
@@ -494,16 +475,15 @@ export default function GiftCatalog() {
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 12 }}>
                 {pageSafe === 1 && (
-                  <button onClick={() => setAddGiftOpen(true)} style={addCardStyle(activeTier.color)}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${activeTier.color}80`; (e.currentTarget as HTMLButtonElement).style.color = activeTier.color }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${activeTier.color}35`; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-subtle)' }}>
+                  <button onClick={() => setAddGiftOpen(true)} style={addCardStyle}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-subtle)' }}>
                     <span style={{ fontSize: 22 }}>+</span>
                     <span>Add Gift</span>
                   </button>
                 )}
                 {paged.map(g => (
                   <GiftCard key={g.id} gift={g}
-                    tier={tiers.find(t => t.id === g.tier)}
                     onToggle={toggleGift}
                     onEdit={g => setEditGift(g)} />
                 ))}
@@ -523,9 +503,9 @@ export default function GiftCatalog() {
                       <button key={p} onClick={() => setPage(p)} style={{
                         padding: '4px 10px', minWidth: 32, borderRadius: 6, fontSize: 12,
                         fontWeight: p === pageSafe ? 700 : 400, cursor: 'pointer', border: 'none',
-                        background: p === pageSafe ? `${activeTier.color}20` : 'var(--bg)',
-                        color: p === pageSafe ? activeTier.color : 'var(--text-muted)',
-                        outline: p === pageSafe ? `1.5px solid ${activeTier.color}50` : 'none',
+                        background: p === pageSafe ? 'rgba(212,175,55,0.15)' : 'var(--bg)',
+                        color: p === pageSafe ? 'var(--gold)' : 'var(--text-muted)',
+                        outline: p === pageSafe ? '1.5px solid rgba(212,175,55,0.4)' : 'none',
                       }}>{p}</button>
                     ))}
                     <button className="btn btn-secondary btn-sm" onClick={() => setPage(p => p + 1)} disabled={pageSafe === totalPages}
@@ -548,10 +528,10 @@ export default function GiftCatalog() {
         <GiftModal tiers={tiers} initial={editGift} onSave={data => handleEditGift(editGift.id, data)} onClose={() => setEditGift(null)} />
       )}
       {addTierOpen && (
-        <TierModal usedColors={tiers.map(t => t.color)} onSave={handleAddTier} onClose={() => setAddTierOpen(false)} />
+        <TierModal onSave={handleAddTier} onClose={() => setAddTierOpen(false)} />
       )}
       {editTier && (
-        <TierModal initial={editTier} usedColors={tiers.filter(t => t.id !== editTier.id).map(t => t.color)}
+        <TierModal initial={editTier}
           onSave={data => handleEditTier(editTier.id, data)} onClose={() => setEditTier(null)} />
       )}
     </div>
