@@ -1550,3 +1550,5 @@ tbody td {
   color: #E05C6A;
   border: 1px solid rgba(155, 17, 30, 0.35);
 }
+
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
