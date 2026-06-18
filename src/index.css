@@ -532,9 +532,6 @@ tbody td {
 .badge-banned    { background: rgba(192, 57, 43, 0.12); color: #C0392B; border: 1px solid rgba(192, 57, 43, 0.2); }
 .badge-banned .badge-dot { background: #C0392B; }
 
-.badge-unverified { background: rgba(138, 138, 142, 0.12); color: #8A8A8E; border: 1px solid rgba(138, 138, 142, 0.2); }
-.badge-unverified .badge-dot { background: #8A8A8E; }
-
 .badge-pending   { background: rgba(243, 156, 18, 0.12); color: #F39C12; border: 1px solid rgba(243, 156, 18, 0.2); }
 .badge-pending .badge-dot { background: #F39C12; }
 

@@ -21,7 +21,6 @@ export function statusLabel(status: string): string {
     active: 'Active',
     suspended: 'Suspended',
     banned: 'Banned',
-    unverified: 'Unverified',
     pending: 'Pending',
     approved: 'Approved',
     rejected: 'Rejected',

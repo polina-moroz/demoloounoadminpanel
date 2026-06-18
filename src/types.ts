@@ -1,5 +1,5 @@
 export type UserRole = 'viewer';
-export type UserStatus = 'active' | 'suspended' | 'banned' | 'unverified';
+export type UserStatus = 'active' | 'suspended' | 'banned';
 export type KYCStatus = 'pending' | 'approved' | 'rejected' | 'not_submitted';
 export type ReportType = 'stream' | 'user' | 'message';
 export type ReportStatus = 'pending' | 'resolved' | 'dismissed';

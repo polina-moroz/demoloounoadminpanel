@@ -219,7 +219,6 @@ const filterTabs: { key: FilterTab; label: string }[] = [
   { key: 'active', label: 'Active' },
   { key: 'suspended', label: 'Suspended' },
   { key: 'banned', label: 'Banned' },
-  { key: 'unverified', label: 'Unverified' },
 ]
 
 interface SlideOverProps {
@@ -667,7 +666,7 @@ export default function Users() {
                           <button className="btn btn-warn btn-icon" title="Warn" onClick={() => setWarnTarget(u)}>
                             <AlertTriangle size={13} />
                           </button>
-                          {u.status === 'active' || u.status === 'unverified' ? (
+                          {u.status === 'active' ? (
                             <button className="btn btn-secondary btn-icon" title="Suspend" onClick={() => setUserStatus(u.id, 'suspended')}>
                               <PauseCircle size={13} />
                             </button>
