@@ -36,10 +36,11 @@ function TierModal({ initial, usedColors, onSave, onClose }: {
   const defaultColor = PALETTE.find(c => !usedColors.includes(c)) ?? PALETTE[0]
   const [name,     setName]     = useState(initial?.name ?? '')
   const [minCoins, setMinCoins] = useState(String(initial?.minCoins ?? ''))
-  const [emoji,    setEmoji]    = useState(initial?.emoji ?? '🎁')
-  const [color,    setColor]    = useState(initial?.color ?? defaultColor)
 
   const valid = name.trim().length > 0 && minCoins !== '' && Number(minCoins) >= 0
+
+  const autoEmoji = initial?.emoji ?? '🎁'
+  const autoColor = initial?.color ?? defaultColor
 
   return (
     <>
@@ -69,41 +70,11 @@ function TierModal({ initial, usedColors, onSave, onClose }: {
             </span>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Icon</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {EMOJIS.map(e => (
-                <button key={e} onClick={() => setEmoji(e)} type="button" style={{
-                  width: 36, height: 36, borderRadius: 8, fontSize: 18, cursor: 'pointer',
-                  background: emoji === e ? 'rgba(212,175,55,0.12)' : 'var(--bg-surface-2)',
-                  border: `1.5px solid ${emoji === e ? 'var(--gold)' : 'var(--border)'}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s',
-                }}>
-                  {e}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Color</label>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {PALETTE.map(c => (
-                <button key={c} onClick={() => setColor(c)} type="button" style={{
-                  width: 28, height: 28, borderRadius: '50%', background: c, cursor: 'pointer',
-                  border: `2.5px solid ${color === c ? '#fff' : 'transparent'}`,
-                  outline: color === c ? `2px solid ${c}` : 'none',
-                  transition: 'all 0.15s', flexShrink: 0,
-                }} />
-              ))}
-            </div>
-          </div>
-
         </div>
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" disabled={!valid} style={{ opacity: valid ? 1 : 0.45 }}
-            onClick={() => { onSave({ name: name.trim(), minCoins: Number(minCoins), emoji, color }); onClose() }}>
+            onClick={() => { onSave({ name: name.trim(), minCoins: Number(minCoins), emoji: autoEmoji, color: autoColor }); onClose() }}>
             {initial ? 'Save Changes' : 'Add Tier'}
           </button>
         </div>
