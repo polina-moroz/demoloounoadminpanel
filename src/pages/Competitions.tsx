@@ -33,7 +33,7 @@ interface PastContest {
   endDate: string
   participants: number
   prizePool: string
-  top3: Array<{ rank: number; name: string; handle: string; prize: string; avatarColor: string; diamonds: number }>
+  winners: Array<{ rank: number; name: string; handle: string; prize: string; avatarColor: string; diamonds: number }>
 }
 
 const MOCK_PAST: PastContest[] = [
@@ -41,20 +41,36 @@ const MOCK_PAST: PastContest[] = [
     id: 'past1', period: 'monthly', label: 'May 2026 Competition',
     startDate: 'May 1, 2026', endDate: 'May 31, 2026',
     participants: 231, prizePool: '$2,500',
-    top3: [
-      { rank: 1, name: 'Sasha Bloom',  handle: 'sashabloom', prize: '$750', avatarColor: '#9966CC', diamonds: 510400 },
-      { rank: 2, name: 'Aria Voss',    handle: 'ariavoss',   prize: '$500', avatarColor: '#9966CC', diamonds: 389200 },
-      { rank: 3, name: 'Marco Reyes',  handle: 'marcoreyes', prize: '$300', avatarColor: '#2ECC8A', diamonds: 310100 },
+    winners: [
+      { rank: 1,  name: 'Sasha Bloom',    handle: 'sashabloom', prize: '$750',              avatarColor: '#9966CC', diamonds: 510400 },
+      { rank: 2,  name: 'Aria Voss',      handle: 'ariavoss',   prize: '$500',              avatarColor: '#9966CC', diamonds: 389200 },
+      { rank: 3,  name: 'Marco Reyes',    handle: 'marcoreyes', prize: '$300',              avatarColor: '#2ECC8A', diamonds: 310100 },
+      { rank: 4,  name: 'Nour Al-Rashid', handle: 'nourar',     prize: '$200',              avatarColor: '#D4AF37', diamonds: 198300 },
+      { rank: 5,  name: 'Luna Star',      handle: 'lunastar',   prize: '$150',              avatarColor: '#9B111E', diamonds: 162400 },
+      { rank: 6,  name: 'Kai Rivers',     handle: 'kairivs',    prize: '$100',              avatarColor: '#2ECC8A', diamonds: 139700 },
+      { rank: 7,  name: 'Zoe Chen',       handle: 'zoechen',    prize: '$75',               avatarColor: '#9966CC', diamonds: 121500 },
+      { rank: 8,  name: 'Dex Volta',      handle: 'dexvolta',   prize: '$50',               avatarColor: '#D4AF37', diamonds: 104200 },
+      { rank: 9,  name: 'Maya Sun',       handle: 'mayasun',    prize: '$50',               avatarColor: '#2ECC8A', diamonds: 91800 },
+      { rank: 10, name: 'Rio Blaze',      handle: 'rioblaze',   prize: '$50',               avatarColor: '#C0392B', diamonds: 79100 },
+      { rank: 11, name: 'Ivy Moon',       handle: 'ivymoon',    prize: '$25',               avatarColor: '#3498DB', diamonds: 67400 },
+      { rank: 12, name: 'Finn Chase',     handle: 'finnchase',  prize: '$25',               avatarColor: '#E67E22', diamonds: 58900 },
     ],
   },
   {
     id: 'past2', period: 'monthly', label: 'April 2026 Competition',
     startDate: 'Apr 1, 2026', endDate: 'Apr 30, 2026',
     participants: 198, prizePool: '$2,500',
-    top3: [
-      { rank: 1, name: 'Luna Star',    handle: 'lunastar',  prize: '$750', avatarColor: '#9B111E', diamonds: 475000 },
-      { rank: 2, name: 'Zoe Chen',     handle: 'zoechen',   prize: '$500', avatarColor: '#9966CC', diamonds: 362000 },
-      { rank: 3, name: 'Dex Volta',    handle: 'dexvolta',  prize: '$300', avatarColor: '#D4AF37', diamonds: 288000 },
+    winners: [
+      { rank: 1,  name: 'Luna Star',      handle: 'lunastar',   prize: '$750',              avatarColor: '#9B111E', diamonds: 475000 },
+      { rank: 2,  name: 'Zoe Chen',       handle: 'zoechen',    prize: '$500',              avatarColor: '#9966CC', diamonds: 362000 },
+      { rank: 3,  name: 'Dex Volta',      handle: 'dexvolta',   prize: '$300',              avatarColor: '#D4AF37', diamonds: 288000 },
+      { rank: 4,  name: 'Sasha Bloom',    handle: 'sashabloom', prize: '$200',              avatarColor: '#9966CC', diamonds: 201400 },
+      { rank: 5,  name: 'Rio Blaze',      handle: 'rioblaze',   prize: '$150',              avatarColor: '#C0392B', diamonds: 173200 },
+      { rank: 6,  name: 'Marco Reyes',    handle: 'marcoreyes', prize: '$100',              avatarColor: '#2ECC8A', diamonds: 144800 },
+      { rank: 7,  name: 'Aria Voss',      handle: 'ariavoss',   prize: '$75',               avatarColor: '#9966CC', diamonds: 118600 },
+      { rank: 8,  name: 'Kai Rivers',     handle: 'kairivs',    prize: '$50',               avatarColor: '#2ECC8A', diamonds: 97300 },
+      { rank: 9,  name: 'Maya Sun',       handle: 'mayasun',    prize: '$50',               avatarColor: '#2ECC8A', diamonds: 84100 },
+      { rank: 10, name: 'Finn Chase',     handle: 'finnchase',  prize: '$50',               avatarColor: '#E67E22', diamonds: 71500 },
     ],
   },
 ]
@@ -148,6 +164,15 @@ export default function Competitions() {
   const [refreshing,    setRefreshing]    = useState(false)
   const [refreshedAt,   setRefreshedAt]   = useState<string | null>(null)
   const [pastContests,  setPastContests]  = useState<PastContest[]>(MOCK_PAST)
+  const [expandedIds,   setExpandedIds]   = useState<Set<string>>(new Set())
+
+  function toggleExpand(id: string) {
+    setExpandedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
 
   function startEdit() { setDraftTiers(tiers.map(t => ({ ...t }))); setPrizeEditing(true) }
   function saveEdit()  { setTiers(draftTiers); setPrizeEditing(false); toast('Prize configuration saved', 'success') }
@@ -176,7 +201,7 @@ export default function Competitions() {
       endDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       participants: 247,
       prizePool: '$2,500',
-      top3: mockLeaderboard.slice(0, 3).map(e => ({
+      winners: mockLeaderboard.slice(0, 10).map(e => ({
         rank: e.rank, name: e.name, handle: e.handle,
         prize: e.prize, avatarColor: e.avatarColor, diamonds: e.diamondsReceived,
       })),
@@ -462,49 +487,103 @@ export default function Competitions() {
             <div style={{ padding: '64px 24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
               No past contests yet.
             </div>
-          ) : pastContests.map(contest => (
-            <div key={contest.id} className="card">
-              <div className="card-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
-                    background: 'var(--bg-surface-2)', color: 'var(--text-secondary)', border: '1px solid var(--border)',
-                  }}>{periodLabels[contest.period]}</span>
-                  <div>
-                    <div className="card-title" style={{ marginBottom: 1 }}>{contest.label}</div>
-                    <div className="card-subtitle">{contest.startDate} — {contest.endDate}</div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 20 }}>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>Prize Pool</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gold)' }}>{contest.prizePool}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>Participants</div>
-                    <div style={{ fontSize: 15, fontWeight: 700 }}>{contest.participants}</div>
-                  </div>
-                </div>
-              </div>
-              <div style={{ padding: '0 20px 20px', display: 'flex', gap: 12 }}>
-                {contest.top3.map(w => (
-                  <div key={w.rank} style={{
-                    flex: 1, display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '12px 14px', borderRadius: 10,
-                    background: 'var(--bg-surface-2)', border: '1px solid var(--border)',
-                  }}>
-                    <span style={{ fontSize: 20 }}>{['🥇', '🥈', '🥉'][w.rank - 1]}</span>
-                    <div className="avatar" style={{ background: w.avatarColor, width: 28, height: 28, fontSize: 12 }}>{w.name[0]}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.name}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{w.diamonds.toLocaleString()} 💎</div>
+          ) : pastContests.map(contest => {
+            const expanded = expandedIds.has(contest.id)
+            const top3 = contest.winners.slice(0, 3)
+            return (
+              <div key={contest.id} className="card">
+                {/* Header — clickable */}
+                <div className="card-header" onClick={() => toggleExpand(contest.id)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                      background: 'var(--bg-surface-2)', color: 'var(--text-secondary)', border: '1px solid var(--border)',
+                    }}>{periodLabels[contest.period]}</span>
+                    <div>
+                      <div className="card-title" style={{ marginBottom: 1 }}>{contest.label}</div>
+                      <div className="card-subtitle">{contest.startDate} — {contest.endDate}</div>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--emerald)', flexShrink: 0 }}>{w.prize}</span>
                   </div>
-                ))}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>Prize Pool</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gold)' }}>{contest.prizePool}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>Participants</div>
+                      <div style={{ fontSize: 15, fontWeight: 700 }}>{contest.participants}</div>
+                    </div>
+                    <span style={{
+                      fontSize: 18, color: 'var(--text-muted)', lineHeight: 1,
+                      transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s',
+                      display: 'inline-block',
+                    }}>›</span>
+                  </div>
+                </div>
+
+                {/* Top 3 podium — always visible */}
+                <div style={{ padding: '0 20px 20px', display: 'flex', gap: 12 }}>
+                  {top3.map(w => (
+                    <div key={w.rank} style={{
+                      flex: 1, display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '12px 14px', borderRadius: 10,
+                      background: 'var(--bg-surface-2)', border: '1px solid var(--border)',
+                    }}>
+                      <span style={{ fontSize: 20 }}>{['🥇', '🥈', '🥉'][w.rank - 1]}</span>
+                      <div className="avatar" style={{ background: w.avatarColor, width: 28, height: 28, fontSize: 12 }}>{w.name[0]}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{w.diamonds.toLocaleString()} 💎</div>
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--emerald)', flexShrink: 0 }}>{w.prize}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Expanded: full winners table */}
+                {expanded && (
+                  <div style={{ borderTop: '1px solid var(--border)' }}>
+                    <div style={{ padding: '12px 20px 6px', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      All Prize Winners ({contest.winners.length})
+                    </div>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Rank</th>
+                          <th>Creator</th>
+                          <th>Diamonds</th>
+                          <th>Prize</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {contest.winners.map(w => (
+                          <tr key={w.rank}>
+                            <td>
+                              <div className={w.rank <= 3 ? `rank-badge rank-${w.rank}` : 'rank-badge rank-other'}>
+                                {w.rank <= 3 ? ['🥇', '🥈', '🥉'][w.rank - 1] : w.rank}
+                              </div>
+                            </td>
+                            <td>
+                              <div className="avatar-row">
+                                <div className="avatar" style={{ background: w.avatarColor }}>{w.name[0]}</div>
+                                <div>
+                                  <div className="user-name">{w.name}</div>
+                                  <div className="user-handle">@{w.handle}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td><span style={{ color: 'var(--gold)', fontWeight: 700 }}>{w.diamonds.toLocaleString()} 💎</span></td>
+                            <td><span style={{ color: 'var(--emerald)', fontWeight: 700 }}>{w.prize}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            )
+          })}
 
         </div>
       )}
