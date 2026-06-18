@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X, Copy, Check, Mail, ShieldCheck, ShieldOff, Trash2, Users, Edit2, KeyRound, RefreshCw } from 'lucide-react'
+import { Plus, X, Copy, Check, Mail, ShieldCheck, ShieldOff, Trash2, Users, Edit2, KeyRound, RefreshCw, Search } from 'lucide-react'
 import StatCard from '../components/StatCard'
 import { useStore } from '../store'
 import type { AdminRole, AdminMember } from '../types'
@@ -401,6 +401,10 @@ export default function AdminTeam() {
   const [editMember, setEditMember] = useState<AdminMember | null>(null)
   const [changePasswordMember, setChangePasswordMember] = useState<AdminMember | null>(null)
 
+  const [search, setSearch]       = useState('')
+  const [filterRole, setFilterRole]     = useState<'all' | AdminRole>('all')
+  const [filterStatus, setFilterStatus] = useState<'all' | AdminMember['status']>('all')
+
   const totalActive  = adminTeam.filter(a => a.status === 'active').length
   const totalAdmins  = adminTeam.filter(a => ['super_admin', 'admin'].includes(a.role) && a.status === 'active').length
   const totalMods    = adminTeam.filter(a => a.role === 'moderator' && a.status === 'active').length
@@ -419,6 +423,14 @@ export default function AdminTeam() {
     if (currentRole === 'super_admin') return member.role !== 'super_admin' && member.status === 'active'
     return member.id === currentAdmin?.id && member.status === 'active'
   }
+
+  const filteredTeam = adminTeam.filter(m => {
+    const q = search.toLowerCase()
+    if (q && !m.displayName.toLowerCase().includes(q) && !m.email.toLowerCase().includes(q)) return false
+    if (filterRole !== 'all' && m.role !== filterRole) return false
+    if (filterStatus !== 'all' && m.status !== filterStatus) return false
+    return true
+  })
 
   const canChangeRole = (member: AdminMember, toRole: AdminRole) => {
     if (currentRole === 'super_admin') return true
@@ -453,8 +465,47 @@ export default function AdminTeam() {
         <div className="table-header">
           <div>
             <div className="table-title">Team Members</div>
-            <div className="table-subtitle">{adminTeam.length} total · {totalActive} active · {pendingCount} pending</div>
+            <div className="table-subtitle">
+              {filteredTeam.length !== adminTeam.length
+                ? `${filteredTeam.length} of ${adminTeam.length} members`
+                : `${adminTeam.length} total · ${totalActive} active · ${pendingCount} pending`}
+            </div>
           </div>
+        </div>
+
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div className="search-input-wrapper">
+            <Search size={14} />
+            <input className="search-input" placeholder="Search name or email…" value={search}
+              onChange={e => setSearch(e.target.value)} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <label style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Role</label>
+            <select className="form-select" style={{ width: 150, padding: '7px 30px 7px 10px' }}
+              value={filterRole} onChange={e => setFilterRole(e.target.value as 'all' | AdminRole)}>
+              <option value="all">All Roles</option>
+              <option value="super_admin">Super Admin</option>
+              <option value="admin">Admin</option>
+              <option value="moderator">Moderator</option>
+              <option value="viewer">Viewer</option>
+            </select>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <label style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</label>
+            <select className="form-select" style={{ width: 150, padding: '7px 30px 7px 10px' }}
+              value={filterStatus} onChange={e => setFilterStatus(e.target.value as 'all' | AdminMember['status'])}>
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="invited">Pending invite</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+          {(search || filterRole !== 'all' || filterStatus !== 'all') && (
+            <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-end', fontSize: 12 }}
+              onClick={() => { setSearch(''); setFilterRole('all'); setFilterStatus('all') }}>
+              Clear filters
+            </button>
+          )}
         </div>
 
         <div style={{ overflowX: 'auto' }}>
@@ -469,7 +520,13 @@ export default function AdminTeam() {
               </tr>
             </thead>
             <tbody>
-              {adminTeam.map(member => {
+              {filteredTeam.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0', fontSize: 13 }}>
+                    No members match the current filters.
+                  </td>
+                </tr>
+              ) : filteredTeam.map(member => {
                 const isSelf = member.id === currentAdmin?.id
                 const isSuper = member.role === 'super_admin'
                 const editable = canEditMember(member)
