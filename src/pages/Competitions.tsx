@@ -148,6 +148,14 @@ function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
   )
 }
 
+const DEFAULT_PRIZE_TIERS: PrizeTier[] = [
+  { rank: 'Rank 1', prize: '', type: 'cash' },
+  { rank: 'Rank 2', prize: '', type: 'cash' },
+  { rank: 'Rank 3', prize: '', type: 'cash' },
+  { rank: 'Rank 4', prize: '', type: 'cash' },
+  { rank: 'Rank 5', prize: '', type: 'cash' },
+]
+
 /* ── Main component ───────────────────────────────────────────── */
 
 export default function Competitions() {
@@ -158,7 +166,7 @@ export default function Competitions() {
   const [period,        setPeriod]        = useState<ContestPeriod>('monthly')
   const [newPeriod,     setNewPeriod]     = useState<ContestPeriod>('monthly')
   const [tiers,         setTiers]         = useState<PrizeTier[]>(mockPrizeTiers)
-  const [draftTiers,    setDraftTiers]    = useState<PrizeTier[]>(mockPrizeTiers)
+  const [draftTiers,    setDraftTiers]    = useState<PrizeTier[]>(DEFAULT_PRIZE_TIERS)
   const [prizeEditing,  setPrizeEditing]  = useState(false)
   const [confirmStop,   setConfirmStop]   = useState(false)
   const [refreshing,    setRefreshing]    = useState(false)
@@ -212,6 +220,7 @@ export default function Competitions() {
     setContestActive(false)
     setConfirmStop(false)
     setPrizesApproved(false)
+    setDraftTiers(DEFAULT_PRIZE_TIERS.map(t => ({ ...t })))
     setMainTab('past')
     toast('Contest ended — results archived to Past Contests', 'info')
   }
@@ -460,7 +469,7 @@ export default function Competitions() {
                 {/* Prize tiers section */}
                 <div>
                   <div style={{ padding: '14px 24px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Prize Payouts</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', width: '100%', textAlign: 'center' }}>Prize Payouts</div>
                     {prizesApproved && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: 'rgba(46,204,138,0.1)', color: '#2ECC8A', border: '1px solid rgba(46,204,138,0.2)' }}>
