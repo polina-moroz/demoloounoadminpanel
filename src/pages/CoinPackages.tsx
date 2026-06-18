@@ -17,7 +17,6 @@ function AddTierModal({ platform, nextTier, onSave, onClose }: AddTierModalProps
   const [label, setLabel]         = useState('')
   const [coins, setCoins]         = useState('')
   const [price, setPrice]         = useState('')
-  const [bonus, setBonus]         = useState('0')
   const [bestValue, setBestValue] = useState(false)
 
   const valid = label.trim() !== '' && Number(coins) > 0 && Number(price) > 0
@@ -29,7 +28,7 @@ function AddTierModal({ platform, nextTier, onSave, onClose }: AddTierModalProps
       label: label.trim(),
       coins: Number(coins),
       price: Number(price),
-      bonusPercent: Number(bonus),
+      bonusPercent: 0,
       bestValue,
       enabled: true,
       platform,
@@ -71,15 +70,6 @@ function AddTierModal({ platform, nextTier, onSave, onClose }: AddTierModalProps
                   onChange={e => setPrice(e.target.value)} style={{ paddingLeft: 22 }} />
               </div>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Bonus Coins %</label>
-            <input className="form-input" type="number" min="0" placeholder="0" value={bonus}
-              onChange={e => setBonus(e.target.value)} />
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-              Bonus coins for this tier (0 = none)
-            </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderTop: '1px solid var(--border)' }}>
@@ -137,11 +127,9 @@ function PackageTable({ platform, title, subtitle }: { platform: 'iap' | 'web'; 
           <table>
             <thead>
               <tr>
-                <th>Tier</th>
                 <th>Label</th>
                 <th>Coins</th>
                 <th>Price</th>
-                <th>Bonus %</th>
                 <th>Best Value</th>
                 <th>Enabled</th>
               </tr>
@@ -149,30 +137,9 @@ function PackageTable({ platform, title, subtitle }: { platform: 'iap' | 'web'; 
             <tbody>
               {pkgs.map(p => (
                 <tr key={p.id}>
-                  <td>
-                    <span style={{
-                      width: 28, height: 28, borderRadius: '50%', display: 'inline-flex',
-                      alignItems: 'center', justifyContent: 'center',
-                      background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.25)',
-                      fontSize: 11, fontWeight: 700, color: 'var(--gold)',
-                    }}>
-                      {p.tier}
-                    </span>
-                  </td>
                   <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.label}</td>
                   <td><span style={{ color: 'var(--amethyst)', fontWeight: 700 }}>{p.coins.toLocaleString()} 🪙</span></td>
                   <td><span style={{ color: 'var(--emerald)', fontWeight: 700 }}>${p.price.toFixed(2)}</span></td>
-                  <td>
-                    {p.bonusPercent > 0 ? (
-                      <span style={{
-                        padding: '3px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-                        background: 'rgba(46,204,138,0.1)', color: 'var(--emerald)',
-                        border: '1px solid rgba(46,204,138,0.2)',
-                      }}>+{p.bonusPercent}%</span>
-                    ) : (
-                      <span style={{ color: 'var(--text-subtle)' }}>—</span>
-                    )}
-                  </td>
                   <td>
                     <label className="toggle">
                       <input type="checkbox" checked={p.bestValue} onChange={() => toggleBestValue(p.id)} />

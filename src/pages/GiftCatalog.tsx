@@ -1,44 +1,137 @@
 import { useState, useRef } from 'react'
-import { Edit2, X, Upload, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Edit2, X, Upload, Search, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
 import { mockGifts } from '../mockData'
 import { useStore } from '../store'
-import type { Gift, GiftTier } from '../types'
+import type { Gift } from '../types'
 
-const TIERS: GiftTier[] = ['5A', '5B', '5C', '5D', '5E']
+/* ── Custom tier ──────────────────────────────────────────────── */
 
-const tierMeta: Record<GiftTier, {
-  bg: string; color: string; label: string; shortLabel: string
-  range: string; durationRange: string; emoji: string
-}> = {
-  '5A': { bg: 'rgba(138,138,142,0.12)', color: '#8A8A8E', label: 'Reaction / Meme / Chat', shortLabel: 'Reaction',  range: '10 – 500 coins',          durationRange: '1–2 s',   emoji: '💬' },
-  '5B': { bg: 'rgba(52,152,219,0.12)',  color: '#3498DB', label: 'Mid-Tier Animated',      shortLabel: 'Animated',  range: '300 – 3,000 coins',        durationRange: '3–5 s',   emoji: '✨' },
-  '5C': { bg: 'rgba(153,102,204,0.12)', color: '#9966CC', label: 'Premium 3D',             shortLabel: 'Premium',   range: '8,000 – 70,000 coins',     durationRange: '6–10 s',  emoji: '🔮' },
-  '5D': { bg: 'rgba(212,175,55,0.12)',  color: '#D4AF37', label: 'Cinematic / Whale',      shortLabel: 'Cinematic', range: '90,000 – 150,000 coins',   durationRange: '12–15 s', emoji: '🎬' },
-  '5E': { bg: 'rgba(231,76,60,0.12)',   color: '#E74C3C', label: 'VIP / Max Cap',          shortLabel: 'VIP',       range: '175,000 – 300,000 coins',  durationRange: '16–20 s', emoji: '👑' },
+interface CustomTier {
+  id: string
+  name: string
+  minCoins: number
+  color: string
+  emoji: string
 }
 
-/* ── Add / Edit modal ─────────────────────────────────────────── */
+const PALETTE = ['#8A8A8E', '#3498DB', '#9966CC', '#D4AF37', '#E74C3C', '#2ECC8A', '#E67E22', '#1ABC9C']
+const EMOJIS  = ['💬', '✨', '🔮', '🎬', '👑', '🎁', '💫', '🌟', '🏆', '💎', '⚡', '🔥', '🌈', '🎯', '🚀', '❤️']
+
+const INITIAL_TIERS: CustomTier[] = [
+  { id: '5A', name: 'Reaction / Meme',  minCoins: 10,     color: '#8A8A8E', emoji: '💬' },
+  { id: '5B', name: 'Mid-Tier Animated', minCoins: 300,   color: '#3498DB', emoji: '✨' },
+  { id: '5C', name: 'Premium 3D',        minCoins: 8000,  color: '#9966CC', emoji: '🔮' },
+  { id: '5D', name: 'Cinematic',         minCoins: 90000, color: '#D4AF37', emoji: '🎬' },
+  { id: '5E', name: 'VIP / Max Cap',     minCoins: 175000,color: '#E74C3C', emoji: '👑' },
+]
+
+/* ── Tier modal (add / edit) ──────────────────────────────────── */
+
+function TierModal({ initial, usedColors, onSave, onClose }: {
+  initial?: CustomTier | null
+  usedColors: string[]
+  onSave: (t: Omit<CustomTier, 'id'>) => void
+  onClose: () => void
+}) {
+  const defaultColor = PALETTE.find(c => !usedColors.includes(c)) ?? PALETTE[0]
+  const [name,     setName]     = useState(initial?.name ?? '')
+  const [minCoins, setMinCoins] = useState(String(initial?.minCoins ?? ''))
+  const [emoji,    setEmoji]    = useState(initial?.emoji ?? '🎁')
+  const [color,    setColor]    = useState(initial?.color ?? defaultColor)
+
+  const valid = name.trim().length > 0 && minCoins !== '' && Number(minCoins) >= 0
+
+  return (
+    <>
+      <div className="modal-backdrop" onClick={onClose} />
+      <div className="modal-dialog" style={{ maxWidth: 440 }}>
+        <div className="modal-header">
+          <span className="modal-title">{initial ? 'Edit Tier' : 'Add Tier'}</span>
+          <button className="modal-close" onClick={onClose}><X size={14} /></button>
+        </div>
+        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          <div className="form-group">
+            <label className="form-label">Tier Name</label>
+            <input className="form-input" placeholder="e.g. Premium 3D" value={name}
+              onChange={e => setName(e.target.value)} autoFocus />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Min Coins</label>
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 14 }}>🪙</span>
+              <input className="form-input" type="number" min="0" placeholder="e.g. 5000" value={minCoins}
+                onChange={e => setMinCoins(e.target.value)} style={{ paddingLeft: 30 }} />
+            </div>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, display: 'block' }}>
+              Minimum coin price for gifts in this tier
+            </span>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Icon</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {EMOJIS.map(e => (
+                <button key={e} onClick={() => setEmoji(e)} type="button" style={{
+                  width: 36, height: 36, borderRadius: 8, fontSize: 18, cursor: 'pointer',
+                  background: emoji === e ? 'rgba(212,175,55,0.12)' : 'var(--bg-surface-2)',
+                  border: `1.5px solid ${emoji === e ? 'var(--gold)' : 'var(--border)'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s',
+                }}>
+                  {e}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Color</label>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {PALETTE.map(c => (
+                <button key={c} onClick={() => setColor(c)} type="button" style={{
+                  width: 28, height: 28, borderRadius: '50%', background: c, cursor: 'pointer',
+                  border: `2.5px solid ${color === c ? '#fff' : 'transparent'}`,
+                  outline: color === c ? `2px solid ${c}` : 'none',
+                  transition: 'all 0.15s', flexShrink: 0,
+                }} />
+              ))}
+            </div>
+          </div>
+
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!valid} style={{ opacity: valid ? 1 : 0.45 }}
+            onClick={() => { onSave({ name: name.trim(), minCoins: Number(minCoins), emoji, color }); onClose() }}>
+            {initial ? 'Save Changes' : 'Add Tier'}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+/* ── Gift modal (add / edit) ──────────────────────────────────── */
 
 interface GiftModalProps {
   initial?: Gift | null
-  defaultTier?: GiftTier
+  defaultTierId?: string
+  tiers: CustomTier[]
   onSave: (g: Omit<Gift, 'id'>) => void
   onClose: () => void
 }
 
-const tierDefaultDuration: Record<GiftTier, number> = {
-  '5A': 1, '5B': 3, '5C': 6, '5D': 12, '5E': 16,
-}
-
-function GiftModal({ initial, defaultTier = '5A', onSave, onClose }: GiftModalProps) {
+function GiftModal({ initial, defaultTierId, tiers, onSave, onClose }: GiftModalProps) {
   const [animationFileName, setAnimationFileName] = useState<string | null>(initial?.animationFileName ?? null)
-  const [name, setName]     = useState(initial?.name ?? '')
-  const [coins, setCoins]   = useState(initial?.coins ?? 0)
-  const [tier, setTier]     = useState<GiftTier>(initial?.tier ?? defaultTier)
+  const [name,    setName]    = useState(initial?.name ?? '')
+  const [coins,   setCoins]   = useState(initial?.coins ?? 0)
+  const [tierId,  setTierId]  = useState<string>(initial?.tier ?? defaultTierId ?? tiers[0]?.id ?? '')
   const [enabled, setEnabled] = useState(initial?.enabled ?? true)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const valid = name.trim() !== '' && coins > 0
+  const valid        = name.trim() !== '' && coins > 0
+  const selectedTier = tiers.find(t => t.id === tierId)
 
   return (
     <>
@@ -75,7 +168,8 @@ function GiftModal({ initial, defaultTier = '5A', onSave, onClose }: GiftModalPr
 
           <div className="form-group">
             <label className="form-label">Gift Name</label>
-            <input className="form-input" placeholder="e.g. Shooting Star" value={name} onChange={e => setName(e.target.value)} />
+            <input className="form-input" placeholder="e.g. Shooting Star" value={name}
+              onChange={e => setName(e.target.value)} />
           </div>
 
           <div className="form-group">
@@ -86,23 +180,31 @@ function GiftModal({ initial, defaultTier = '5A', onSave, onClose }: GiftModalPr
 
           <div className="form-group">
             <label className="form-label">Tier</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {TIERS.map(t => {
-                const m = tierMeta[t]
-                const active = tier === t
-                return (
-                  <button key={t} onClick={() => setTier(t)} style={{
-                    padding: '9px 12px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-                    background: active ? m.bg : 'var(--bg-surface-2)',
-                    border: `1.5px solid ${active ? m.color : 'var(--border)'}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'all 0.15s',
-                  }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: m.color }}>{t} — {m.label}</span>
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{m.durationRange} · {m.range}</span>
-                  </button>
-                )
-              })}
-            </div>
+            {tiers.length === 0 ? (
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '12px 0' }}>No tiers defined yet.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {tiers.map(t => {
+                  const active = tierId === t.id
+                  return (
+                    <button key={t.id} onClick={() => setTierId(t.id)} type="button" style={{
+                      padding: '9px 12px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+                      background: active ? `${t.color}15` : 'var(--bg-surface-2)',
+                      border: `1.5px solid ${active ? t.color : 'var(--border)'}`,
+                      display: 'flex', alignItems: 'center', gap: 10, transition: 'all 0.15s',
+                    }}>
+                      <span style={{ fontSize: 16, lineHeight: 1 }}>{t.emoji}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: active ? t.color : 'var(--text-secondary)', flex: 1, textAlign: 'left' }}>
+                        {t.name}
+                      </span>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                        {t.minCoins > 0 ? `${t.minCoins.toLocaleString()}+ 🪙` : 'Any price'}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderTop: '1px solid var(--border)' }}>
@@ -115,12 +217,15 @@ function GiftModal({ initial, defaultTier = '5A', onSave, onClose }: GiftModalPr
               <span className="toggle-track" />
             </label>
           </div>
-        </div>
 
+        </div>
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" disabled={!valid} style={{ opacity: valid ? 1 : 0.45 }}
-            onClick={() => { onSave({ animationFileName, name, coins, durationSec: initial?.durationSec ?? tierDefaultDuration[tier], tier, tierName: tierMeta[tier].label, enabled }); onClose() }}>
+            onClick={() => {
+              onSave({ animationFileName, name, coins, durationSec: initial?.durationSec ?? 3, tier: tierId, tierName: selectedTier?.name ?? '', enabled })
+              onClose()
+            }}>
             {initial ? 'Save Changes' : 'Add Gift'}
           </button>
         </div>
@@ -131,54 +236,39 @@ function GiftModal({ initial, defaultTier = '5A', onSave, onClose }: GiftModalPr
 
 /* ── Gift card ────────────────────────────────────────────────── */
 
-function GiftCard({ gift, onToggle, onEdit }: {
+function GiftCard({ gift, tier, onToggle, onEdit }: {
   gift: Gift
+  tier: CustomTier | undefined
   onToggle: (id: string) => void
   onEdit: (gift: Gift) => void
 }) {
-  const m = tierMeta[gift.tier]
-  const ext = gift.animationFileName?.split('.').pop()?.toLowerCase()
+  const color = tier?.color ?? '#8A8A8E'
+  const emoji = tier?.emoji ?? '🎁'
+  const ext   = gift.animationFileName?.split('.').pop()?.toLowerCase()
   const assetLabel = ext === 'glb' ? '3D' : ext === 'json' ? '2D' : null
 
   return (
     <div style={{
-      background: 'var(--surface)',
-      border: '1px solid var(--border)',
-      borderTop: `3px solid ${m.color}`,
-      borderRadius: 12,
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      transition: 'border-color 0.15s, box-shadow 0.15s',
+      background: 'var(--surface)', border: '1px solid var(--border)',
+      borderTop: `3px solid ${color}`, borderRadius: 12, overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', transition: 'border-color 0.15s, box-shadow 0.15s',
       opacity: gift.enabled ? 1 : 0.45,
     }}
-      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 20px ${m.color}20` }}
+      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 20px ${color}20` }}
       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
     >
-      {/* Preview area */}
       <div style={{
-        background: m.bg,
-        padding: '16px 12px 12px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 8,
-        minHeight: 80,
-        justifyContent: 'center',
+        background: `${color}15`, padding: '16px 12px 12px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        gap: 8, minHeight: 80, justifyContent: 'center',
       }}>
-        <span style={{ fontSize: 26, lineHeight: 1 }}>{m.emoji}</span>
+        <span style={{ fontSize: 26, lineHeight: 1 }}>{emoji}</span>
         {gift.animationFileName ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             {assetLabel && (
-              <span style={{
-                fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
-                background: `${m.color}25`, color: m.color, letterSpacing: '0.05em',
-              }}>{assetLabel}</span>
+              <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: `${color}25`, color, letterSpacing: '0.05em' }}>{assetLabel}</span>
             )}
-            <span style={{
-              fontSize: 10, color: 'var(--text-muted)', maxWidth: 100,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {gift.animationFileName}
             </span>
           </div>
@@ -187,27 +277,13 @@ function GiftCard({ gift, onToggle, onEdit }: {
         )}
       </div>
 
-      {/* Info */}
       <div style={{ padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
-          {gift.name}
-        </div>
-        <div style={{ fontSize: 12, color: 'var(--gold)', fontWeight: 600 }}>
-          🪙 {gift.coins.toLocaleString()}
-        </div>
-        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-          {gift.durationSec}s
-        </div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>{gift.name}</div>
+        <div style={{ fontSize: 12, color: 'var(--gold)', fontWeight: 600 }}>🪙 {gift.coins.toLocaleString()}</div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{gift.durationSec}s</div>
       </div>
 
-      {/* Actions */}
-      <div style={{
-        padding: '8px 12px',
-        borderTop: '1px solid var(--border)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
+      <div style={{ padding: '8px 12px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <label className="toggle" title={gift.enabled ? 'Disable' : 'Enable'}>
           <input type="checkbox" checked={gift.enabled} onChange={() => onToggle(gift.id)} />
           <span className="toggle-track" />
@@ -226,267 +302,286 @@ const PAGE_SIZE = 8
 
 export default function GiftCatalog() {
   const { toast } = useStore()
-  const [gifts, setGifts]           = useState<Gift[]>(mockGifts)
-  const [activeTier, setActiveTier] = useState<GiftTier>('5A')
-  const [search, setSearch]         = useState('')
-  const [page, setPage]             = useState(1)
-  const [addOpen, setAddOpen]       = useState(false)
-  const [editGift, setEditGift]     = useState<Gift | null>(null)
+  const [gifts,        setGifts]        = useState<Gift[]>(mockGifts)
+  const [tiers,        setTiers]        = useState<CustomTier[]>(INITIAL_TIERS)
+  const [activeTierId, setActiveTierId] = useState<string>(INITIAL_TIERS[0].id)
+  const [search,       setSearch]       = useState('')
+  const [page,         setPage]         = useState(1)
+  const [addGiftOpen,  setAddGiftOpen]  = useState(false)
+  const [editGift,     setEditGift]     = useState<Gift | null>(null)
+  const [addTierOpen,  setAddTierOpen]  = useState(false)
+  const [editTier,     setEditTier]     = useState<CustomTier | null>(null)
+  const [confirmDeleteTier, setConfirmDeleteTier] = useState<CustomTier | null>(null)
+
+  const activeTier  = tiers.find(t => t.id === activeTierId)
+  const tierGifts   = gifts.filter(g => g.tier === activeTierId)
+  const filtered    = search.trim()
+    ? tierGifts.filter(g => g.name.toLowerCase().includes(search.toLowerCase().trim()))
+    : tierGifts
+  const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const pageSafe    = Math.min(page, totalPages)
+  const paged       = filtered.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE)
+  const totalEnabled = gifts.filter(g => g.enabled).length
 
   const toggleGift = (id: string) =>
     setGifts(prev => prev.map(g => g.id === id ? { ...g, enabled: !g.enabled } : g))
 
-  const handleAdd = (data: Omit<Gift, 'id'>) => {
+  const handleAddGift = (data: Omit<Gift, 'id'>) => {
     setGifts(prev => [...prev, { ...data, id: `g${Date.now()}` }])
-    toast(`Gift "${data.name}" added to tier ${data.tier}`, 'success')
+    toast(`Gift "${data.name}" added`, 'success')
   }
 
-  const handleEdit = (id: string, data: Omit<Gift, 'id'>) => {
+  const handleEditGift = (id: string, data: Omit<Gift, 'id'>) => {
     setGifts(prev => prev.map(g => g.id === id ? { ...g, ...data } : g))
     toast(`Gift "${data.name}" updated`, 'success')
   }
 
-  function switchTier(tier: GiftTier) {
-    setActiveTier(tier)
-    setSearch('')
-    setPage(1)
+  const handleAddTier = (data: Omit<CustomTier, 'id'>) => {
+    const id = `tier_${Date.now()}`
+    setTiers(prev => [...prev, { ...data, id }])
+    setActiveTierId(id)
+    toast(`Tier "${data.name}" added`, 'success')
   }
 
-  const activeMeta   = tierMeta[activeTier]
-  const tierGifts    = gifts.filter(g => g.tier === activeTier)
-  const filtered     = search.trim()
-    ? tierGifts.filter(g => g.name.toLowerCase().includes(search.toLowerCase().trim()))
-    : tierGifts
-  const totalPages   = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const pageSafe     = Math.min(page, totalPages)
-  const paged        = filtered.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE)
-  const enabledCount = tierGifts.filter(g => g.enabled).length
-  const totalEnabled = gifts.filter(g => g.enabled).length
+  const handleEditTier = (id: string, data: Omit<CustomTier, 'id'>) => {
+    setTiers(prev => prev.map(t => t.id === id ? { ...t, ...data } : t))
+    toast(`Tier "${data.name}" updated`, 'success')
+  }
+
+  const handleDeleteTier = (tier: CustomTier) => {
+    const giftCount = gifts.filter(g => g.tier === tier.id).length
+    setGifts(prev => prev.filter(g => g.tier !== tier.id))
+    setTiers(prev => {
+      const remaining = prev.filter(t => t.id !== tier.id)
+      if (activeTierId === tier.id && remaining.length > 0) setActiveTierId(remaining[0].id)
+      return remaining
+    })
+    toast(`Tier "${tier.name}" deleted${giftCount > 0 ? ` (${giftCount} gift${giftCount > 1 ? 's' : ''} removed)` : ''}`, 'info')
+    setConfirmDeleteTier(null)
+  }
+
+  function switchTier(id: string) { setActiveTierId(id); setSearch(''); setPage(1) }
+
+  const addCardStyle = (color: string): React.CSSProperties => ({
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
+    background: 'transparent', border: `1.5px dashed ${color}35`, borderRadius: 12,
+    padding: '24px 8px', minHeight: 180, cursor: 'pointer', color: 'var(--text-subtle)',
+    fontSize: 12, transition: 'all 0.15s',
+  })
 
   return (
     <div>
+      {/* ── Delete tier confirm ── */}
+      {confirmDeleteTier && (
+        <>
+          <div className="modal-backdrop" onClick={() => setConfirmDeleteTier(null)} />
+          <div className="modal-dialog" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <span className="modal-title">Delete Tier</span>
+              <button className="modal-close" onClick={() => setConfirmDeleteTier(null)}><X size={14} /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
+                Delete tier <strong style={{ color: 'var(--text-primary)' }}>{confirmDeleteTier.emoji} {confirmDeleteTier.name}</strong>?
+                {gifts.filter(g => g.tier === confirmDeleteTier.id).length > 0 && (
+                  <span style={{ color: '#E74C3C' }}>{' '}This will also remove {gifts.filter(g => g.tier === confirmDeleteTier.id).length} gift{gifts.filter(g => g.tier === confirmDeleteTier.id).length > 1 ? 's' : ''} in this tier.</span>
+                )}
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={() => setConfirmDeleteTier(null)}>Cancel</button>
+              <button className="btn btn-danger" onClick={() => handleDeleteTier(confirmDeleteTier)}>
+                <Trash2 size={13} /> Delete
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       <div className="page-header">
         <div className="page-header-text">
           <div className="title">Gift Catalog</div>
           <div className="subtitle">Manage virtual gifts, tiers, prices, and animations</div>
         </div>
         <div className="page-header-actions">
-          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            {totalEnabled}/{gifts.length} enabled
-          </span>
+          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{totalEnabled}/{gifts.length} enabled</span>
         </div>
       </div>
 
       {/* ── Tier tabs ── */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24, overflowX: 'auto', paddingBottom: 2 }}>
-        {TIERS.map(tier => {
-          const m     = tierMeta[tier]
-          const count = gifts.filter(g => g.tier === tier).length
-          const active = activeTier === tier
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24, overflowX: 'auto', paddingBottom: 2, alignItems: 'center' }}>
+        {tiers.map(tier => {
+          const active = activeTierId === tier.id
+          const count  = gifts.filter(g => g.tier === tier.id).length
           return (
-            <button
-              key={tier}
-              onClick={() => switchTier(tier)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 16px', borderRadius: 10, cursor: 'pointer',
-                whiteSpace: 'nowrap', flexShrink: 0,
-                background: active ? m.bg : 'var(--surface)',
-                border: `1.5px solid ${active ? m.color : 'var(--border)'}`,
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.borderColor = `${m.color}60` }}
+            <button key={tier.id} onClick={() => switchTier(tier.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 16px', borderRadius: 10, cursor: 'pointer',
+              whiteSpace: 'nowrap', flexShrink: 0,
+              background: active ? `${tier.color}18` : 'var(--surface)',
+              border: `1.5px solid ${active ? tier.color : 'var(--border)'}`,
+              transition: 'all 0.15s',
+            }}
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.borderColor = `${tier.color}60` }}
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)' }}
             >
-              <span style={{ fontSize: 18, lineHeight: 1 }}>{m.emoji}</span>
+              <span style={{ fontSize: 18, lineHeight: 1 }}>{tier.emoji}</span>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: active ? m.color : 'var(--text-primary)', letterSpacing: '0.02em' }}>
-                  {tier}
+                <span style={{ fontSize: 13, fontWeight: 700, color: active ? tier.color : 'var(--text-primary)' }}>
+                  {tier.name}
                 </span>
-                <span style={{ fontSize: 11, color: active ? m.color : 'var(--text-muted)', opacity: active ? 0.8 : 1 }}>
-                  {m.shortLabel}
+                <span style={{ fontSize: 11, color: active ? tier.color : 'var(--text-muted)', opacity: 0.85 }}>
+                  {tier.minCoins > 0 ? `${tier.minCoins.toLocaleString()}+ 🪙` : 'Any price'}
                 </span>
               </div>
               <span style={{
                 fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 10, marginLeft: 2,
-                background: active ? `${m.color}25` : 'var(--bg)',
-                color: active ? m.color : 'var(--text-muted)',
-                border: `1px solid ${active ? `${m.color}40` : 'var(--border)'}`,
-              }}>
-                {count}
-              </span>
+                background: active ? `${tier.color}25` : 'var(--bg)',
+                color: active ? tier.color : 'var(--text-muted)',
+                border: `1px solid ${active ? `${tier.color}40` : 'var(--border)'}`,
+              }}>{count}</span>
             </button>
           )
         })}
+
+        <button onClick={() => setAddTierOpen(true)} style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '10px 14px', borderRadius: 10, cursor: 'pointer',
+          flexShrink: 0, whiteSpace: 'nowrap', background: 'transparent',
+          border: '1.5px dashed var(--border)', color: 'var(--text-muted)',
+          fontSize: 12, fontWeight: 600, transition: 'all 0.15s',
+        }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)' }}
+        >
+          <Plus size={13} /> Add Tier
+        </button>
       </div>
 
-      {/* ── Active tier header ── */}
-      <div style={{
-        display: 'flex', alignItems: 'center',
-        padding: '12px 16px', borderRadius: 10, marginBottom: 20,
-        background: activeMeta.bg, border: `1px solid ${activeMeta.color}30`,
-      }}>
-        <span style={{ fontSize: 22, marginRight: 12 }}>{activeMeta.emoji}</span>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: activeMeta.color }}>
-            {activeTier} — {activeMeta.label}
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-            {activeMeta.range} · {activeMeta.durationRange}
-          </div>
+      {tiers.length === 0 ? (
+        <div style={{ padding: '64px 24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+          No tiers yet. Click <strong>Add Tier</strong> to create your first tier.
         </div>
-      </div>
-
-      {/* ── Search ── */}
-      <div style={{ marginBottom: 16 }}>
-        <div className="search-input-wrapper" style={{ maxWidth: 280 }}>
-          <Search size={14} />
-          <input
-            className="search-input"
-            placeholder={`Search in ${activeTier}…`}
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1) }}
-          />
-          {search && (
-            <button
-              onClick={() => { setSearch(''); setPage(1) }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2, display: 'flex' }}
-            >
-              <X size={12} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ── Gift grid ── */}
-      {tierGifts.length === 0 ? (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))',
-          gap: 12,
-        }}>
-          <button
-            onClick={() => setAddOpen(true)}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', gap: 8,
-              background: 'transparent',
-              border: `1.5px dashed ${activeMeta.color}35`,
-              borderRadius: 12, padding: '24px 8px', minHeight: 180,
-              cursor: 'pointer', color: 'var(--text-subtle)',
-              fontSize: 12, transition: 'all 0.15s',
-            }}
-            onMouseEnter={e => {
-              const el = e.currentTarget as HTMLButtonElement
-              el.style.borderColor = `${activeMeta.color}80`
-              el.style.color = activeMeta.color
-            }}
-            onMouseLeave={e => {
-              const el = e.currentTarget as HTMLButtonElement
-              el.style.borderColor = `${activeMeta.color}35`
-              el.style.color = 'var(--text-subtle)'
-            }}
-          >
-            <span style={{ fontSize: 22 }}>+</span>
-            <span>Add Gift</span>
-          </button>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
-          No gifts match "{search}"
-        </div>
-      ) : (
+      ) : activeTier ? (
         <>
+          {/* ── Active tier header ── */}
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))',
-            gap: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '12px 16px', borderRadius: 10, marginBottom: 20,
+            background: `${activeTier.color}12`, border: `1px solid ${activeTier.color}30`,
           }}>
-            {pageSafe === 1 && (
-              <button
-                onClick={() => setAddOpen(true)}
-                style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  justifyContent: 'center', gap: 8,
-                  background: 'transparent',
-                  border: `1.5px dashed ${activeMeta.color}35`,
-                  borderRadius: 12, padding: '24px 8px', minHeight: 180,
-                  cursor: 'pointer', color: 'var(--text-subtle)',
-                  fontSize: 12, transition: 'all 0.15s',
-                }}
-                onMouseEnter={e => {
-                  const el = e.currentTarget as HTMLButtonElement
-                  el.style.borderColor = `${activeMeta.color}80`
-                  el.style.color = activeMeta.color
-                }}
-                onMouseLeave={e => {
-                  const el = e.currentTarget as HTMLButtonElement
-                  el.style.borderColor = `${activeMeta.color}35`
-                  el.style.color = 'var(--text-subtle)'
-                }}
-              >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 22 }}>{activeTier.emoji}</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: activeTier.color }}>{activeTier.name}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                  {activeTier.minCoins > 0 ? `${activeTier.minCoins.toLocaleString()}+ coins required` : 'Any price'}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => setEditTier(activeTier)}>
+                <Edit2 size={12} /> Edit
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setConfirmDeleteTier(activeTier)}
+                style={{ color: 'var(--text-muted)' }}>
+                <Trash2 size={12} /> Delete
+              </button>
+            </div>
+          </div>
+
+          {/* ── Search ── */}
+          <div style={{ marginBottom: 16 }}>
+            <div className="search-input-wrapper" style={{ maxWidth: 280 }}>
+              <Search size={14} />
+              <input className="search-input" placeholder={`Search in ${activeTier.name}…`}
+                value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} />
+              {search && (
+                <button onClick={() => { setSearch(''); setPage(1) }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2, display: 'flex' }}>
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* ── Gift grid ── */}
+          {tierGifts.length === 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 12 }}>
+              <button onClick={() => setAddGiftOpen(true)} style={addCardStyle(activeTier.color)}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${activeTier.color}80`; (e.currentTarget as HTMLButtonElement).style.color = activeTier.color }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${activeTier.color}35`; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-subtle)' }}>
                 <span style={{ fontSize: 22 }}>+</span>
                 <span>Add Gift</span>
               </button>
-            )}
-            {paged.map(g => (
-              <GiftCard key={g.id} gift={g} onToggle={toggleGift} onEdit={g => setEditGift(g)} />
-            ))}
-          </div>
-
-          {totalPages > 1 && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                {(pageSafe - 1) * PAGE_SIZE + 1}–{Math.min(pageSafe * PAGE_SIZE, filtered.length)} of {filtered.length}
-              </span>
-              <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setPage(p => p - 1)}
-                  disabled={pageSafe === 1}
-                  style={{ padding: '4px 8px', opacity: pageSafe === 1 ? 0.4 : 1 }}
-                >
-                  <ChevronLeft size={14} />
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    style={{
-                      padding: '4px 10px', minWidth: 32, borderRadius: 6, fontSize: 12,
-                      fontWeight: p === pageSafe ? 700 : 400,
-                      cursor: 'pointer', border: 'none',
-                      background: p === pageSafe ? `${activeMeta.color}20` : 'var(--bg)',
-                      color: p === pageSafe ? activeMeta.color : 'var(--text-muted)',
-                      outline: p === pageSafe ? `1.5px solid ${activeMeta.color}50` : 'none',
-                    }}
-                  >
-                    {p}
-                  </button>
-                ))}
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setPage(p => p + 1)}
-                  disabled={pageSafe === totalPages}
-                  style={{ padding: '4px 8px', opacity: pageSafe === totalPages ? 0.4 : 1 }}
-                >
-                  <ChevronRight size={14} />
-                </button>
-              </div>
             </div>
+          ) : filtered.length === 0 ? (
+            <div style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+              No gifts match "{search}"
+            </div>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 12 }}>
+                {pageSafe === 1 && (
+                  <button onClick={() => setAddGiftOpen(true)} style={addCardStyle(activeTier.color)}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${activeTier.color}80`; (e.currentTarget as HTMLButtonElement).style.color = activeTier.color }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${activeTier.color}35`; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-subtle)' }}>
+                    <span style={{ fontSize: 22 }}>+</span>
+                    <span>Add Gift</span>
+                  </button>
+                )}
+                {paged.map(g => (
+                  <GiftCard key={g.id} gift={g}
+                    tier={tiers.find(t => t.id === g.tier)}
+                    onToggle={toggleGift}
+                    onEdit={g => setEditGift(g)} />
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    {(pageSafe - 1) * PAGE_SIZE + 1}–{Math.min(pageSafe * PAGE_SIZE, filtered.length)} of {filtered.length}
+                  </span>
+                  <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setPage(p => p - 1)} disabled={pageSafe === 1}
+                      style={{ padding: '4px 8px', opacity: pageSafe === 1 ? 0.4 : 1 }}>
+                      <ChevronLeft size={14} />
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                      <button key={p} onClick={() => setPage(p)} style={{
+                        padding: '4px 10px', minWidth: 32, borderRadius: 6, fontSize: 12,
+                        fontWeight: p === pageSafe ? 700 : 400, cursor: 'pointer', border: 'none',
+                        background: p === pageSafe ? `${activeTier.color}20` : 'var(--bg)',
+                        color: p === pageSafe ? activeTier.color : 'var(--text-muted)',
+                        outline: p === pageSafe ? `1.5px solid ${activeTier.color}50` : 'none',
+                      }}>{p}</button>
+                    ))}
+                    <button className="btn btn-secondary btn-sm" onClick={() => setPage(p => p + 1)} disabled={pageSafe === totalPages}
+                      style={{ padding: '4px 8px', opacity: pageSafe === totalPages ? 0.4 : 1 }}>
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </>
-      )}
+      ) : null}
 
-      {addOpen && (
-        <GiftModal defaultTier={activeTier} onSave={handleAdd} onClose={() => setAddOpen(false)} />
+      {/* ── Modals ── */}
+      {addGiftOpen && (
+        <GiftModal tiers={tiers} defaultTierId={activeTierId} onSave={handleAddGift} onClose={() => setAddGiftOpen(false)} />
       )}
       {editGift && (
-        <GiftModal
-          initial={editGift}
-          onSave={data => handleEdit(editGift.id, data)}
-          onClose={() => setEditGift(null)}
-        />
+        <GiftModal tiers={tiers} initial={editGift} onSave={data => handleEditGift(editGift.id, data)} onClose={() => setEditGift(null)} />
+      )}
+      {addTierOpen && (
+        <TierModal usedColors={tiers.map(t => t.color)} onSave={handleAddTier} onClose={() => setAddTierOpen(false)} />
+      )}
+      {editTier && (
+        <TierModal initial={editTier} usedColors={tiers.filter(t => t.id !== editTier.id).map(t => t.color)}
+          onSave={data => handleEditTier(editTier.id, data)} onClose={() => setEditTier(null)} />
       )}
     </div>
   )

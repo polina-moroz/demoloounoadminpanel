@@ -113,7 +113,7 @@ export interface KYCEntry {
   avatarColor: string;
 }
 
-export type GiftTier = '5A' | '5B' | '5C' | '5D' | '5E';
+export type GiftTier = string;
 
 export interface Gift {
   id: string;
