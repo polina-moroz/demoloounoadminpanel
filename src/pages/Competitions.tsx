@@ -105,7 +105,7 @@ function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
                 style={{ width: 96, padding: '5px 8px', fontSize: 12 }} />
               <input className="form-input" value={p.prize}
                 onChange={e => onUpdate(i, 'prize', e.target.value)}
-                style={{ flex: 1, padding: '5px 8px', fontSize: 12 }} />
+                style={{ width: 120, padding: '5px 8px', fontSize: 12 }} />
               <select className="form-input" value={p.type}
                 onChange={e => onUpdate(i, 'type', e.target.value as 'cash' | 'cosmetic')}
                 style={{ width: 108, padding: '5px 8px', fontSize: 12 }}>
