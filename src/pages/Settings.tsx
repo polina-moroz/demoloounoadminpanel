@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Save } from 'lucide-react'
+import { Save, Lock, Eye, EyeOff, CheckCircle, ShieldCheck } from 'lucide-react'
 import { useStore } from '../store'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -28,6 +28,176 @@ function Row({ label, desc, control }: { label: string; desc?: string; control: 
   )
 }
 
+/* ── Password strength ────────────────────────────────────────── */
+
+function calcStrength(pw: string): { score: number; label: string; color: string } {
+  if (!pw) return { score: 0, label: '', color: '' }
+  let score = 0
+  if (pw.length >= 8)  score++
+  if (pw.length >= 12) score++
+  if (/[A-Z]/.test(pw)) score++
+  if (/[0-9]/.test(pw)) score++
+  if (/[^A-Za-z0-9]/.test(pw)) score++
+  if (score <= 1) return { score, label: 'Weak',   color: '#E74C3C' }
+  if (score <= 3) return { score, label: 'Fair',   color: '#F39C12' }
+  return              { score, label: 'Strong', color: '#2ECC8A' }
+}
+
+/* ── Change Password Section ──────────────────────────────────── */
+
+function ChangePasswordSection() {
+  const [current,  setCurrent]  = useState('')
+  const [next,     setNext]     = useState('')
+  const [confirm,  setConfirm]  = useState('')
+  const [showCur,  setShowCur]  = useState(false)
+  const [showNew,  setShowNew]  = useState(false)
+  const [showCon,  setShowCon]  = useState(false)
+  const [done,     setDone]     = useState(false)
+  const [err,      setErr]      = useState('')
+
+  const strength   = calcStrength(next)
+  const mismatch   = confirm.length > 0 && next !== confirm
+  const canSubmit  = current.length > 0 && next.length >= 8 && next === confirm
+
+  const handleSubmit = () => {
+    if (!canSubmit) return
+    // mock: treat any non-empty current password as correct
+    setDone(true)
+    setErr('')
+    setCurrent(''); setNext(''); setConfirm('')
+    setTimeout(() => setDone(false), 4000)
+  }
+
+  const eyeBtn = (show: boolean, toggle: () => void): React.CSSProperties => ({
+    position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+    background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+    color: 'var(--text-muted)', display: 'flex', alignItems: 'center',
+  })
+
+  return (
+    <div className="settings-section">
+      <div className="settings-section-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 8,
+            background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.2)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <Lock size={13} color="var(--gold)" />
+          </div>
+          <div className="settings-section-title" style={{ marginBottom: 0 }}>Change Password</div>
+        </div>
+      </div>
+
+      <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 420 }}>
+
+        {/* Current password */}
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label">Current Password</label>
+          <div style={{ position: 'relative' }}>
+            <input
+              className="form-input"
+              type={showCur ? 'text' : 'password'}
+              placeholder="Enter current password"
+              value={current}
+              onChange={e => { setCurrent(e.target.value); setErr('') }}
+              style={{ paddingRight: 36, width: '100%' }}
+              autoComplete="current-password"
+            />
+            <button style={eyeBtn(showCur, () => setShowCur(v => !v))} onClick={() => setShowCur(v => !v)} tabIndex={-1} type="button">
+              {showCur ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          </div>
+          {err && <div style={{ fontSize: 12, color: '#E74C3C', marginTop: 5 }}>{err}</div>}
+        </div>
+
+        <div style={{ height: 1, background: 'var(--border)' }} />
+
+        {/* New password */}
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label">New Password</label>
+          <div style={{ position: 'relative' }}>
+            <input
+              className="form-input"
+              type={showNew ? 'text' : 'password'}
+              placeholder="Min. 8 characters"
+              value={next}
+              onChange={e => setNext(e.target.value)}
+              style={{ paddingRight: 36, width: '100%' }}
+              autoComplete="new-password"
+            />
+            <button style={eyeBtn(showNew, () => setShowNew(v => !v))} onClick={() => setShowNew(v => !v)} tabIndex={-1} type="button">
+              {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          </div>
+          {next.length > 0 && (
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} style={{
+                    flex: 1, height: 3, borderRadius: 2,
+                    background: i <= strength.score ? strength.color : 'var(--border)',
+                    transition: 'background 0.25s',
+                  }} />
+                ))}
+              </div>
+              <div style={{ fontSize: 11, color: strength.color, fontWeight: 600 }}>{strength.label}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Confirm password */}
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label">Confirm New Password</label>
+          <div style={{ position: 'relative' }}>
+            <input
+              className="form-input"
+              type={showCon ? 'text' : 'password'}
+              placeholder="Repeat new password"
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              style={{
+                paddingRight: 36, width: '100%',
+                borderColor: mismatch ? 'rgba(231,76,60,0.6)' : undefined,
+              }}
+              autoComplete="new-password"
+            />
+            <button style={eyeBtn(showCon, () => setShowCon(v => !v))} onClick={() => setShowCon(v => !v)} tabIndex={-1} type="button">
+              {showCon ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          </div>
+          {mismatch && (
+            <div style={{ fontSize: 12, color: '#E74C3C', marginTop: 5 }}>Passwords don't match</div>
+          )}
+        </div>
+
+        {/* Success banner */}
+        {done && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '12px 14px', borderRadius: 10,
+            background: 'rgba(46,204,138,0.08)', border: '1px solid rgba(46,204,138,0.25)',
+          }}>
+            <CheckCircle size={15} color="var(--emerald)" />
+            <span style={{ fontSize: 13, color: 'var(--emerald)', fontWeight: 500 }}>Password updated successfully</span>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            className="btn btn-primary"
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            style={{ opacity: canSubmit ? 1 : 0.45, gap: 7 }}
+          >
+            <ShieldCheck size={14} /> Update Password
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Settings() {
   const { setProcessingFee } = useStore()
   const [appVersion, setAppVersion] = useState('1.0.0')
@@ -48,6 +218,8 @@ export default function Settings() {
           <div className="subtitle">Platform configuration and policies</div>
         </div>
       </div>
+
+      <ChangePasswordSection />
 
       {/* Platform */}
       <Section title="Platform">
