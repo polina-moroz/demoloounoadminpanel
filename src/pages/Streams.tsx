@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { XCircle, AlertTriangle, ExternalLink, RefreshCw, ScrollText } from 'lucide-react'
+import { XCircle, AlertTriangle, ExternalLink, RefreshCw, ScrollText, Search } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
 import WarnMessagesEditor from '../components/WarnMessagesEditor'
@@ -15,6 +15,7 @@ export default function Streams() {
   const { streams, terminateStream, warnStreamer } = useStore()
 
   const [activeTab, setActiveTab] = useState<'live' | 'past' | 'templates'>('live')
+  const [search, setSearch] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [warnTarget, setWarnTarget] = useState<Stream | null>(null)
@@ -28,13 +29,19 @@ export default function Streams() {
 
   const allCategories = Array.from(new Set(tabBase.map(s => s.category))).sort()
 
-  const visible = tabBase.filter(s =>
-    selectedCategories.length === 0 || selectedCategories.includes(s.category)
-  )
+  const visible = tabBase.filter(s => {
+    if (selectedCategories.length > 0 && !selectedCategories.includes(s.category)) return false
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      if (!s.streamerHandle.toLowerCase().includes(q) && !s.streamer.toLowerCase().includes(q)) return false
+    }
+    return true
+  })
 
   function switchTab(tab: 'live' | 'past' | 'templates') {
     setActiveTab(tab)
     setSelectedCategories([])
+    setSearch('')
   }
 
   return (
@@ -136,6 +143,18 @@ export default function Streams() {
         <>
           {/* Filters */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20, alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Search</span>
+              <div className="search-input-wrapper">
+                <Search size={14} />
+                <input
+                  className="search-input"
+                  placeholder="Username…"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                />
+              </div>
+            </div>
             {allCategories.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Category</span>
@@ -153,11 +172,11 @@ export default function Streams() {
               </div>
             )}
 
-            {selectedCategories.length > 0 && (
+            {(selectedCategories.length > 0 || search) && (
               <button
                 className="btn btn-ghost btn-sm"
                 style={{ alignSelf: 'flex-end', marginBottom: 2 }}
-                onClick={() => setSelectedCategories([])}
+                onClick={() => { setSelectedCategories([]); setSearch('') }}
               >
                 Clear filters
               </button>
