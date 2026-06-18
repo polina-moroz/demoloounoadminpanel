@@ -288,7 +288,6 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
               <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>@{user.handle}</div>
               <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 <Badge variant={user.status} dot>{statusLabel(user.status)}</Badge>
-                <Badge variant={user.role} dot={false}>{user.role}</Badge>
                 <Badge variant={user.kyc} dot>{statusLabel(user.kyc)}</Badge>
                 {user.isTopStreamer && (
                   <span className="badge badge-top-streamer">⭐ Star Badge</span>
