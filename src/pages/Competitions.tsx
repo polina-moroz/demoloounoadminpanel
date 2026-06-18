@@ -420,7 +420,7 @@ export default function Competitions() {
             </>
           ) : (
             /* Start New Contest */
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '380px 280px', gap: 20, alignItems: 'start' }}>
 
               {/* Prize configuration — must approve before starting */}
               <div className="card">
