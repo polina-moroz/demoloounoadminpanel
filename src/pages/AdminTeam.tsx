@@ -72,7 +72,7 @@ function InviteModal({ onClose, currentAdminRole }: { onClose: () => void; curre
   const canSubmit = fullName.trim().length > 0 && email.trim().length > 0
 
   const allowedRoles: AdminRole[] = currentAdminRole === 'super_admin'
-    ? ['admin', 'moderator', 'viewer']
+    ? ['super_admin', 'admin', 'moderator', 'viewer']
     : ['moderator', 'viewer']
 
   const handleSend = () => {
