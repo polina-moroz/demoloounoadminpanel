@@ -506,12 +506,6 @@ export default function Competitions() {
             </div>
           ))}
 
-          {!contestActive && (
-            <button className="btn btn-primary" style={{ alignSelf: 'flex-start' }}
-              onClick={() => setMainTab('active')}>
-              <Play size={14} /> Start New Contest
-            </button>
-          )}
         </div>
       )}
     </div>
