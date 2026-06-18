@@ -134,9 +134,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [warnMessages, setWarnMessages] = useState<WarnMessage[]>(mockWarnMessages)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [toastId, setToastId] = useState(0)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [currentAdmin, setCurrentAdmin] = useState<AdminMember | null>(null)
   const [adminTeam, setAdminTeam] = useState<AdminMember[]>(mockAdminTeam)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const id = sessionStorage.getItem('adminId')
+    return id ? mockAdminTeam.some(m => m.id === id) : false
+  })
+  const [currentAdmin, setCurrentAdmin] = useState<AdminMember | null>(() => {
+    const id = sessionStorage.getItem('adminId')
+    return id ? mockAdminTeam.find(m => m.id === id) ?? null : null
+  })
 
   const toast = useCallback((message: string, variant: ToastVariant = 'info') => {
     const id = toastId + 1
@@ -413,12 +419,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     )
     const fallback = adminTeam.find(m => m.role === 'super_admin') ?? adminTeam[0]
     const admin = match ?? fallback ?? null
+    if (admin) sessionStorage.setItem('adminId', admin.id)
     setCurrentAdmin(admin)
     setIsAuthenticated(true)
     return true
   }, [adminTeam])
 
   const logout = useCallback(() => {
+    sessionStorage.removeItem('adminId')
     setIsAuthenticated(false)
     setCurrentAdmin(null)
   }, [])
