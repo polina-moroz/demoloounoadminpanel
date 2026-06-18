@@ -1,36 +1,37 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Edit2, Trash2 } from 'lucide-react'
 import { mockCoinPackages } from '../mockData'
 import { useStore } from '../store'
 import type { CoinPackage } from '../types'
 
-/* ── Add Tier modal ───────────────────────────────────────────── */
+/* ── Tier modal (add / edit) ──────────────────────────────────── */
 
-interface AddTierModalProps {
+interface TierModalProps {
   platform: 'iap' | 'web'
   nextTier: number
+  initial?: CoinPackage
   onSave: (p: CoinPackage) => void
   onClose: () => void
 }
 
-function AddTierModal({ platform, nextTier, onSave, onClose }: AddTierModalProps) {
-  const [label, setLabel]         = useState('')
-  const [coins, setCoins]         = useState('')
-  const [price, setPrice]         = useState('')
-  const [bestValue, setBestValue] = useState(false)
+function TierModal({ platform, nextTier, initial, onSave, onClose }: TierModalProps) {
+  const [label,     setLabel]     = useState(initial?.label ?? '')
+  const [coins,     setCoins]     = useState(initial ? String(initial.coins) : '')
+  const [price,     setPrice]     = useState(initial ? String(initial.price) : '')
+  const [bestValue, setBestValue] = useState(initial?.bestValue ?? false)
 
   const valid = label.trim() !== '' && Number(coins) > 0 && Number(price) > 0
 
   const handleSave = () => {
     onSave({
-      id: `pkg_${platform}_${Date.now()}`,
-      tier: nextTier,
-      label: label.trim(),
-      coins: Number(coins),
-      price: Number(price),
+      id:           initial?.id ?? `pkg_${platform}_${Date.now()}`,
+      tier:         initial?.tier ?? nextTier,
+      label:        label.trim(),
+      coins:        Number(coins),
+      price:        Number(price),
       bonusPercent: 0,
       bestValue,
-      enabled: true,
+      enabled:      initial?.enabled ?? true,
       platform,
     })
     onClose()
@@ -42,7 +43,7 @@ function AddTierModal({ platform, nextTier, onSave, onClose }: AddTierModalProps
       <div className="modal-dialog" style={{ maxWidth: 440 }}>
         <div className="modal-header">
           <span className="modal-title">
-            Add Tier — {platform === 'iap' ? 'In-App' : 'Website'}
+            {initial ? 'Edit Tier' : `Add Tier — ${platform === 'iap' ? 'In-App' : 'Website'}`}
           </span>
           <button className="modal-close" onClick={onClose}><X size={14} /></button>
         </div>
@@ -50,7 +51,8 @@ function AddTierModal({ platform, nextTier, onSave, onClose }: AddTierModalProps
 
           <div className="form-group">
             <label className="form-label">Label</label>
-            <input className="form-input" placeholder="e.g. Ultra" value={label} onChange={e => setLabel(e.target.value)} />
+            <input className="form-input" placeholder="e.g. Ultra" value={label}
+              onChange={e => setLabel(e.target.value)} autoFocus />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -87,7 +89,7 @@ function AddTierModal({ platform, nextTier, onSave, onClose }: AddTierModalProps
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" disabled={!valid} style={{ opacity: valid ? 1 : 0.45 }} onClick={handleSave}>
-            Add Tier
+            {initial ? 'Save Changes' : 'Add Tier'}
           </button>
         </div>
       </div>
@@ -99,9 +101,10 @@ function AddTierModal({ platform, nextTier, onSave, onClose }: AddTierModalProps
 
 function PackageTable({ platform, title, subtitle }: { platform: 'iap' | 'web'; title: string; subtitle: string }) {
   const { toast } = useStore()
-  const initial = mockCoinPackages.filter(p => p.platform === platform)
-  const [pkgs, setPkgs] = useState<CoinPackage[]>(initial)
-  const [showModal, setShowModal] = useState(false)
+  const [pkgs,          setPkgs]          = useState<CoinPackage[]>(mockCoinPackages.filter(p => p.platform === platform))
+  const [showAdd,       setShowAdd]       = useState(false)
+  const [editPkg,       setEditPkg]       = useState<CoinPackage | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<CoinPackage | null>(null)
 
   const toggleEnabled   = (id: string) => setPkgs(prev => prev.map(p => p.id === id ? { ...p, enabled: !p.enabled } : p))
   const toggleBestValue = (id: string) => setPkgs(prev => prev.map(p => p.id === id ? { ...p, bestValue: !p.bestValue } : p))
@@ -109,6 +112,17 @@ function PackageTable({ platform, title, subtitle }: { platform: 'iap' | 'web'; 
   const handleAdd = (pkg: CoinPackage) => {
     setPkgs(prev => [...prev, pkg])
     toast(`Tier "${pkg.label}" added`, 'success')
+  }
+
+  const handleEdit = (pkg: CoinPackage) => {
+    setPkgs(prev => prev.map(p => p.id === pkg.id ? pkg : p))
+    toast(`Tier "${pkg.label}" updated`, 'success')
+  }
+
+  const handleDelete = (pkg: CoinPackage) => {
+    setPkgs(prev => prev.filter(p => p.id !== pkg.id))
+    toast(`Tier "${pkg.label}" deleted`, 'info')
+    setConfirmDelete(null)
   }
 
   return (
@@ -119,7 +133,7 @@ function PackageTable({ platform, title, subtitle }: { platform: 'iap' | 'web'; 
             <div className="table-title">{title}</div>
             <div className="table-subtitle">{subtitle}</div>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowModal(true)}>
+          <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>
             + Add Tier
           </button>
         </div>
@@ -132,6 +146,7 @@ function PackageTable({ platform, title, subtitle }: { platform: 'iap' | 'web'; 
                 <th>Price</th>
                 <th>Best Value</th>
                 <th>Enabled</th>
+                <th style={{ width: 80 }}></th>
               </tr>
             </thead>
             <tbody>
@@ -152,6 +167,17 @@ function PackageTable({ platform, title, subtitle }: { platform: 'iap' | 'web'; 
                       <span className="toggle-track" />
                     </label>
                   </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      <button className="btn btn-ghost btn-icon" title="Edit" onClick={() => setEditPkg(p)}>
+                        <Edit2 size={12} />
+                      </button>
+                      <button className="btn btn-ghost btn-icon" title="Delete"
+                        style={{ color: 'var(--text-muted)' }} onClick={() => setConfirmDelete(p)}>
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -159,13 +185,35 @@ function PackageTable({ platform, title, subtitle }: { platform: 'iap' | 'web'; 
         </div>
       </div>
 
-      {showModal && (
-        <AddTierModal
-          platform={platform}
-          nextTier={pkgs.length + 1}
-          onSave={handleAdd}
-          onClose={() => setShowModal(false)}
-        />
+      {showAdd && (
+        <TierModal platform={platform} nextTier={pkgs.length + 1}
+          onSave={handleAdd} onClose={() => setShowAdd(false)} />
+      )}
+      {editPkg && (
+        <TierModal platform={platform} nextTier={pkgs.length + 1} initial={editPkg}
+          onSave={handleEdit} onClose={() => setEditPkg(null)} />
+      )}
+      {confirmDelete && (
+        <>
+          <div className="modal-backdrop" onClick={() => setConfirmDelete(null)} />
+          <div className="modal-dialog" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <span className="modal-title">Delete Tier</span>
+              <button className="modal-close" onClick={() => setConfirmDelete(null)}><X size={14} /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
+                Delete tier <strong style={{ color: 'var(--text-primary)' }}>{confirmDelete.label}</strong> (${confirmDelete.price.toFixed(2)} · {confirmDelete.coins.toLocaleString()} 🪙)? This cannot be undone.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={() => setConfirmDelete(null)}>Cancel</button>
+              <button className="btn btn-danger" onClick={() => handleDelete(confirmDelete)}>
+                <Trash2 size={13} /> Delete
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </>
   )
@@ -205,18 +253,12 @@ export default function CoinPackages() {
       </div>
 
       {activeTab === 'iap' && (
-        <PackageTable
-          platform="iap"
-          title="In-App Purchases (IAP)"
-          subtitle="Apple App Store & Google Play — standard pricing"
-        />
+        <PackageTable platform="iap" title="In-App Purchases (IAP)"
+          subtitle="Apple App Store & Google Play — standard pricing" />
       )}
       {activeTab === 'web' && (
-        <PackageTable
-          platform="web"
-          title="Website Purchases"
-          subtitle="Direct website checkout — no platform fee"
-        />
+        <PackageTable platform="web" title="Website Purchases"
+          subtitle="Direct website checkout — no platform fee" />
       )}
     </div>
   )
