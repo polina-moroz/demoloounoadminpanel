@@ -41,7 +41,7 @@ interface StoreCtx {
 
   // user actions
   warnUser: (id: string, message?: string) => void
-  setUserStatus: (id: string, status: UserStatus) => void
+  setUserStatus: (id: string, status: UserStatus, note?: string) => void
   promoteTopStreamer: (id: string) => void
   demoteTopStreamer: (id: string) => void
   ipBanUser: (id: string) => void
@@ -173,15 +173,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     toast(`Warning sent to @${u?.handle ?? id}${note}`, 'warn')
   }, [users, currentAdmin, toast])
 
-  const setUserStatus = useCallback((id: string, status: UserStatus) => {
+  const setUserStatus = useCallback((id: string, status: UserStatus, note?: string) => {
     const action = status === 'active' ? 'reinstated' : status
     setUsers(prev => prev.map(u =>
       u.id === id
-        ? { ...u, status, log: [...(u.log ?? []), newLogEntry(action)] }
+        ? { ...u, status, log: [...(u.log ?? []), newLogEntry(action, note)] }
         : u
     ))
     const u = users.find(u => u.id === id)
-    toast(`@${u?.handle ?? id} has been ${action}`,
+    const suffix = note ? ` for ${note}` : ''
+    toast(`@${u?.handle ?? id} has been ${action}${suffix}`,
       status === 'banned' ? 'error' : status === 'suspended' ? 'warn' : 'success')
   }, [users, currentAdmin, toast])
 

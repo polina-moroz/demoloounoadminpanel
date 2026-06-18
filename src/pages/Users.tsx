@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, PlusCircle, MinusCircle, Receipt, ChevronDown, ChevronRight, CheckCircle, XCircle, RefreshCw, ScrollText } from 'lucide-react'
+import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw, Star, PlusCircle, MinusCircle, Receipt, ChevronDown, ChevronRight, CheckCircle, XCircle, RefreshCw, ScrollText, Clock } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
 import WarnMessagesEditor from '../components/WarnMessagesEditor'
@@ -466,7 +466,7 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
               <AlertTriangle size={12} /> Warn
             </button>
             {user.status !== 'suspended' && user.status !== 'banned' && (
-              <button className="btn btn-secondary btn-sm" onClick={() => { onSuspend(user.id); onClose() }}>
+              <button className="btn btn-secondary btn-sm" onClick={() => onSuspend(user.id)}>
                 <PauseCircle size={12} /> Suspend
               </button>
             )}
@@ -506,6 +506,143 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
   )
 }
 
+/* ── Suspend Modal ────────────────────────────────────────────── */
+
+const PRESETS = [
+  { key: '1h', label: '1 Hour'  },
+  { key: '1d', label: '1 Day'   },
+  { key: '1w', label: '1 Week'  },
+] as const
+
+function SuspendModal({ user, onConfirm, onClose }: {
+  user: User
+  onConfirm: (id: string, duration: string) => void
+  onClose: () => void
+}) {
+  const [selected, setSelected] = useState<string>('1d')
+  const [customVal, setCustomVal] = useState('1')
+  const [customUnit, setCustomUnit] = useState<'hours' | 'days' | 'weeks'>('days')
+
+  const durationLabel = selected === 'custom'
+    ? `${customVal} ${customUnit}`
+    : PRESETS.find(p => p.key === selected)!.label
+
+  const canSubmit = selected !== 'custom' || (Number(customVal) > 0)
+
+  return (
+    <>
+      <div className="modal-backdrop" onClick={onClose} />
+      <div className="modal-dialog" style={{ maxWidth: 420 }}>
+        <div className="modal-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: 8,
+              background: 'rgba(231,76,60,0.1)', border: '1px solid rgba(231,76,60,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Clock size={13} color="#E74C3C" />
+            </div>
+            <span className="modal-title">Suspend User</span>
+          </div>
+          <button className="modal-close" onClick={onClose}><X size={14} /></button>
+        </div>
+
+        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {/* User info */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--bg-surface-2)', borderRadius: 10, border: '1px solid var(--border)' }}>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: user.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+              {user.displayName[0]}
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{user.displayName}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>@{user.handle}</div>
+            </div>
+          </div>
+
+          {/* Presets */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Duration</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {PRESETS.map(p => (
+                <button
+                  key={p.key}
+                  onClick={() => setSelected(p.key)}
+                  style={{
+                    flex: 1, padding: '9px 0', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                    background: selected === p.key ? 'rgba(231,76,60,0.08)' : 'var(--bg-surface-2)',
+                    border: `1.5px solid ${selected === p.key ? 'rgba(231,76,60,0.5)' : 'var(--border)'}`,
+                    color: selected === p.key ? '#E74C3C' : 'var(--text-secondary)',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
+              <button
+                onClick={() => setSelected('custom')}
+                style={{
+                  flex: 1, padding: '9px 0', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                  background: selected === 'custom' ? 'rgba(231,76,60,0.08)' : 'var(--bg-surface-2)',
+                  border: `1.5px solid ${selected === 'custom' ? 'rgba(231,76,60,0.5)' : 'var(--border)'}`,
+                  color: selected === 'custom' ? '#E74C3C' : 'var(--text-secondary)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                Custom
+              </button>
+            </div>
+          </div>
+
+          {/* Custom input */}
+          {selected === 'custom' && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input
+                className="form-input"
+                type="number"
+                min={1}
+                value={customVal}
+                onChange={e => setCustomVal(e.target.value)}
+                style={{ width: 90 }}
+                autoFocus
+              />
+              <select
+                className="form-select"
+                value={customUnit}
+                onChange={e => setCustomUnit(e.target.value as 'hours' | 'days' | 'weeks')}
+                style={{ flex: 1 }}
+              >
+                <option value="hours">Hours</option>
+                <option value="days">Days</option>
+                <option value="weeks">Weeks</option>
+              </select>
+            </div>
+          )}
+
+          {/* Summary */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'rgba(231,76,60,0.04)', border: '1px solid rgba(231,76,60,0.15)' }}>
+            <Clock size={13} color="#E74C3C" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>@{user.handle}</strong> will be suspended for <strong style={{ color: '#E74C3C' }}>{durationLabel}</strong>
+            </span>
+          </div>
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button
+            className="btn btn-danger"
+            disabled={!canSubmit}
+            style={{ opacity: canSubmit ? 1 : 0.45 }}
+            onClick={() => { onConfirm(user.id, durationLabel); onClose() }}
+          >
+            <PauseCircle size={13} /> Suspend
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 export default function Users() {
   const { users, warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser, adjustWalletBalance } = useStore()
   const [activeSection, setActiveSection] = useState<'users' | 'templates'>('users')
@@ -513,6 +650,7 @@ export default function Users() {
   const [filter, setFilter] = useState<FilterTab>('all')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [warnTarget, setWarnTarget] = useState<User | null>(null)
+  const [suspendTarget, setSuspendTarget] = useState<User | null>(null)
   const [logUser, setLogUser] = useState<User | null>(null)
 
   // keep slide-over in sync with live state
@@ -534,6 +672,13 @@ export default function Users() {
           targetLabel={`@${warnTarget.handle}`}
           onConfirm={msg => warnUser(warnTarget.id, msg)}
           onClose={() => setWarnTarget(null)}
+        />
+      )}
+      {suspendTarget && (
+        <SuspendModal
+          user={suspendTarget}
+          onConfirm={(id, duration) => setUserStatus(id, 'suspended', duration)}
+          onClose={() => setSuspendTarget(null)}
         />
       )}
       <div className="page-header">
@@ -667,7 +812,7 @@ export default function Users() {
                             <AlertTriangle size={13} />
                           </button>
                           {u.status === 'active' ? (
-                            <button className="btn btn-secondary btn-icon" title="Suspend" onClick={() => setUserStatus(u.id, 'suspended')}>
+                            <button className="btn btn-secondary btn-icon" title="Suspend" onClick={() => setSuspendTarget(u)}>
                               <PauseCircle size={13} />
                             </button>
                           ) : u.status === 'suspended' ? (
@@ -697,7 +842,7 @@ export default function Users() {
             user={liveSelectedUser}
             onClose={() => setSelectedUser(null)}
             onWarn={(id, msg) => warnUser(id, msg)}
-            onSuspend={id => setUserStatus(id, 'suspended')}
+            onSuspend={id => setSuspendTarget(users.find(u => u.id === id) ?? null)}
             onReinstate={id => setUserStatus(id, 'active')}
             onPromote={promoteTopStreamer}
             onDemote={demoteTopStreamer}
