@@ -423,78 +423,84 @@ export default function Competitions() {
               )}
             </>
           ) : (
-            /* Start New Contest */
-            <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-              {/* Duration — compact inline */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Duration</span>
-                <div style={{ display: 'flex', gap: 6, flex: 1 }}>
-                  {(Object.keys(periodLabels) as ContestPeriod[]).map(p => (
-                    <button key={p} onClick={() => setNewPeriod(p)} style={{
-                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      padding: '7px 10px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                      background: newPeriod === p ? 'rgba(212,175,55,0.07)' : 'var(--bg-surface-2)',
-                      border: `1.5px solid ${newPeriod === p ? 'var(--gold)' : 'var(--border)'}`,
-                      color: newPeriod === p ? 'var(--gold)' : 'var(--text-secondary)',
-                      transition: 'all 0.15s',
-                    }}>
-                      <Calendar size={12} />
-                      {periodLabels[p]}
-                      <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 400 }}>({periodDuration[p]})</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Prize configuration */}
+            /* Start New Contest — single unified card */
+            <div style={{ maxWidth: 560, margin: '0 auto' }}>
               <div className="card">
-                <div className="card-header">
-                  <div>
-                    <div className="card-title">Prize Configuration</div>
-                    <div className="card-subtitle">Configure payouts before starting the contest</div>
+
+                {/* Card header */}
+                <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Trophy size={18} color="var(--gold)" />
                   </div>
-                  {prizesApproved ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20, background: 'rgba(46,204,138,0.1)', color: '#2ECC8A', border: '1px solid rgba(46,204,138,0.2)' }}>
-                        Approved ✓
-                      </span>
-                      <button className="btn btn-ghost btn-sm" onClick={() => { setPrizesApproved(false); setDraftTiers(tiers.map(t => ({ ...t }))) }}>
-                        Re-edit
-                      </button>
-                    </div>
-                  ) : null}
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>New Contest Setup</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>Configure duration and prizes before launching</div>
+                  </div>
                 </div>
-                <PrizeList
-                  tiers={prizesApproved ? tiers : draftTiers}
-                  editing={!prizesApproved}
-                  onUpdate={updateDraft}
-                  onDelete={i => setDraftTiers(prev => prev.filter((_, idx) => idx !== i))}
-                  onAdd={() => setDraftTiers(prev => [...prev, { rank: `Rank ${prev.length + 1}`, prize: '', type: 'cash' }])}
-                />
-                {!prizesApproved && (
-                  <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}>
-                    <button className="btn btn-primary btn-sm" style={{ width: '100%', justifyContent: 'center' }}
+
+                {/* Duration section */}
+                <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Duration</div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {(Object.keys(periodLabels) as ContestPeriod[]).map(p => (
+                      <button key={p} onClick={() => setNewPeriod(p)} style={{
+                        flex: 1, padding: '10px 8px', borderRadius: 8, cursor: 'pointer', border: 'none', outline: 'none',
+                        background: newPeriod === p ? 'var(--gold)' : 'var(--bg-surface-2)',
+                        color: newPeriod === p ? '#000' : 'var(--text-secondary)',
+                        fontWeight: 700, fontSize: 12, transition: 'all 0.15s',
+                        boxShadow: newPeriod === p ? '0 2px 8px rgba(212,175,55,0.3)' : 'none',
+                      }}>
+                        <div>{periodLabels[p]}</div>
+                        <div style={{ fontSize: 10, fontWeight: 400, opacity: 0.7, marginTop: 2 }}>{periodDuration[p]}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Prize tiers section */}
+                <div>
+                  <div style={{ padding: '14px 24px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Prize Payouts</div>
+                    {prizesApproved && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: 'rgba(46,204,138,0.1)', color: '#2ECC8A', border: '1px solid rgba(46,204,138,0.2)' }}>
+                          Approved ✓
+                        </span>
+                        <button className="btn btn-ghost btn-sm" style={{ padding: '2px 8px', fontSize: 11 }}
+                          onClick={() => { setPrizesApproved(false); setDraftTiers(tiers.map(t => ({ ...t }))) }}>
+                          Re-edit
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <PrizeList
+                    tiers={prizesApproved ? tiers : draftTiers}
+                    editing={!prizesApproved}
+                    onUpdate={updateDraft}
+                    onDelete={i => setDraftTiers(prev => prev.filter((_, idx) => idx !== i))}
+                    onAdd={() => setDraftTiers(prev => [...prev, { rank: `Rank ${prev.length + 1}`, prize: '', type: 'cash' }])}
+                  />
+                </div>
+
+                {/* Footer actions */}
+                <div style={{ padding: '14px 24px 20px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {!prizesApproved && (
+                    <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}
                       onClick={() => { setTiers(draftTiers); setPrizesApproved(true) }}>
                       Approve Prize Configuration
                     </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Start button */}
-              <div>
-                <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '11px 0', opacity: prizesApproved ? 1 : 0.45 }}
-                  disabled={!prizesApproved}
-                  onClick={handleStartContest}
-                  title={!prizesApproved ? 'Approve Prize Configuration first' : undefined}>
-                  <Play size={14} /> Start {periodLabels[newPeriod]} Contest
-                </button>
-                {!prizesApproved && (
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', marginTop: 8 }}>
-                    Approve the prize configuration to continue
-                  </div>
-                )}
+                  )}
+                  <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '10px 0', opacity: prizesApproved ? 1 : 0.35 }}
+                    disabled={!prizesApproved}
+                    onClick={handleStartContest}>
+                    <Play size={14} /> Start {periodLabels[newPeriod]} Contest
+                  </button>
+                  {!prizesApproved && (
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>
+                      Approve prizes to enable the start button
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
