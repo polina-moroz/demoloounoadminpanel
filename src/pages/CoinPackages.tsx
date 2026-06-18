@@ -107,7 +107,12 @@ function PackageTable({ platform, title, subtitle }: { platform: 'iap' | 'web'; 
   const [confirmDelete, setConfirmDelete] = useState<CoinPackage | null>(null)
 
   const toggleEnabled   = (id: string) => setPkgs(prev => prev.map(p => p.id === id ? { ...p, enabled: !p.enabled } : p))
-  const toggleBestValue = (id: string) => setPkgs(prev => prev.map(p => p.id === id ? { ...p, bestValue: !p.bestValue } : p))
+  const toggleBestValue = (id: string) => setPkgs(prev => {
+    const current = prev.find(p => p.id === id)
+    if (!current) return prev
+    if (!current.bestValue) return prev.map(p => ({ ...p, bestValue: p.id === id }))
+    return prev.map(p => p.id === id ? { ...p, bestValue: false } : p)
+  })
 
   const handleAdd = (pkg: CoinPackage) => {
     setPkgs(prev => [...prev, pkg])
