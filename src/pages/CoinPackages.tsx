@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { X, Edit2, Trash2 } from 'lucide-react'
 import { mockCoinPackages } from '../mockData'
 import { useStore } from '../store'
@@ -242,10 +242,8 @@ export default function CoinPackages() {
             In-App Purchases (IAP)
           </button>
           <button
-            className="filter-tab"
-            disabled
-            title="Coming soon"
-            style={{ opacity: 0.4, cursor: 'not-allowed' }}
+            className={`filter-tab${activeTab === 'web' ? ' active' : ''}`}
+            onClick={() => setActiveTab('web')}
           >
             Website Purchases
           </button>
