@@ -426,26 +426,22 @@ export default function Competitions() {
             /* Start New Contest */
             <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-              {/* Duration — horizontal */}
-              <div className="card">
-                <div style={{ padding: '16px 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <div className="card-title">Contest Duration</div>
-                    <div className="card-subtitle">Choose how long the contest runs</div>
-                  </div>
-                </div>
-                <div style={{ padding: '0 20px 20px', display: 'flex', gap: 10 }}>
+              {/* Duration — compact inline */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Duration</span>
+                <div style={{ display: 'flex', gap: 6, flex: 1 }}>
                   {(Object.keys(periodLabels) as ContestPeriod[]).map(p => (
                     <button key={p} onClick={() => setNewPeriod(p)} style={{
-                      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                      padding: '14px 10px', borderRadius: 10, cursor: 'pointer',
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      padding: '7px 10px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
                       background: newPeriod === p ? 'rgba(212,175,55,0.07)' : 'var(--bg-surface-2)',
                       border: `1.5px solid ${newPeriod === p ? 'var(--gold)' : 'var(--border)'}`,
+                      color: newPeriod === p ? 'var(--gold)' : 'var(--text-secondary)',
                       transition: 'all 0.15s',
                     }}>
-                      <Calendar size={15} color={newPeriod === p ? 'var(--gold)' : 'var(--text-muted)'} />
-                      <span style={{ fontSize: 13, fontWeight: 700, color: newPeriod === p ? 'var(--gold)' : 'var(--text-primary)' }}>{periodLabels[p]}</span>
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{periodDuration[p]}</span>
+                      <Calendar size={12} />
+                      {periodLabels[p]}
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 400 }}>({periodDuration[p]})</span>
                     </button>
                   ))}
                 </div>
