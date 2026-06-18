@@ -163,6 +163,7 @@ export default function Competitions() {
   const [confirmStop,   setConfirmStop]   = useState(false)
   const [refreshing,    setRefreshing]    = useState(false)
   const [refreshedAt,   setRefreshedAt]   = useState<string | null>(null)
+  const [innerTab,      setInnerTab]      = useState<'leaderboard' | 'prizes'>('leaderboard')
   const [pastContests,  setPastContests]  = useState<PastContest[]>(MOCK_PAST)
   const [prizesApproved, setPrizesApproved] = useState(false)
   const [expandedIds,   setExpandedIds]   = useState<Set<string>>(new Set())
@@ -328,29 +329,20 @@ export default function Competitions() {
                 </div>
               </div>
 
-              {/* Two-column */}
-              <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 20, alignItems: 'start' }}>
-                {/* Prize config */}
-                <div className="card">
-                  <div className="card-header">
-                    <div>
-                      <div className="card-title">Prize Configuration</div>
-                      <div className="card-subtitle">Payout per rank</div>
-                    </div>
-                    <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20, background: 'rgba(46,204,138,0.1)', color: '#2ECC8A', border: '1px solid rgba(46,204,138,0.2)' }}>
-                      Locked
-                    </span>
-                  </div>
-                  <PrizeList
-                    tiers={tiers}
-                    editing={false}
-                    onUpdate={() => {}}
-                    onDelete={() => {}}
-                    onAdd={() => {}}
-                  />
-                </div>
+              {/* Inner tabs */}
+              <div style={{ display: 'flex', gap: 2, marginBottom: 16, borderBottom: '1px solid var(--border)' }}>
+                {([['leaderboard', 'Current Top 10'], ['prizes', 'Prize Configuration']] as const).map(([tab, label]) => (
+                  <button key={tab} onClick={() => setInnerTab(tab)} style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: '7px 16px', fontSize: 13, fontWeight: 500,
+                    color: innerTab === tab ? 'var(--text-primary)' : 'var(--text-muted)',
+                    borderBottom: innerTab === tab ? '2px solid var(--gold)' : '2px solid transparent',
+                    marginBottom: -1, transition: 'color 0.15s',
+                  }}>{label}</button>
+                ))}
+              </div>
 
-                {/* Leaderboard */}
+              {innerTab === 'leaderboard' && (
                 <div className="table-wrapper">
                   <div className="table-header">
                     <div className="table-title">Current Top 10 Leaderboard</div>
@@ -416,7 +408,19 @@ export default function Competitions() {
                     </table>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {innerTab === 'prizes' && (
+                <div className="card" style={{ maxWidth: 420 }}>
+                  <PrizeList
+                    tiers={tiers}
+                    editing={false}
+                    onUpdate={() => {}}
+                    onDelete={() => {}}
+                    onAdd={() => {}}
+                  />
+                </div>
+              )}
             </>
           ) : (
             /* Start New Contest */
