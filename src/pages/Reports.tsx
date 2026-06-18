@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { X, AlertTriangle, Ban, RotateCcw, ExternalLink, ScrollText } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
@@ -216,7 +216,6 @@ export default function Reports() {
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th>
                     <th>Reporter</th>
                     <th>Type</th>
                     <th>Target</th>
@@ -229,9 +228,6 @@ export default function Reports() {
                 <tbody>
                   {filtered.map((r, i) => (
                     <tr key={r.id}>
-                      <td style={{ color: 'var(--text-subtle)', fontFamily: 'monospace', fontSize: 12 }}>
-                        #{String(i + 1).padStart(4, '0')}
-                      </td>
                       <td>
                         <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{r.reporter}</div>
                         <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>@{r.reporterHandle}</div>
