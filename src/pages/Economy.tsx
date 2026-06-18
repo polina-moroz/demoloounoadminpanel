@@ -197,7 +197,7 @@ export default function Economy() {
   }
 
   /* ── View switcher ── */
-  const [activeView, setActiveView] = useState<'withdrawals' | 'transactions'>('withdrawals')
+  const [activeView, setActiveView] = useState<'withdrawals' | 'transactions' | 'reason-templates'>('withdrawals')
 
   /* ── Threshold filter — only requests above fraudThresholdUSD need manual review ── */
   const manualWithdrawals = withdrawals.filter(w => w.estimatedUSD >= fraudThresholdUSD)
@@ -382,6 +382,17 @@ export default function Economy() {
         >
           Transaction Log
         </button>
+        <button
+          onClick={() => setActiveView('reason-templates')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: 14, fontWeight: 500,
+            color: activeView === 'reason-templates' ? 'var(--text-primary)' : 'var(--text-muted)',
+            borderBottom: activeView === 'reason-templates' ? '2px solid var(--gold)' : '2px solid transparent',
+            marginBottom: -1, transition: 'color 0.15s',
+          }}
+        >
+          Reason Templates
+        </button>
       </div>
 
       {/* ── Withdrawal Requests ── */}
@@ -547,12 +558,6 @@ export default function Economy() {
           <Pagination page={wPageSafe} total={filteredWithdrawals.length} pageSize={W_PAGE_SIZE} onChange={setWPage} />
         </div>
 
-        <RejectionReasonsEditor
-          reasons={reasons}
-          onUpdate={updateReason}
-          onRemove={removeReason}
-          onAdd={addReason}
-        />
       </div>}
 
       {/* ── Transaction Log ── */}
@@ -645,6 +650,16 @@ export default function Economy() {
 
         <Pagination page={tPageSafe} total={filteredTransactions.length} pageSize={T_PAGE_SIZE} onChange={setTPage} />
       </div>}
+
+      {/* ── Reason Templates ── */}
+      {activeView === 'reason-templates' && (
+        <RejectionReasonsEditor
+          reasons={reasons}
+          onUpdate={updateReason}
+          onRemove={removeReason}
+          onAdd={addReason}
+        />
+      )}
     </div>
   )
 }

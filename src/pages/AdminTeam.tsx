@@ -199,7 +199,7 @@ function EditMemberModal({ member, onClose }: { member: AdminMember; onClose: ()
       <div className="modal-backdrop" onClick={onClose} />
       <div className="modal-dialog" style={{ maxWidth: 440 }}>
         <div className="modal-header">
-          <span className="modal-title">Edit Member</span>
+          <span className="modal-title">Edit Profile</span>
           <button className="modal-close" onClick={onClose}><X size={14} /></button>
         </div>
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -528,14 +528,14 @@ export default function AdminTeam() {
 
                     <td>
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                        {editable && (
-                          <button className="btn btn-ghost btn-icon" title="Edit name & email"
+                        {isSelf && (
+                          <button className="btn btn-ghost btn-icon" title="Edit my profile"
                             onClick={() => setEditMember(member)}>
                             <Edit2 size={12} />
                           </button>
                         )}
                         {canChangePassword(member) && (
-                          <button className="btn btn-ghost btn-icon" title="Change password"
+                          <button className="btn btn-ghost btn-icon" title="Send password reset link"
                             onClick={() => setChangePasswordMember(member)}>
                             <KeyRound size={12} />
                           </button>
@@ -552,7 +552,7 @@ export default function AdminTeam() {
                             <Trash2 size={13} />
                           </button>
                         )}
-                        {!editable && !isSelf && !canChangePassword(member) && (
+                        {!isSelf && !canChangePassword(member) && !editable && (
                           <span style={{ fontSize: 12, color: 'var(--text-subtle)' }}>—</span>
                         )}
                       </div>
