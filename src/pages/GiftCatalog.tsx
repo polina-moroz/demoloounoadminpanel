@@ -77,22 +77,20 @@ function TierModal({ initial, onSave, onClose }: {
 
 interface GiftModalProps {
   initial?: Gift | null
-  defaultTierId?: string
-  tiers: CustomTier[]
+  tierId: string
+  tierName: string
   onSave: (g: Omit<Gift, 'id'>) => void
   onClose: () => void
 }
 
-function GiftModal({ initial, defaultTierId, tiers, onSave, onClose }: GiftModalProps) {
+function GiftModal({ initial, tierId, tierName, onSave, onClose }: GiftModalProps) {
   const [animationFileName, setAnimationFileName] = useState<string | null>(initial?.animationFileName ?? null)
   const [name,    setName]    = useState(initial?.name ?? '')
   const [coins,   setCoins]   = useState(initial?.coins ?? 0)
-  const [tierId,  setTierId]  = useState<string>(initial?.tier ?? defaultTierId ?? tiers[0]?.id ?? '')
   const [enabled, setEnabled] = useState(initial?.enabled ?? true)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const valid        = name.trim() !== '' && coins > 0
-  const selectedTier = tiers.find(t => t.id === tierId)
+  const valid = name.trim() !== '' && coins > 0
 
   return (
     <>
@@ -139,34 +137,6 @@ function GiftModal({ initial, defaultTierId, tiers, onSave, onClose }: GiftModal
               value={coins || ''} onChange={e => setCoins(Number(e.target.value))} />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Tier</label>
-            {tiers.length === 0 ? (
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '12px 0' }}>No tiers defined yet.</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {tiers.map(t => {
-                  const active = tierId === t.id
-                  return (
-                    <button key={t.id} onClick={() => setTierId(t.id)} type="button" style={{
-                      padding: '9px 12px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-                      background: 'var(--bg-surface-2)',
-                      border: `1.5px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
-                      display: 'flex', alignItems: 'center', gap: 10, transition: 'all 0.15s',
-                    }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: active ? 'var(--gold)' : 'var(--text-secondary)', flex: 1, textAlign: 'left' }}>
-                        {t.name}
-                      </span>
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {t.minCoins > 0 ? `${t.minCoins.toLocaleString()}+ 🪙` : 'Any price'}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderTop: '1px solid var(--border)' }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>Enabled</div>
@@ -183,7 +153,7 @@ function GiftModal({ initial, defaultTierId, tiers, onSave, onClose }: GiftModal
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" disabled={!valid} style={{ opacity: valid ? 1 : 0.45 }}
             onClick={() => {
-              onSave({ animationFileName, name, coins, durationSec: initial?.durationSec ?? 3, tier: tierId, tierName: selectedTier?.name ?? '', enabled })
+              onSave({ animationFileName, name, coins, durationSec: initial?.durationSec ?? 3, tier: tierId, tierName, enabled })
               onClose()
             }}>
             {initial ? 'Save Changes' : 'Add Gift'}
@@ -522,10 +492,10 @@ export default function GiftCatalog() {
 
       {/* ── Modals ── */}
       {addGiftOpen && (
-        <GiftModal tiers={tiers} defaultTierId={activeTierId} onSave={handleAddGift} onClose={() => setAddGiftOpen(false)} />
+        <GiftModal tierId={activeTierId} tierName={activeTier?.name ?? ''} onSave={handleAddGift} onClose={() => setAddGiftOpen(false)} />
       )}
       {editGift && (
-        <GiftModal tiers={tiers} initial={editGift} onSave={data => handleEditGift(editGift.id, data)} onClose={() => setEditGift(null)} />
+        <GiftModal tierId={editGift.tier} tierName={editGift.tierName} initial={editGift} onSave={data => handleEditGift(editGift.id, data)} onClose={() => setEditGift(null)} />
       )}
       {addTierOpen && (
         <TierModal onSave={handleAddTier} onClose={() => setAddTierOpen(false)} />
