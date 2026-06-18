@@ -131,9 +131,6 @@ function InviteModal({ onClose, currentAdminRole }: { onClose: () => void; curre
                   ))}
                 </div>
               </div>
-              <div style={{ padding: '10px 14px', background: 'rgba(212,175,55,0.04)', border: '1px solid rgba(212,175,55,0.15)', borderRadius: 8, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                An invite code will be generated. The recipient uses it at <span style={{ color: 'var(--gold)', fontFamily: 'monospace' }}>/accept-invite</span> to set their password.
-              </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
