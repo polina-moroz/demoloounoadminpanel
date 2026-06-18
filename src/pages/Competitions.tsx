@@ -95,7 +95,7 @@ function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       {tiers.map((p, i) => (
         <div key={i} style={{
-          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 16px',
           borderBottom: i < tiers.length - 1 ? '1px solid var(--border)' : 'none',
         }}>
           {editing ? (
@@ -124,7 +124,7 @@ function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
                 color: rankColor(p.rank),
               }}>{p.rank}</span>
               <span style={{
-                flex: 1, fontSize: 13, fontWeight: 700,
+                fontSize: 13, fontWeight: 700,
                 color: p.type === 'cash' ? 'var(--emerald)' : 'var(--amethyst)',
               }}>{p.prize}</span>
               <span style={{
@@ -619,4 +619,5 @@ export default function Competitions() {
     </div>
   )
 }
+
 
