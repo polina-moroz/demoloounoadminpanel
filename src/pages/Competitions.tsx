@@ -1,10 +1,11 @@
 ﻿import { useState } from 'react'
-import { Trophy, RefreshCw, Megaphone, TrendingUp, TrendingDown, Minus, Play, Square, Plus, Trash2, X } from 'lucide-react'
+import { Trophy, RefreshCw, TrendingUp, TrendingDown, Minus, Play, Square, Plus, Trash2, X, Calendar, Users, Award } from 'lucide-react'
 import { mockLeaderboard, mockPrizeTiers } from '../mockData'
 import { useStore } from '../store'
-import type { PrizeTier } from '../types'
+import type { PrizeTier, CompetitionEntry } from '../types'
 
 type ContestPeriod = 'weekly' | 'biweekly' | 'monthly'
+type MainTab = 'active' | 'past'
 
 const periodLabels: Record<ContestPeriod, string> = {
   weekly:   'Weekly',
@@ -18,47 +19,142 @@ const periodDuration: Record<ContestPeriod, string> = {
   monthly:  '30 days',
 }
 
+const periodDesc: Record<ContestPeriod, string> = {
+  weekly:   'Resets every Monday',
+  biweekly: 'Resets every 2 weeks',
+  monthly:  'Resets on the 1st of each month',
+}
+
+interface PastContest {
+  id: string
+  period: ContestPeriod
+  label: string
+  startDate: string
+  endDate: string
+  participants: number
+  prizePool: string
+  top3: Array<{ rank: number; name: string; handle: string; prize: string; avatarColor: string; diamonds: number }>
+}
+
+const MOCK_PAST: PastContest[] = [
+  {
+    id: 'past1', period: 'monthly', label: 'May 2026 Competition',
+    startDate: 'May 1, 2026', endDate: 'May 31, 2026',
+    participants: 231, prizePool: '$2,500',
+    top3: [
+      { rank: 1, name: 'Sasha Bloom',  handle: 'sashabloom', prize: '$750', avatarColor: '#9966CC', diamonds: 510400 },
+      { rank: 2, name: 'Aria Voss',    handle: 'ariavoss',   prize: '$500', avatarColor: '#9966CC', diamonds: 389200 },
+      { rank: 3, name: 'Marco Reyes',  handle: 'marcoreyes', prize: '$300', avatarColor: '#2ECC8A', diamonds: 310100 },
+    ],
+  },
+  {
+    id: 'past2', period: 'monthly', label: 'April 2026 Competition',
+    startDate: 'Apr 1, 2026', endDate: 'Apr 30, 2026',
+    participants: 198, prizePool: '$2,500',
+    top3: [
+      { rank: 1, name: 'Luna Star',    handle: 'lunastar',  prize: '$750', avatarColor: '#9B111E', diamonds: 475000 },
+      { rank: 2, name: 'Zoe Chen',     handle: 'zoechen',   prize: '$500', avatarColor: '#9966CC', diamonds: 362000 },
+      { rank: 3, name: 'Dex Volta',    handle: 'dexvolta',  prize: '$300', avatarColor: '#D4AF37', diamonds: 288000 },
+    ],
+  },
+]
+
+/* ── Prize row ────────────────────────────────────────────────── */
+
+function rankColor(rank: string): string {
+  if (rank === 'Rank 1') return '#D4AF37'
+  if (rank === 'Rank 2') return '#A8A9AD'
+  if (rank === 'Rank 3') return '#CD7F32'
+  return 'var(--text-secondary)'
+}
+
+function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
+  tiers: PrizeTier[]
+  editing: boolean
+  onUpdate: (i: number, field: keyof PrizeTier, value: string) => void
+  onDelete: (i: number) => void
+  onAdd: () => void
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {tiers.map((p, i) => (
+        <div key={i} style={{
+          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
+          borderBottom: i < tiers.length - 1 ? '1px solid var(--border)' : 'none',
+        }}>
+          {editing ? (
+            <>
+              <input className="form-input" value={p.rank}
+                onChange={e => onUpdate(i, 'rank', e.target.value)}
+                style={{ width: 96, padding: '5px 8px', fontSize: 12 }} />
+              <input className="form-input" value={p.prize}
+                onChange={e => onUpdate(i, 'prize', e.target.value)}
+                style={{ flex: 1, padding: '5px 8px', fontSize: 12 }} />
+              <select className="form-input" value={p.type}
+                onChange={e => onUpdate(i, 'type', e.target.value as 'cash' | 'cosmetic')}
+                style={{ width: 108, padding: '5px 8px', fontSize: 12 }}>
+                <option value="cash">Cash</option>
+                <option value="cosmetic">Cosmetic</option>
+              </select>
+              <button className="btn btn-ghost btn-icon" onClick={() => onDelete(i)}
+                style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                <Trash2 size={13} />
+              </button>
+            </>
+          ) : (
+            <>
+              <span style={{
+                fontSize: 12, fontWeight: 700, minWidth: 96,
+                color: rankColor(p.rank),
+              }}>{p.rank}</span>
+              <span style={{
+                flex: 1, fontSize: 13, fontWeight: 700,
+                color: p.type === 'cash' ? 'var(--emerald)' : 'var(--amethyst)',
+              }}>{p.prize}</span>
+              <span style={{
+                fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 600, flexShrink: 0,
+                background: p.type === 'cash' ? 'rgba(46,204,138,0.1)' : 'rgba(153,102,204,0.1)',
+                color: p.type === 'cash' ? 'var(--emerald)' : 'var(--amethyst)',
+                border: p.type === 'cash' ? '1px solid rgba(46,204,138,0.2)' : '1px solid rgba(153,102,204,0.2)',
+              }}>{p.type === 'cash' ? 'Cash' : 'Cosmetic'}</span>
+            </>
+          )}
+        </div>
+      ))}
+      {editing && (
+        <div style={{ padding: '10px 16px', borderTop: tiers.length > 0 ? '1px solid var(--border)' : 'none' }}>
+          <button className="btn btn-ghost btn-sm" style={{ width: '100%', justifyContent: 'center' }} onClick={onAdd}>
+            <Plus size={13} /> Add Rank
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Main component ───────────────────────────────────────────── */
+
 export default function Competitions() {
   const { toast } = useStore()
 
-  const [tiers,          setTiers]          = useState<PrizeTier[]>(mockPrizeTiers)
-  const [draftTiers,     setDraftTiers]     = useState<PrizeTier[]>(mockPrizeTiers)
-  const [prizeEditing,   setPrizeEditing]   = useState(false)
-  const [period,         setPeriod]         = useState<ContestPeriod>('monthly')
-  const [contestActive,  setContestActive]  = useState(true)
-  const [refreshing,     setRefreshing]     = useState(false)
-  const [refreshedAt,    setRefreshedAt]    = useState<string | null>(null)
-  const [confirmReset,   setConfirmReset]   = useState(false)
-  const [confirmAnnounce, setConfirmAnnounce] = useState(false)
+  const [mainTab,       setMainTab]       = useState<MainTab>('active')
+  const [contestActive, setContestActive] = useState(true)
+  const [period,        setPeriod]        = useState<ContestPeriod>('monthly')
+  const [newPeriod,     setNewPeriod]     = useState<ContestPeriod>('monthly')
+  const [tiers,         setTiers]         = useState<PrizeTier[]>(mockPrizeTiers)
+  const [draftTiers,    setDraftTiers]    = useState<PrizeTier[]>(mockPrizeTiers)
+  const [prizeEditing,  setPrizeEditing]  = useState(false)
+  const [confirmStop,   setConfirmStop]   = useState(false)
+  const [refreshing,    setRefreshing]    = useState(false)
+  const [refreshedAt,   setRefreshedAt]   = useState<string | null>(null)
+  const [pastContests,  setPastContests]  = useState<PastContest[]>(MOCK_PAST)
 
-  const resetLabel = period === 'weekly' ? 'Reset Week' : period === 'biweekly' ? 'Reset Period' : 'Reset Month'
-
-  function startEdit() {
-    setDraftTiers(tiers.map(t => ({ ...t })))
-    setPrizeEditing(true)
-  }
-
-  function saveEdit() {
-    setTiers(draftTiers)
-    setPrizeEditing(false)
-    toast('Prize configuration saved', 'success')
-  }
-
-  function cancelEdit() {
-    setDraftTiers(tiers.map(t => ({ ...t })))
-    setPrizeEditing(false)
-  }
+  function startEdit() { setDraftTiers(tiers.map(t => ({ ...t }))); setPrizeEditing(true) }
+  function saveEdit()  { setTiers(draftTiers); setPrizeEditing(false); toast('Prize configuration saved', 'success') }
+  function cancelEdit(){ setDraftTiers(tiers.map(t => ({ ...t }))); setPrizeEditing(false) }
 
   function updateDraft(i: number, field: keyof PrizeTier, value: string) {
     setDraftTiers(prev => prev.map((t, idx) => idx === i ? { ...t, [field]: value } : t))
-  }
-
-  function deleteDraft(i: number) {
-    setDraftTiers(prev => prev.filter((_, idx) => idx !== i))
-  }
-
-  function addDraft() {
-    setDraftTiers(prev => [...prev, { rank: `#${prev.length + 1}`, prize: '', type: 'cash' }])
   }
 
   function handleRefresh() {
@@ -71,70 +167,58 @@ export default function Competitions() {
     }, 900)
   }
 
-  function handlePeriodChange(p: ContestPeriod) {
-    setPeriod(p)
-    toast(`Switched to ${periodLabels[p]} contest`, 'info')
+  function handleStopContest() {
+    const ended: PastContest = {
+      id: `past_${Date.now()}`,
+      period,
+      label: `June 2026 ${periodLabels[period]} Competition`,
+      startDate: 'Jun 1, 2026',
+      endDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      participants: 247,
+      prizePool: '$2,500',
+      top3: mockLeaderboard.slice(0, 3).map(e => ({
+        rank: e.rank, name: e.name, handle: e.handle,
+        prize: e.prize, avatarColor: e.avatarColor, diamonds: e.diamondsReceived,
+      })),
+    }
+    setPastContests(prev => [ended, ...prev])
+    setContestActive(false)
+    setConfirmStop(false)
+    setMainTab('past')
+    toast('Contest ended — results archived to Past Contests', 'info')
   }
 
-  function handleToggleContest() {
-    const next = !contestActive
-    setContestActive(next)
-    toast(next ? 'Contest started' : 'Contest stopped', next ? 'success' : 'info')
-  }
-
-  function handleReset() {
-    setConfirmReset(false)
-    toast(`${resetLabel} complete — leaderboard cleared`, 'info')
-  }
-
-  function handleAnnounce() {
-    setConfirmAnnounce(false)
-    toast('Winners announced! Notifications sent to all eligible participants.', 'success')
+  function handleStartContest() {
+    setPeriod(newPeriod)
+    setContestActive(true)
+    setMainTab('active')
+    toast(`${periodLabels[newPeriod]} contest started!`, 'success')
   }
 
   const displayTiers = prizeEditing ? draftTiers : tiers
 
   return (
     <div>
-      {/* ── Reset confirm ── */}
-      {confirmReset && (
+      {/* ── Stop confirm ── */}
+      {confirmStop && (
         <>
-          <div className="modal-backdrop" onClick={() => setConfirmReset(false)} />
-          <div className="modal-dialog" style={{ maxWidth: 400 }}>
-            <div className="modal-header">
-              <span className="modal-title">{resetLabel}</span>
-              <button className="modal-close" onClick={() => setConfirmReset(false)}><X size={14} /></button>
-            </div>
-            <div className="modal-body">
-              <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
-                This will clear the current leaderboard for the {periodLabels[period].toLowerCase()} contest. This action cannot be undone.
-              </p>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-ghost" onClick={() => setConfirmReset(false)}>Cancel</button>
-              <button className="btn btn-danger" onClick={handleReset}><RefreshCw size={13} /> {resetLabel}</button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ── Announce confirm ── */}
-      {confirmAnnounce && (
-        <>
-          <div className="modal-backdrop" onClick={() => setConfirmAnnounce(false)} />
+          <div className="modal-backdrop" onClick={() => setConfirmStop(false)} />
           <div className="modal-dialog" style={{ maxWidth: 420 }}>
             <div className="modal-header">
-              <span className="modal-title">Announce Winners</span>
-              <button className="modal-close" onClick={() => setConfirmAnnounce(false)}><X size={14} /></button>
+              <span className="modal-title">End Contest</span>
+              <button className="modal-close" onClick={() => setConfirmStop(false)}><X size={14} /></button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
-                Send winner notifications to all prize-eligible participants for the current {periodLabels[period].toLowerCase()} contest?
+                Are you sure you want to end the <strong style={{ color: 'var(--text-primary)' }}>June 2026 {periodLabels[period]} Competition</strong>?
+                Results will be finalized and archived to Past Contests.
               </p>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-ghost" onClick={() => setConfirmAnnounce(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleAnnounce}><Megaphone size={13} /> Announce Winners</button>
+              <button className="btn btn-ghost" onClick={() => setConfirmStop(false)}>Cancel</button>
+              <button className="btn btn-danger" onClick={handleStopContest}>
+                <Square size={13} /> End Contest
+              </button>
             </div>
           </div>
         </>
@@ -143,267 +227,293 @@ export default function Competitions() {
       <div className="page-header">
         <div className="page-header-text">
           <div className="title">Competitions</div>
-          <div className="subtitle">{periodLabels[period]} leaderboard and prize configuration</div>
+          <div className="subtitle">Manage contests, prize configuration, and leaderboards</div>
         </div>
-        <div className="page-header-actions">
-          {/* Period switcher */}
-          <div style={{ display: 'flex', gap: 4, background: 'var(--bg-surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: 3 }}>
-            {(Object.keys(periodLabels) as ContestPeriod[]).map(p => (
-              <button
-                key={p}
-                onClick={() => handlePeriodChange(p)}
-                style={{
-                  fontSize: 12, fontWeight: 600, padding: '5px 12px', borderRadius: 6, border: 'none',
-                  cursor: 'pointer', transition: 'all 0.15s',
-                  background: period === p ? 'var(--gold)' : 'transparent',
-                  color: period === p ? '#000' : 'var(--text-muted)',
-                }}
-              >
-                {periodLabels[p]}
-              </button>
-            ))}
-          </div>
-
-          {contestActive ? (
-            <button className="btn btn-danger btn-sm" onClick={handleToggleContest}>
+        {contestActive && mainTab === 'active' && (
+          <div className="page-header-actions">
+            <button className="btn btn-danger btn-sm" onClick={() => setConfirmStop(true)}>
               <Square size={12} /> Stop Contest
             </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Main tabs ── */}
+      <div style={{ display: 'flex', gap: 2, marginBottom: 24, borderBottom: '1px solid var(--border)' }}>
+        <button onClick={() => setMainTab('active')} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          padding: '8px 16px', fontSize: 14, fontWeight: 500,
+          color: mainTab === 'active' ? 'var(--text-primary)' : 'var(--text-muted)',
+          borderBottom: mainTab === 'active' ? '2px solid var(--gold)' : '2px solid transparent',
+          marginBottom: -1, transition: 'color 0.15s',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          {contestActive ? (
+            <>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#2ECC8A', animation: 'pulse 2s infinite', display: 'inline-block' }} />
+              Active Contest
+            </>
+          ) : 'Start New Contest'}
+        </button>
+        <button onClick={() => setMainTab('past')} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          padding: '8px 16px', fontSize: 14, fontWeight: 500,
+          color: mainTab === 'past' ? 'var(--text-primary)' : 'var(--text-muted)',
+          borderBottom: mainTab === 'past' ? '2px solid var(--gold)' : '2px solid transparent',
+          marginBottom: -1, transition: 'color 0.15s',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          Past Contests
+          {pastContests.length > 0 && (
+            <span style={{
+              background: mainTab === 'past' ? 'var(--gold)' : 'var(--border)',
+              color: mainTab === 'past' ? '#000' : 'var(--text-muted)',
+              borderRadius: 10, padding: '1px 7px', fontSize: 11, fontWeight: 600,
+            }}>{pastContests.length}</span>
+          )}
+        </button>
+      </div>
+
+      {/* ── Active / Start New tab ── */}
+      {mainTab === 'active' && (
+        <>
+          {contestActive ? (
+            <>
+              {/* Meta card */}
+              <div className="section card">
+                <div className="card-header">
+                  <div>
+                    <div className="card-title">June 2026 Competition</div>
+                    <div className="card-subtitle">{periodLabels[period]} · {periodDuration[period]}</div>
+                  </div>
+                  <span style={{
+                    padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700,
+                    background: 'rgba(46,204,138,0.12)', color: '#2ECC8A', border: '1px solid rgba(46,204,138,0.2)',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#2ECC8A', animation: 'pulse 2s infinite', display: 'inline-block' }} />
+                    Active
+                  </span>
+                </div>
+                <div style={{ padding: '16px 20px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                  {[
+                    { label: 'Total Prize Pool', value: '$2,500', color: 'var(--gold)' },
+                    { label: 'Eligible Competitors', value: '247', color: 'var(--text-primary)' },
+                    { label: 'Days Remaining', value: '27', color: 'var(--text-primary)' },
+                  ].map(s => (
+                    <div key={s.label} style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px' }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 600, marginBottom: 6 }}>{s.label}</div>
+                      <div style={{ fontSize: 24, fontWeight: 700, color: s.color }}>{s.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Two-column */}
+              <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 20, alignItems: 'start' }}>
+                {/* Prize config */}
+                <div className="card">
+                  <div className="card-header">
+                    <div>
+                      <div className="card-title">Prize Configuration</div>
+                      <div className="card-subtitle">Payout per rank</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {prizeEditing ? (
+                        <>
+                          <button className="btn btn-ghost btn-sm" onClick={cancelEdit}>Cancel</button>
+                          <button className="btn btn-primary btn-sm" onClick={saveEdit}>Save</button>
+                        </>
+                      ) : (
+                        <button className="btn btn-secondary btn-sm" onClick={startEdit}>Edit</button>
+                      )}
+                    </div>
+                  </div>
+                  <PrizeList
+                    tiers={displayTiers}
+                    editing={prizeEditing}
+                    onUpdate={updateDraft}
+                    onDelete={i => setDraftTiers(prev => prev.filter((_, idx) => idx !== i))}
+                    onAdd={() => setDraftTiers(prev => [...prev, { rank: `Rank ${prev.length + 1}`, prize: '', type: 'cash' }])}
+                  />
+                </div>
+
+                {/* Leaderboard */}
+                <div className="table-wrapper">
+                  <div className="table-header">
+                    <div className="table-title">Current Top 10 Leaderboard</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      {refreshedAt && (
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Updated {refreshedAt}</span>
+                      )}
+                      <button className="btn btn-ghost btn-sm" onClick={handleRefresh} disabled={refreshing}
+                        style={{ opacity: refreshing ? 0.6 : 1 }}>
+                        <RefreshCw size={13} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
+                        Refresh
+                      </button>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                        <Trophy size={13} style={{ display: 'inline', marginRight: 4, color: 'var(--gold)' }} />
+                        Top 30 eligible
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Rank</th>
+                          <th>Creator</th>
+                          <th>Diamonds Received</th>
+                          <th>Prize</th>
+                          <th>Change</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {mockLeaderboard.map(entry => {
+                          const rankClass = entry.rank <= 3 ? `rank-${entry.rank}` : 'rank-other'
+                          return (
+                            <tr key={entry.rank}>
+                              <td>
+                                <div className={`rank-badge ${rankClass}`}>
+                                  {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : entry.rank}
+                                </div>
+                              </td>
+                              <td>
+                                <div className="avatar-row">
+                                  <div className="avatar" style={{ background: entry.avatarColor }}>{entry.name[0]}</div>
+                                  <div>
+                                    <div className="user-name">{entry.name}</div>
+                                    <div className="user-handle">@{entry.handle}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td><span style={{ color: 'var(--gold)', fontWeight: 700 }}>{entry.diamondsReceived.toLocaleString()} 💎</span></td>
+                              <td><span style={{ color: 'var(--emerald)', fontWeight: 700 }}>{entry.prize}</span></td>
+                              <td>
+                                <div className={`change-arrow change-${entry.change}`}>
+                                  {entry.change === 'up'   && <TrendingUp size={13} />}
+                                  {entry.change === 'down' && <TrendingDown size={13} />}
+                                  {entry.change === 'same' && <Minus size={13} />}
+                                  {entry.change !== 'same' && entry.changeAmount > 0 && <span>{entry.changeAmount}</span>}
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </>
           ) : (
-            <button className="btn btn-success btn-sm" onClick={handleToggleContest}>
-              <Play size={12} /> Start Contest
+            /* Start New Contest */
+            <div style={{ maxWidth: 520, margin: '40px auto' }}>
+              <div className="card">
+                <div style={{ padding: '28px 28px 8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Trophy size={20} color="var(--gold)" />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>Start New Contest</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Choose the duration for the next competition</div>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ padding: '16px 28px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {(Object.keys(periodLabels) as ContestPeriod[]).map(p => (
+                    <button key={p} onClick={() => setNewPeriod(p)} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '14px 16px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                      background: newPeriod === p ? 'rgba(212,175,55,0.07)' : 'var(--bg-surface-2)',
+                      border: `1.5px solid ${newPeriod === p ? 'var(--gold)' : 'var(--border)'}`,
+                      transition: 'all 0.15s',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <Calendar size={16} color={newPeriod === p ? 'var(--gold)' : 'var(--text-muted)'} />
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: newPeriod === p ? 'var(--gold)' : 'var(--text-primary)' }}>
+                            {periodLabels[p]}
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{periodDesc[p]}</div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{periodDuration[p]}</span>
+                    </button>
+                  ))}
+                </div>
+                <div style={{ padding: '16px 28px 28px' }}>
+                  <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '10px 0' }}
+                    onClick={handleStartContest}>
+                    <Play size={14} /> Start {periodLabels[newPeriod]} Contest
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ── Past contests tab ── */}
+      {mainTab === 'past' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {pastContests.length === 0 ? (
+            <div style={{ padding: '64px 24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+              No past contests yet.
+            </div>
+          ) : pastContests.map(contest => (
+            <div key={contest.id} className="card">
+              <div className="card-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                    background: 'var(--bg-surface-2)', color: 'var(--text-secondary)', border: '1px solid var(--border)',
+                  }}>{periodLabels[contest.period]}</span>
+                  <div>
+                    <div className="card-title" style={{ marginBottom: 1 }}>{contest.label}</div>
+                    <div className="card-subtitle">{contest.startDate} — {contest.endDate}</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 20 }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>Prize Pool</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gold)' }}>{contest.prizePool}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>Participants</div>
+                    <div style={{ fontSize: 15, fontWeight: 700 }}>{contest.participants}</div>
+                  </div>
+                </div>
+              </div>
+              <div style={{ padding: '0 20px 20px', display: 'flex', gap: 12 }}>
+                {contest.top3.map(w => (
+                  <div key={w.rank} style={{
+                    flex: 1, display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '12px 14px', borderRadius: 10,
+                    background: 'var(--bg-surface-2)', border: '1px solid var(--border)',
+                  }}>
+                    <span style={{ fontSize: 20 }}>{['🥇', '🥈', '🥉'][w.rank - 1]}</span>
+                    <div className="avatar" style={{ background: w.avatarColor, width: 28, height: 28, fontSize: 12 }}>{w.name[0]}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{w.diamonds.toLocaleString()} 💎</div>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--emerald)', flexShrink: 0 }}>{w.prize}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {!contestActive && (
+            <button className="btn btn-primary" style={{ alignSelf: 'flex-start' }}
+              onClick={() => setMainTab('active')}>
+              <Play size={14} /> Start New Contest
             </button>
           )}
-
-          <button className="btn btn-secondary" onClick={() => setConfirmReset(true)}>
-            <RefreshCw size={14} /> {resetLabel}
-          </button>
-          <button className="btn btn-primary" onClick={() => setConfirmAnnounce(true)}>
-            <Megaphone size={14} /> Announce Winners
-          </button>
         </div>
-      </div>
-
-      {/* Competition meta card */}
-      <div className="section card">
-        <div className="card-header">
-          <div>
-            <div className="card-title">June 2026 Competition</div>
-            <div className="card-subtitle">
-              {periodLabels[period]} · {periodDuration[period]}
-              {period !== 'monthly' && ' · Auto-resets each cycle'}
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {contestActive ? (
-              <span style={{
-                padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700,
-                background: 'rgba(46,204,138,0.12)', color: '#2ECC8A', border: '1px solid rgba(46,204,138,0.2)',
-                display: 'flex', alignItems: 'center', gap: 6
-              }}>
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#2ECC8A', animation: 'pulse 2s infinite', display: 'inline-block' }} />
-                Active
-              </span>
-            ) : (
-              <span style={{
-                padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700,
-                background: 'rgba(231,76,60,0.12)', color: '#E74C3C', border: '1px solid rgba(231,76,60,0.2)',
-                display: 'flex', alignItems: 'center', gap: 6
-              }}>
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#E74C3C', display: 'inline-block' }} />
-                Stopped
-              </span>
-            )}
-          </div>
-        </div>
-        <div style={{ padding: '16px 20px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-          <div style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 600, marginBottom: 6 }}>Total Prize Pool</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--gold)' }}>$2,500</div>
-          </div>
-          <div style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 600, marginBottom: 6 }}>Eligible Competitors</div>
-            <div style={{ fontSize: 24, fontWeight: 700 }}>247</div>
-          </div>
-          <div style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 600, marginBottom: 6 }}>Days Remaining</div>
-            <div style={{ fontSize: 24, fontWeight: 700 }}>27</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Two-column: Prize config + Leaderboard */}
-      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 20, alignItems: 'start' }}>
-        {/* Prize config */}
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <div className="card-title">Prize Configuration</div>
-              <div className="card-subtitle">Editable payout table</div>
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {prizeEditing ? (
-                <>
-                  <button className="btn btn-ghost btn-sm" onClick={cancelEdit}>Cancel</button>
-                  <button className="btn btn-primary btn-sm" onClick={saveEdit}>Save</button>
-                </>
-              ) : (
-                <button className="btn btn-secondary btn-sm" onClick={startEdit}>Edit</button>
-              )}
-            </div>
-          </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table>
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Prize</th>
-                  <th>Type</th>
-                  {prizeEditing && <th style={{ width: 36 }}></th>}
-                </tr>
-              </thead>
-              <tbody>
-                {displayTiers.map((p, i) => (
-                  <tr key={i}>
-                    <td>
-                      {prizeEditing ? (
-                        <input className="form-input" value={p.rank}
-                          onChange={e => updateDraft(i, 'rank', e.target.value)}
-                          style={{ padding: '4px 8px', fontSize: 12, width: 64 }} />
-                      ) : (
-                        <span style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: 13 }}>{p.rank}</span>
-                      )}
-                    </td>
-                    <td>
-                      {prizeEditing ? (
-                        <input className="form-input" value={p.prize}
-                          onChange={e => updateDraft(i, 'prize', e.target.value)}
-                          style={{ padding: '4px 8px', fontSize: 12 }} />
-                      ) : (
-                        <span style={{ color: p.type === 'cash' ? 'var(--emerald)' : 'var(--amethyst)', fontWeight: 700 }}>
-                          {p.prize}
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      {prizeEditing ? (
-                        <select className="form-input" value={p.type}
-                          onChange={e => updateDraft(i, 'type', e.target.value as 'cash' | 'cosmetic')}
-                          style={{ padding: '4px 8px', fontSize: 12 }}>
-                          <option value="cash">Cash</option>
-                          <option value="cosmetic">Cosmetic</option>
-                        </select>
-                      ) : (
-                        <span style={{
-                          fontSize: 11, padding: '2px 7px', borderRadius: 20, fontWeight: 600,
-                          background: p.type === 'cash' ? 'rgba(46,204,138,0.1)' : 'rgba(153,102,204,0.1)',
-                          color: p.type === 'cash' ? 'var(--emerald)' : 'var(--amethyst)',
-                          border: p.type === 'cash' ? '1px solid rgba(46,204,138,0.2)' : '1px solid rgba(153,102,204,0.2)'
-                        }}>
-                          {p.type === 'cash' ? 'Cash' : 'Cosmetic'}
-                        </span>
-                      )}
-                    </td>
-                    {prizeEditing && (
-                      <td>
-                        <button className="btn btn-ghost btn-icon" onClick={() => deleteDraft(i)}
-                          style={{ color: 'var(--text-muted)' }}>
-                          <Trash2 size={13} />
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {prizeEditing && (
-            <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)' }}>
-              <button className="btn btn-ghost btn-sm" style={{ width: '100%', justifyContent: 'center' }} onClick={addDraft}>
-                <Plus size={13} /> Add Rank
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Leaderboard */}
-        <div className="table-wrapper">
-          <div className="table-header">
-            <div>
-              <div className="table-title">Current Top 10 Leaderboard</div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {refreshedAt && (
-                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Updated {refreshedAt}</span>
-              )}
-              <button className="btn btn-ghost btn-sm" onClick={handleRefresh} disabled={refreshing}
-                style={{ opacity: refreshing ? 0.6 : 1 }}>
-                <RefreshCw size={13} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
-                Refresh
-              </button>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                <Trophy size={13} style={{ display: 'inline', marginRight: 4, color: 'var(--gold)' }} />
-                Top 30 eligible for prizes
-              </span>
-            </div>
-          </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table>
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Creator</th>
-                  <th>Diamonds Received</th>
-                  <th>Prize</th>
-                  <th>Change</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockLeaderboard.map(entry => {
-                  const rankClass = entry.rank <= 3 ? `rank-${entry.rank}` : 'rank-other'
-                  return (
-                    <tr key={entry.rank}>
-                      <td>
-                        <div className={`rank-badge ${rankClass}`}>
-                          {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : entry.rank}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="avatar-row">
-                          <div className="avatar" style={{ background: entry.avatarColor }}>
-                            {entry.name[0]}
-                          </div>
-                          <div>
-                            <div className="user-name">{entry.name}</div>
-                            <div className="user-handle">@{entry.handle}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
-                          {entry.diamondsReceived.toLocaleString()} 💎
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{ color: 'var(--emerald)', fontWeight: 700 }}>{entry.prize}</span>
-                      </td>
-                      <td>
-                        <div className={`change-arrow change-${entry.change}`}>
-                          {entry.change === 'up' && <TrendingUp size={13} />}
-                          {entry.change === 'down' && <TrendingDown size={13} />}
-                          {entry.change === 'same' && <Minus size={13} />}
-                          {entry.change !== 'same' && entry.changeAmount > 0 && (
-                            <span>{entry.changeAmount}</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   )
 }
