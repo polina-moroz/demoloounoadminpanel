@@ -3,7 +3,6 @@ import { Eye, AlertTriangle, PauseCircle, Ban, X, Radio, Wallet, Flag, RotateCcw
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
 import WarnMessagesEditor from '../components/WarnMessagesEditor'
-import ReportReasonsEditor from '../components/ReportReasonsEditor'
 import TxHistoryModal from '../components/TxHistoryModal'
 import ActionLogModal from '../components/ActionLogModal'
 import { useStore } from '../store'
@@ -645,7 +644,7 @@ function SuspendModal({ user, onConfirm, onClose }: {
 
 export default function Users() {
   const { users, warnUser, setUserStatus, promoteTopStreamer, demoteTopStreamer, ipBanUser, adjustWalletBalance } = useStore()
-  const [activeSection, setActiveSection] = useState<'users' | 'templates' | 'reasons'>('users')
+  const [activeSection, setActiveSection] = useState<'users' | 'templates'>('users')
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterTab>('all')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -698,7 +697,6 @@ export default function Users() {
         {([
           { key: 'users', label: 'Users' },
           { key: 'templates', label: 'Warn Templates' },
-          { key: 'reasons', label: 'Report Reasons' },
         ] as const).map(tab => (
           <button
             key={tab.key}
@@ -717,9 +715,7 @@ export default function Users() {
       </div>
 
       {activeSection === 'templates' ? (
-        <WarnMessagesEditor />
-      ) : activeSection === 'reasons' ? (
-        <ReportReasonsEditor variant="user" />
+        <WarnMessagesEditor variant="user" />
       ) : (
         <>
           {/* Search + filter */}
