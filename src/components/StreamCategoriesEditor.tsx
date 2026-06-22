@@ -3,11 +3,9 @@ import { Trash2, Plus, Check, X } from 'lucide-react'
 import { useStore } from '../store'
 
 export default function StreamCategoriesEditor() {
-  const { streamCategories, streams, addStreamCategory, updateStreamCategory, removeStreamCategory } = useStore()
+  const { streamCategories, addStreamCategory, updateStreamCategory, removeStreamCategory } = useStore()
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
-
-  const usageCount = (name: string) => streams.filter(s => s.category === name).length
 
   const handleAdd = () => {
     if (!newName.trim()) return
@@ -22,7 +20,7 @@ export default function StreamCategoriesEditor() {
         <div>
           <div className="table-title">Stream Categories</div>
           <div className="table-subtitle">
-            Categories streamers can select when going live — disabled categories are hidden from the picker
+            Categories streamers can select when going live
           </div>
         </div>
         <button className="btn btn-primary btn-sm" onClick={() => setAdding(v => !v)}>
@@ -35,8 +33,6 @@ export default function StreamCategoriesEditor() {
           <thead>
             <tr>
               <th>Name</th>
-              <th style={{ width: 100, textAlign: 'center' }}>Usage</th>
-              <th style={{ width: 100, textAlign: 'center' }}>Enabled</th>
               <th style={{ width: 40 }}></th>
             </tr>
           </thead>
@@ -57,28 +53,6 @@ export default function StreamCategoriesEditor() {
                     onFocus={e => (e.target.style.borderColor = 'var(--border-gold, rgba(212,175,55,0.5))')}
                     onBlur={e => (e.target.style.borderColor = 'transparent')}
                   />
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  <span style={{
-                    fontSize: 12, fontWeight: 600,
-                    color: usageCount(cat.name) > 0 ? 'var(--text-secondary)' : 'var(--text-muted)',
-                  }}>
-                    {usageCount(cat.name)} stream{usageCount(cat.name) !== 1 ? 's' : ''}
-                  </span>
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  <button
-                    onClick={() => updateStreamCategory(cat.id, { enabled: !cat.enabled })}
-                    style={{
-                      background: cat.enabled ? 'var(--gold)' : 'var(--bg-surface-2)',
-                      border: `1px solid ${cat.enabled ? 'var(--gold)' : 'var(--border)'}`,
-                      borderRadius: 12, padding: '3px 10px', fontSize: 11,
-                      fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
-                      color: cat.enabled ? '#000' : 'var(--text-muted)',
-                    }}
-                  >
-                    {cat.enabled ? 'Enabled' : 'Disabled'}
-                  </button>
                 </td>
                 <td>
                   <button
@@ -106,8 +80,6 @@ export default function StreamCategoriesEditor() {
                     style={{ fontSize: 13, fontWeight: 600 }}
                   />
                 </td>
-                <td />
-                <td />
                 <td>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <button
@@ -136,7 +108,7 @@ export default function StreamCategoriesEditor() {
       </div>
 
       <div style={{ padding: '10px 20px', borderTop: '1px solid var(--border)', fontSize: 12, color: 'var(--text-subtle)' }}>
-        Name is editable inline. Usage shows how many total streams (live + past) used each category.
+        Name is editable inline.
       </div>
     </div>
   )
