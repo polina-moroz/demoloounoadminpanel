@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import {
   mockUsers, mockStreams, mockReports, mockWithdrawals,
-  mockKYC, mockNotifications, mockAdminTeam, mockReportReasons, mockFraudAlerts, mockWarnMessages,
+  mockKYC, mockNotifications, mockAdminTeam, mockReportReasons, mockFraudAlerts, mockWarnMessages, mockStreamCategories,
 } from './mockData'
 import type {
   User, Stream, Report, WithdrawalRequest, KYCEntry,
   Notification, UserStatus, WithdrawalStatus, KYCStatus, NotificationTarget,
-  AdminMember, AdminRole, ReportReason, ReportType, FraudAlert, WarnMessage, ReportLogEntry, ActionLogEntry,
+  AdminMember, AdminRole, ReportReason, ReportType, FraudAlert, WarnMessage, ReportLogEntry, ActionLogEntry, StreamCategory,
 } from './types'
 
 // Processing fee default (%)
@@ -63,6 +63,12 @@ interface StoreCtx {
   addWarnMessage: (title: string, message: string) => void
   updateWarnMessage: (id: string, updates: Partial<Pick<WarnMessage, 'title' | 'message'>>) => void
   removeWarnMessage: (id: string) => void
+
+  // stream categories
+  streamCategories: StreamCategory[]
+  addStreamCategory: (name: string) => void
+  updateStreamCategory: (id: string, updates: Partial<Pick<StreamCategory, 'name' | 'enabled'>>) => void
+  removeStreamCategory: (id: string) => void
 
   // report reasons
   reportReasons: ReportReason[]
@@ -132,6 +138,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
   const [reportReasons, setReportReasons] = useState<ReportReason[]>(mockReportReasons)
   const [warnMessages, setWarnMessages] = useState<WarnMessage[]>(mockWarnMessages)
+  const [streamCategories, setStreamCategories] = useState<StreamCategory[]>(mockStreamCategories)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [toastId, setToastId] = useState(0)
   const [adminTeam, setAdminTeam] = useState<AdminMember[]>(mockAdminTeam)
@@ -337,6 +344,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     toast(`Template "${w?.title ?? ''}" removed`, 'info')
   }, [warnMessages, toast])
 
+  /* ── stream category helpers ── */
+  const addStreamCategory = useCallback((name: string) => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    setStreamCategories(prev => [...prev, { id: `cat${Date.now()}`, name: trimmed, enabled: true }])
+    toast(`Category "${trimmed}" added`, 'success')
+  }, [toast])
+
+  const updateStreamCategory = useCallback((id: string, updates: Partial<Pick<StreamCategory, 'name' | 'enabled'>>) => {
+    setStreamCategories(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c))
+  }, [])
+
+  const removeStreamCategory = useCallback((id: string) => {
+    const c = streamCategories.find(c => c.id === id)
+    setStreamCategories(prev => prev.filter(c => c.id !== id))
+    toast(`Category "${c?.name ?? ''}" removed`, 'info')
+  }, [streamCategories, toast])
+
   /* ── withdrawal helpers ── */
   const setWithdrawalStatus = (id: string, status: WithdrawalStatus, reviewedBy?: string) => {
     const reviewedAt = new Date().toISOString()
@@ -522,6 +547,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       terminateStream, warnStreamer,
       resolveReport, dismissReport, reopenReport, banReportTarget, warnReportTarget,
       warnMessages, addWarnMessage, updateWarnMessage, removeWarnMessage,
+      streamCategories, addStreamCategory, updateStreamCategory, removeStreamCategory,
       reportReasons, addReportReason, updateReportReason, removeReportReason,
       approveWithdrawal, rejectWithdrawal, holdWithdrawal,
       fraudAlerts, fraudThresholdUSD, approveFraudAlert, rejectFraudAlert, setFraudThreshold,

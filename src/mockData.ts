@@ -2,7 +2,7 @@ import type {
   User, Stream, Report, WithdrawalRequest, Transaction,
   KYCEntry, Gift, CompetitionEntry, PrizeTier, CoinPackage,
   Notification, PrestigeXPLevel, PrestigeCPTier, VIPLevel,
-  AdminMember, ReportReason, FraudAlert, WarnMessage, SeasonalWheel, ActionLogEntry,
+  AdminMember, ReportReason, FraudAlert, WarnMessage, SeasonalWheel, ActionLogEntry, StreamCategory,
 } from './types';
 
 export const mockUsers: User[] = [
@@ -27,6 +27,15 @@ export const mockStreams: Stream[] = [
   { id: 's6', streamer: 'Tyler Banks',    streamerHandle: 'tylerb',     title: 'Freestyle Rap Session',     category: 'Music',         viewers: 0,    peakViewers: 1100, duration: '58m',    diamondsEarned: 14200,  status: 'terminated', startedAt: '2026-05-29T18:30:00Z', endedAt: '2026-05-29T19:28:00Z', avatarColor: '#C0392B', log: [{ id: 'sl1', action: 'warned', adminName: 'Super Admin', timestamp: '2026-05-29T18:45:00Z', note: 'Community Guidelines Violation' }, { id: 'sl2', action: 'terminated', adminName: 'Super Admin', timestamp: '2026-05-29T19:28:00Z', note: 'Repeated violation after warning' }] as ActionLogEntry[] },
   { id: 's7', streamer: 'Aria Voss',      streamerHandle: 'ariavoss',   title: 'Makeup Tutorial GRWM',      category: 'Beauty',        viewers: 0,    peakViewers: 1750, duration: '2h 30m', diamondsEarned: 55000,  status: 'ended',      startedAt: '2026-05-31T15:00:00Z', endedAt: '2026-05-31T17:30:00Z', avatarColor: '#9966CC' },
   { id: 's8', streamer: 'Marco Reyes',    streamerHandle: 'marcoreyes', title: 'VS Battle Night',           category: 'Battle',        viewers: 0,    peakViewers: 2800, duration: '2h 10m', diamondsEarned: 98400,  status: 'ended',      startedAt: '2026-05-30T20:00:00Z', endedAt: '2026-05-30T22:10:00Z', avatarColor: '#2ECC8A' },
+];
+
+export const mockStreamCategories: StreamCategory[] = [
+  { id: 'cat1', name: 'Just Chatting', enabled: true },
+  { id: 'cat2', name: 'Performance',   enabled: true },
+  { id: 'cat3', name: 'Lifestyle',     enabled: true },
+  { id: 'cat4', name: 'Music',         enabled: true },
+  { id: 'cat5', name: 'Beauty',        enabled: true },
+  { id: 'cat6', name: 'Battle',        enabled: true },
 ];
 
 export const mockReports: Report[] = [

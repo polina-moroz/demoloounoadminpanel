@@ -3,6 +3,7 @@ import { X, AlertTriangle, Ban, RotateCcw, ExternalLink, ScrollText } from 'luci
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
 import WarnMessagesEditor from '../components/WarnMessagesEditor'
+import ReportReasonsEditor from '../components/ReportReasonsEditor'
 import { useStore } from '../store'
 import type { ReportType, ReportStatus, ReportLogEntry } from '../types'
 
@@ -107,7 +108,7 @@ export default function Reports() {
     reports, dismissReport, reopenReport, banReportTarget, warnReportTarget,
   } = useStore()
 
-  const [activeSection, setActiveSection] = useState<'reports' | 'templates'>('reports')
+  const [activeSection, setActiveSection] = useState<'reports' | 'templates' | 'reasons'>('reports')
   const [selectedTypes,    setSelectedTypes]    = useState<ReportType[]>([])
   const [selectedStatuses, setSelectedStatuses] = useState<ReportStatus[]>([])
   const [warnPickerReport, setWarnPickerReport] = useState<{ id: string; targetHandle: string } | null>(null)
@@ -144,6 +145,7 @@ export default function Reports() {
         {([
           { key: 'reports', label: 'Reports' },
           { key: 'templates', label: 'Warn Templates' },
+          { key: 'reasons', label: 'Report Reasons' },
         ] as const).map(tab => (
           <button
             key={tab.key}
@@ -163,6 +165,8 @@ export default function Reports() {
 
       {activeSection === 'templates' ? (
         <WarnMessagesEditor />
+      ) : activeSection === 'reasons' ? (
+        <ReportReasonsEditor />
       ) : (
         <>
           {/* Multi-picker filters */}

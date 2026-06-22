@@ -3,6 +3,8 @@ import { XCircle, AlertTriangle, ExternalLink, RefreshCw, ScrollText, Search } f
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
 import WarnMessagesEditor from '../components/WarnMessagesEditor'
+import StreamCategoriesEditor from '../components/StreamCategoriesEditor'
+import ReportReasonsEditor from '../components/ReportReasonsEditor'
 import ActionLogModal from '../components/ActionLogModal'
 import { useStore } from '../store'
 import type { Stream } from '../types'
@@ -14,7 +16,7 @@ function toggle<T>(arr: T[], value: T): T[] {
 export default function Streams() {
   const { streams, terminateStream, warnStreamer } = useStore()
 
-  const [activeTab, setActiveTab] = useState<'live' | 'past' | 'templates'>('live')
+  const [activeTab, setActiveTab] = useState<'live' | 'past' | 'templates' | 'categories' | 'reasons'>('live')
   const [search, setSearch] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
@@ -38,7 +40,7 @@ export default function Streams() {
     return true
   })
 
-  function switchTab(tab: 'live' | 'past' | 'templates') {
+  function switchTab(tab: 'live' | 'past' | 'templates' | 'categories' | 'reasons') {
     setActiveTab(tab)
     setSelectedCategories([])
     setSearch('')
@@ -135,10 +137,38 @@ export default function Streams() {
         >
           Warn Templates
         </button>
+        <button
+          onClick={() => switchTab('categories')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: '8px 16px', fontSize: 14, fontWeight: 500,
+            color: activeTab === 'categories' ? 'var(--text-primary)' : 'var(--text-muted)',
+            borderBottom: activeTab === 'categories' ? '2px solid var(--gold)' : '2px solid transparent',
+            marginBottom: -1, transition: 'color 0.15s',
+          }}
+        >
+          Categories
+        </button>
+        <button
+          onClick={() => switchTab('reasons')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: '8px 16px', fontSize: 14, fontWeight: 500,
+            color: activeTab === 'reasons' ? 'var(--text-primary)' : 'var(--text-muted)',
+            borderBottom: activeTab === 'reasons' ? '2px solid var(--gold)' : '2px solid transparent',
+            marginBottom: -1, transition: 'color 0.15s',
+          }}
+        >
+          Report Reasons
+        </button>
       </div>
 
       {activeTab === 'templates' ? (
         <WarnMessagesEditor />
+      ) : activeTab === 'categories' ? (
+        <StreamCategoriesEditor />
+      ) : activeTab === 'reasons' ? (
+        <ReportReasonsEditor show={['stream', 'all']} />
       ) : (
         <>
           {/* Filters */}

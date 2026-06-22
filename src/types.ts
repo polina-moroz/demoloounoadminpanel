@@ -219,6 +219,12 @@ export interface WarnMessage {
   message: string;
 }
 
+export interface StreamCategory {
+  id: string;
+  name: string;
+  enabled: boolean;
+}
+
 export type WheelSegmentType = 'small_bonus' | 'big_bonus' | 'miss';
 
 export interface WheelSegment {
