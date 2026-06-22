@@ -225,17 +225,6 @@ export interface StreamCategory {
   enabled: boolean;
 }
 
-export type WheelSegmentType = 'small_bonus' | 'big_bonus';
-
-export interface WheelSegment {
-  id: string;
-  type: WheelSegmentType;
-  label: string;
-  coins: number;
-  diamonds: number;
-  animationFileName: string | null;
-}
-
 export interface WheelSlot {
   id: string;
   kind: 'reward' | 'small_bonus' | 'big_bonus';
