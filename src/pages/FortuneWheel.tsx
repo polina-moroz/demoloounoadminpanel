@@ -76,12 +76,14 @@ function InlineNum({ value, fixed, onChange }: {
 
 /* ── Animation upload ────────────────────────────────────────── */
 
+let _animFieldCounter = 0
+
 function AnimField({ label, fileName, onChange }: {
   label?: string
   fileName: string | null
   onChange: (n: string | null) => void
 }) {
-  const ref = useRef<HTMLInputElement>(null)
+  const [id] = useState(() => `anim-field-${++_animFieldCounter}`)
   return (
     <div>
       {label && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>{label}</div>}
@@ -91,11 +93,11 @@ function AnimField({ label, fileName, onChange }: {
           <button className="btn btn-ghost btn-icon" style={{ width: 20, height: 20, color: 'var(--text-muted)', flexShrink: 0 }} onClick={() => onChange(null)}><X size={11} /></button>
         </div>
       ) : (
-        <button className="btn btn-secondary btn-sm" style={{ justifyContent: 'center', fontSize: 12 }} onClick={() => ref.current?.click()}>
+        <label htmlFor={id} className="btn btn-secondary btn-sm" style={{ justifyContent: 'center', fontSize: 12, cursor: 'pointer' }}>
           <Upload size={12} /> Upload
-        </button>
+        </label>
       )}
-      <input ref={ref} type="file" accept=".json" style={{ display: 'none' }}
+      <input id={id} type="file" accept=".json" style={{ display: 'none' }}
         onChange={e => { const f = e.target.files?.[0]; if (f) onChange(f.name); e.target.value = '' }} />
     </div>
   )
@@ -108,38 +110,28 @@ function MilestoneRow({ slot, fixedCoins, onChange }: {
   fixedCoins: boolean
   onChange: (u: Partial<WheelSlot>) => void
 }) {
-  const ref = useRef<HTMLInputElement>(null)
+  const inputId = `ms-anim-${slot.id}`
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))' }}>
-      <input
-        className="form-input"
-        value={slot.rewardName}
-        onChange={e => onChange({ rewardName: e.target.value })}
-        style={{ flex: 1, fontSize: 12 }}
-        placeholder="Gift name"
-      />
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))' }}>
+      {/* anim — label triggers file picker reliably */}
+      {slot.animationFileName ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+          <span style={{ fontSize: 11, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 130 }}>{slot.animationFileName}</span>
+          <button className="btn btn-ghost btn-icon" style={{ width: 18, height: 18, color: 'var(--text-muted)', flexShrink: 0 }} onClick={() => onChange({ animationFileName: null })}><X size={10} /></button>
+        </div>
+      ) : (
+        <label htmlFor={inputId} className="btn btn-ghost btn-sm" style={{ fontSize: 11, gap: 4, cursor: 'pointer', flexShrink: 0 }}>
+          <Upload size={11} /> Anim
+        </label>
+      )}
+      <input id={inputId} type="file" accept=".json" style={{ display: 'none' }}
+        onChange={e => { const f = e.target.files?.[0]; if (f) onChange({ animationFileName: f.name }); e.target.value = '' }} />
 
-      {/* anim */}
-      <div style={{ flexShrink: 0 }}>
-        {slot.animationFileName ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-secondary)', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{slot.animationFileName}</span>
-            <button className="btn btn-ghost btn-icon" style={{ width: 18, height: 18, color: 'var(--text-muted)' }} onClick={() => onChange({ animationFileName: null })}><X size={10} /></button>
-          </div>
-        ) : (
-          <button className="btn btn-ghost btn-sm" style={{ fontSize: 11, gap: 4 }} onClick={() => ref.current?.click()}>
-            <Upload size={11} /> Anim
-          </button>
-        )}
-        <input ref={ref} type="file" accept=".json" style={{ display: 'none' }}
-          onChange={e => { const f = e.target.files?.[0]; if (f) onChange({ animationFileName: f.name }); e.target.value = '' }} />
-      </div>
-
-      {/* prices inline */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-        <span style={{ fontSize: 13 }}>🪙</span>
+      {/* prices — nowrap keeps everything on one line */}
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: 13, lineHeight: 1 }}>🪙</span>
         <InlineNum value={slot.coins} fixed={fixedCoins} onChange={fixedCoins ? undefined : v => onChange({ coins: v })} />
-        <span style={{ fontSize: 13, marginLeft: 6 }}>💎</span>
+        <span style={{ fontSize: 13, lineHeight: 1, marginLeft: 4 }}>💎</span>
         <InlineNum value={slot.diamonds} onChange={v => onChange({ diamonds: v })} />
       </div>
     </div>
@@ -153,7 +145,7 @@ function SeasonSlotRow({ slot, onUpdate }: {
   onUpdate: (u: Partial<WheelSlot>) => void
 }) {
   const meta = KIND_META[slot.kind]
-  const ref = useRef<HTMLInputElement>(null)
+  const inputId = `ss-anim-${slot.id}`
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))' }}>
       <span style={{
@@ -175,11 +167,11 @@ function SeasonSlotRow({ slot, onUpdate }: {
             <button className="btn btn-ghost btn-icon" style={{ width: 18, height: 18, color: 'var(--text-muted)' }} onClick={() => onUpdate({ animationFileName: null })}><X size={10} /></button>
           </div>
         ) : (
-          <button className="btn btn-ghost btn-sm" style={{ fontSize: 11, gap: 4 }} onClick={() => ref.current?.click()}>
+          <label htmlFor={inputId} className="btn btn-ghost btn-sm" style={{ fontSize: 11, gap: 4, cursor: 'pointer' }}>
             <Upload size={11} /> Anim
-          </button>
+          </label>
         )}
-        <input ref={ref} type="file" accept=".json" style={{ display: 'none' }}
+        <input id={inputId} type="file" accept=".json" style={{ display: 'none' }}
           onChange={e => { const f = e.target.files?.[0]; if (f) onUpdate({ animationFileName: f.name }); e.target.value = '' }} />
       </div>
     </div>
