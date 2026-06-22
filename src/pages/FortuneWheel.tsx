@@ -1,49 +1,77 @@
 import { useState, useRef } from 'react'
-import { Save, Upload, X, ChevronDown, ChevronRight } from 'lucide-react'
+import { Save, Upload, X, ChevronDown, ChevronRight, Plus, Trash2, Pencil } from 'lucide-react'
 import { useStore } from '../store'
 import { mockSeasonalWheels } from '../mockData'
 import type { WheelSegment, WheelSegmentType, SeasonalWheel, WheelSlot } from '../types'
 
-const SEGMENT_TYPE_META: Record<WheelSegmentType, { label: string; color: string; bg: string; border: string; description: string; coins: number }> = {
-  'small_bonus': {
-    label: 'Small Bonus',
-    color: '#3498DB',
-    bg: 'rgba(52,152,219,0.1)',
-    border: 'rgba(52,152,219,0.25)',
-    description: 'Triggers every 500 platform-wide spins',
-    coins: 50000,
-  },
-  'big_bonus': {
-    label: 'Big Bonus',
-    color: '#9B66CC',
-    bg: 'rgba(155,102,204,0.1)',
-    border: 'rgba(155,102,204,0.25)',
-    description: 'Triggers every 1,000 platform-wide spins',
-    coins: 150000,
-  },
-  'miss': {
-    label: 'Miss',
-    color: '#8A8A8E',
-    bg: 'rgba(138,138,142,0.08)',
-    border: 'rgba(138,138,142,0.2)',
-    description: 'No reward — most spins land here',
-    coins: 0,
-  },
+const SEGMENT_TYPE_META: Record<WheelSegmentType, { label: string; color: string; bg: string; border: string }> = {
+  small_bonus: { label: 'Small Bonus', color: '#3498DB', bg: 'rgba(52,152,219,0.1)',   border: 'rgba(52,152,219,0.25)'  },
+  big_bonus:   { label: 'Mega Bonus',  color: '#9B66CC', bg: 'rgba(155,102,204,0.1)', border: 'rgba(155,102,204,0.25)' },
 }
 
-const SLOT_KIND_META: Record<WheelSlot['kind'], { label: string; color: string; bg: string; coins: number }> = {
-  reward:      { label: 'Reward',      color: '#2ECC8A', bg: 'rgba(46,204,138,0.1)',  coins: 2500  },
-  small_bonus: { label: 'Small Bonus', color: '#3498DB', bg: 'rgba(52,152,219,0.1)',  coins: 50000 },
-  big_bonus:   { label: 'Big Bonus',   color: '#9B66CC', bg: 'rgba(155,102,204,0.1)', coins: 150000 },
+const SLOT_KIND_META: Record<WheelSlot['kind'], { label: string; color: string; bg: string }> = {
+  reward:      { label: 'Reward',      color: '#2ECC8A', bg: 'rgba(46,204,138,0.1)'  },
+  small_bonus: { label: 'Small Bonus', color: '#3498DB', bg: 'rgba(52,152,219,0.1)'  },
+  big_bonus:   { label: 'Mega Bonus',  color: '#9B66CC', bg: 'rgba(155,102,204,0.1)' },
 }
 
 const DEFAULT_SEGMENTS: WheelSegment[] = [
-  { id: 'ws1', type: 'small_bonus', label: 'Small Bonus Gift', color: '#3498DB', animationFileName: null },
-  { id: 'ws2', type: 'small_bonus', label: 'Small Bonus Gift', color: '#2980B9', animationFileName: null },
-  { id: 'ws3', type: 'big_bonus',   label: 'Big Bonus Gift',   color: '#9B66CC', animationFileName: null },
-  { id: 'ws4', type: 'big_bonus',   label: 'Big Bonus Gift',   color: '#7B52AB', animationFileName: null },
-  { id: 'ws5', type: 'miss',        label: 'Miss',             color: '#3A3A40', animationFileName: null },
+  { id: 'ws1', type: 'small_bonus', label: 'Small Bonus Gift', coins: 50000,  diamonds: 0, animationFileName: null },
+  { id: 'ws2', type: 'small_bonus', label: 'Small Bonus Gift', coins: 50000,  diamonds: 0, animationFileName: null },
+  { id: 'ws3', type: 'big_bonus',   label: 'Mega Bonus Gift',  coins: 150000, diamonds: 0, animationFileName: null },
+  { id: 'ws4', type: 'big_bonus',   label: 'Mega Bonus Gift',  coins: 150000, diamonds: 0, animationFileName: null },
 ]
+
+function uid() {
+  return Math.random().toString(36).slice(2, 9)
+}
+
+function defaultSlots(): WheelSlot[] {
+  return [
+    { id: uid(), kind: 'reward',      rewardName: '', coins: 2500,   diamonds: 0, animationFileName: null },
+    { id: uid(), kind: 'reward',      rewardName: '', coins: 2500,   diamonds: 0, animationFileName: null },
+    { id: uid(), kind: 'reward',      rewardName: '', coins: 2500,   diamonds: 0, animationFileName: null },
+    { id: uid(), kind: 'small_bonus', rewardName: '', coins: 50000,  diamonds: 0, animationFileName: null },
+    { id: uid(), kind: 'big_bonus',   rewardName: '', coins: 150000, diamonds: 0, animationFileName: null },
+  ]
+}
+
+/* ── Reusable animation upload field ─────────────────────────── */
+
+function AnimField({ label, fileName, onChange }: {
+  label: string
+  fileName: string | null
+  onChange: (name: string | null) => void
+}) {
+  const ref = useRef<HTMLInputElement>(null)
+  return (
+    <div>
+      {label && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>{label}</div>}
+      {fileName ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 8, background: 'var(--bg-surface-3, #1A1A20)', border: '1px solid var(--border)' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {fileName}
+          </span>
+          <button className="btn btn-ghost btn-icon" style={{ width: 20, height: 20, color: 'var(--text-muted)', flexShrink: 0 }}
+            onClick={() => onChange(null)}>
+            <X size={11} />
+          </button>
+        </div>
+      ) : (
+        <button className="btn btn-secondary btn-sm" style={{ justifyContent: 'center', fontSize: 12 }}
+          onClick={() => ref.current?.click()}>
+          <Upload size={12} /> Upload
+        </button>
+      )}
+      <input ref={ref} type="file" accept=".json" style={{ display: 'none' }}
+        onChange={e => {
+          const file = e.target.files?.[0]
+          if (file) onChange(file.name)
+          e.target.value = ''
+        }} />
+    </div>
+  )
+}
 
 /* ── Milestone segment card ───────────────────────────────────── */
 
@@ -53,118 +81,117 @@ function SegmentCard({ segment, index, onChange }: {
   onChange: (id: string, updates: Partial<WheelSegment>) => void
 }) {
   const meta = SEGMENT_TYPE_META[segment.type]
-  const fileRef = useRef<HTMLInputElement>(null)
 
   return (
-    <div style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-      <div style={{ height: 5, background: segment.color }} />
-      <div style={{ padding: '16px 18px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{
-              fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20,
-              textTransform: 'uppercase', letterSpacing: '0.5px',
-              background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`,
-            }}>
-              {meta.label}
-            </span>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Slot {index + 1}</span>
-          </div>
-          <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, position: 'relative' }}>
-            <div style={{ width: 22, height: 22, borderRadius: 6, background: segment.color, border: '2px solid rgba(255,255,255,0.12)' }} />
-            <input type="color" value={segment.color} onChange={e => onChange(segment.id, { color: e.target.value })}
-              style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
-          </label>
-        </div>
+    <div style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 18px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+        <span style={{
+          fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20,
+          textTransform: 'uppercase', letterSpacing: '0.5px',
+          background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`,
+        }}>
+          {meta.label}
+        </span>
+        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Slot {index + 1}</span>
+      </div>
 
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600 }}>Gift Name</div>
-          <input className="form-input" value={segment.label}
-            onChange={e => onChange(segment.id, { label: e.target.value })}
-            style={{ width: '100%' }} placeholder="Enter gift name" />
-        </div>
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600 }}>Gift Name</div>
+        <input className="form-input" value={segment.label}
+          onChange={e => onChange(segment.id, { label: e.target.value })}
+          style={{ width: '100%' }} placeholder="Enter gift name" />
+      </div>
 
-        <div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>Gift Animation</div>
-          {segment.animationFileName ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-surface-3, #1A1A20)', border: '1px solid var(--border)' }}>
-              <span style={{ fontSize: 12, color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {segment.animationFileName}
-              </span>
-              <button className="btn btn-ghost btn-icon" style={{ width: 20, height: 20, color: 'var(--text-muted)', flexShrink: 0 }}
-                onClick={() => onChange(segment.id, { animationFileName: null })}>
-                <X size={11} />
-              </button>
-            </div>
-          ) : (
-            <button className="btn btn-secondary btn-sm" style={{ width: '100%', justifyContent: 'center', fontSize: 12 }}
-              onClick={() => fileRef.current?.click()}>
-              <Upload size={12} /> Upload Animation
-            </button>
-          )}
-          <input ref={fileRef} type="file" accept=".glb,.json" style={{ display: 'none' }}
-            onChange={e => {
-              const file = e.target.files?.[0]
-              if (file) onChange(segment.id, { animationFileName: file.name })
-              e.target.value = ''
-            }} />
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600 }}>Coins 🪙</div>
+          <input className="form-input" type="number" min={0} value={segment.coins}
+            onChange={e => onChange(segment.id, { coins: Number(e.target.value) })}
+            style={{ width: '100%' }} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600 }}>Diamonds 💎</div>
+          <input className="form-input" type="number" min={0} value={segment.diamonds}
+            onChange={e => onChange(segment.id, { diamonds: Number(e.target.value) })}
+            style={{ width: '100%' }} />
         </div>
       </div>
+
+      <AnimField label="Gift Animation" fileName={segment.animationFileName}
+        onChange={name => onChange(segment.id, { animationFileName: name })} />
     </div>
   )
 }
 
-/* ── Seasonal wheel slot editor ───────────────────────────────── */
+/* ── Seasonal wheel slot row ──────────────────────────────────── */
 
-function SlotRow({ slot, onChangeName, onChangeAsset }: {
+function SlotRow({ slot, onUpdate }: {
   slot: WheelSlot
-  onChangeName: (name: string) => void
-  onChangeAsset: (fileName: string | null) => void
+  onUpdate: (updates: Partial<WheelSlot>) => void
 }) {
   const meta = SLOT_KIND_META[slot.kind]
-  const fileRef = useRef<HTMLInputElement>(null)
+  const isReward = slot.kind === 'reward'
+  const ref = useRef<HTMLInputElement>(null)
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))' }}>
-      <span style={{
-        fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, flexShrink: 0,
-        textTransform: 'uppercase', letterSpacing: '0.4px',
-        background: meta.bg, color: meta.color, border: `1px solid ${meta.color}35`,
-      }}>
-        {meta.label}
-      </span>
-      <span style={{ fontSize: 11, color: 'var(--text-muted)', width: 70, flexShrink: 0 }}>
-        {meta.coins.toLocaleString()} 🪙
-      </span>
-      <input
-        className="form-input"
-        value={slot.rewardName}
-        onChange={e => onChangeName(e.target.value)}
-        style={{ flex: 1, fontSize: 12 }}
-        placeholder="Reward name"
-      />
-      <div style={{ flexShrink: 0 }}>
-        {slot.animationFileName ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-secondary)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {slot.animationFileName}
-            </span>
-            <button className="btn btn-ghost btn-icon" style={{ width: 18, height: 18, color: 'var(--text-muted)' }}
-              onClick={() => onChangeAsset(null)}>
-              <X size={10} />
+    <div style={{ padding: '12px 0', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <span style={{
+          fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, flexShrink: 0,
+          textTransform: 'uppercase', letterSpacing: '0.4px',
+          background: meta.bg, color: meta.color, border: `1px solid ${meta.color}35`,
+        }}>
+          {meta.label}
+        </span>
+        <input
+          className="form-input"
+          value={slot.rewardName}
+          onChange={e => onUpdate({ rewardName: e.target.value })}
+          style={{ flex: 1, fontSize: 12 }}
+          placeholder="Reward name"
+        />
+        <div style={{ flexShrink: 0 }}>
+          {slot.animationFileName ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 11, color: 'var(--text-secondary)', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {slot.animationFileName}
+              </span>
+              <button className="btn btn-ghost btn-icon" style={{ width: 18, height: 18, color: 'var(--text-muted)' }}
+                onClick={() => onUpdate({ animationFileName: null })}>
+                <X size={10} />
+              </button>
+            </div>
+          ) : (
+            <button className="btn btn-ghost btn-sm" style={{ fontSize: 11, gap: 4 }} onClick={() => ref.current?.click()}>
+              <Upload size={11} /> Anim
             </button>
-          </div>
-        ) : (
-          <button className="btn btn-ghost btn-sm" style={{ fontSize: 11, gap: 4 }} onClick={() => fileRef.current?.click()}>
-            <Upload size={11} /> Asset
-          </button>
-        )}
-        <input ref={fileRef} type="file" accept=".glb,.json" style={{ display: 'none' }}
-          onChange={e => {
-            const file = e.target.files?.[0]
-            if (file) onChangeAsset(file.name)
-            e.target.value = ''
-          }} />
+          )}
+          <input ref={ref} type="file" accept=".json" style={{ display: 'none' }}
+            onChange={e => {
+              const file = e.target.files?.[0]
+              if (file) onUpdate({ animationFileName: file.name })
+              e.target.value = ''
+            }} />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, paddingLeft: 2 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>🪙</span>
+          {isReward ? (
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{slot.coins.toLocaleString()}</span>
+          ) : (
+            <input className="form-input" type="number" min={0} value={slot.coins}
+              onChange={e => onUpdate({ coins: Number(e.target.value) })}
+              style={{ width: 90, fontSize: 12 }} />
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>💎</span>
+          <input className="form-input" type="number" min={0} value={slot.diamonds}
+            onChange={e => onUpdate({ diamonds: Number(e.target.value) })}
+            style={{ width: 90, fontSize: 12 }} />
+        </div>
       </div>
     </div>
   )
@@ -172,56 +199,86 @@ function SlotRow({ slot, onChangeName, onChangeAsset }: {
 
 /* ── Seasonal wheel card ──────────────────────────────────────── */
 
-function SeasonalWheelCard({ wheel, onChange }: {
+function SeasonalWheelCard({ wheel, onChange, onDelete, onActivate }: {
   wheel: SeasonalWheel
   onChange: (id: string, updates: Partial<SeasonalWheel>) => void
+  onDelete: (id: string) => void
+  onActivate: (id: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [editingName, setEditingName] = useState(false)
+  const [nameVal, setNameVal] = useState(wheel.name)
 
-  const updateSlot = (slotId: string, updates: Partial<WheelSlot>) => {
-    onChange(wheel.id, {
-      slots: wheel.slots.map(s => s.id === slotId ? { ...s, ...updates } : s),
-    })
+  const commitName = () => {
+    if (nameVal.trim()) onChange(wheel.id, { name: nameVal.trim() })
+    else setNameVal(wheel.name)
+    setEditingName(false)
   }
 
+  const updateSlot = (slotId: string, updates: Partial<WheelSlot>) =>
+    onChange(wheel.id, { slots: wheel.slots.map(s => s.id === slotId ? { ...s, ...updates } : s) })
+
   return (
-    <div style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
+    <div style={{ background: 'var(--bg-surface-2)', border: `1px solid ${wheel.active ? 'rgba(46,204,138,0.35)' : 'var(--border)'}`, borderRadius: 12, overflow: 'hidden' }}>
       <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <label className="toggle" onClick={e => e.stopPropagation()}>
           <input type="checkbox" checked={wheel.active}
-            onChange={e => onChange(wheel.id, { active: e.target.checked })} />
+            onChange={() => { if (!wheel.active) onActivate(wheel.id) }} />
           <span className="toggle-track" />
         </label>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: wheel.active ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-            {wheel.name}
+
+        {editingName ? (
+          <input
+            className="form-input"
+            value={nameVal}
+            onChange={e => setNameVal(e.target.value)}
+            onBlur={commitName}
+            onKeyDown={e => {
+              if (e.key === 'Enter') commitName()
+              if (e.key === 'Escape') { setNameVal(wheel.name); setEditingName(false) }
+            }}
+            style={{ flex: 1, fontSize: 13, fontWeight: 700 }}
+            autoFocus
+          />
+        ) : (
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: wheel.active ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+              {wheel.name}
+            </div>
+            <div style={{ fontSize: 11, color: wheel.active ? '#2ECC8A' : 'var(--text-muted)', marginTop: 1 }}>
+              {wheel.active ? 'Active' : 'Inactive'}
+            </div>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
-            {wheel.slots.length} slots · {wheel.active ? 'Active' : 'Inactive'}
-          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <button className="btn btn-ghost btn-icon" style={{ width: 28, height: 28, color: 'var(--text-muted)' }}
+            title="Rename" onClick={() => setEditingName(true)}>
+            <Pencil size={13} />
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setExpanded(v => !v)} style={{ gap: 4, fontSize: 12 }}>
+            {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+            {expanded ? 'Collapse' : 'Edit'}
+          </button>
+          <button className="btn btn-ghost btn-icon" style={{ width: 28, height: 28, color: '#E74C3C' }}
+            title="Delete season" onClick={() => onDelete(wheel.id)}>
+            <Trash2 size={13} />
+          </button>
         </div>
-        <button
-          className="btn btn-ghost btn-sm"
-          onClick={() => setExpanded(v => !v)}
-          style={{ gap: 4, fontSize: 12 }}
-        >
-          {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-          {expanded ? 'Collapse' : 'Edit slots'}
-        </button>
       </div>
 
       {expanded && (
-        <div style={{ padding: '0 16px 14px', borderTop: '1px solid var(--border)' }}>
-          <div style={{ paddingTop: 10 }}>
-            {wheel.slots.map(slot => (
-              <SlotRow
-                key={slot.id}
-                slot={slot}
-                onChangeName={name => updateSlot(slot.id, { rewardName: name })}
-                onChangeAsset={fileName => updateSlot(slot.id, { animationFileName: fileName })}
-              />
-            ))}
+        <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--border)' }}>
+          <div style={{ paddingTop: 12, marginBottom: 14 }}>
+            <AnimField
+              label="Season Animation"
+              fileName={wheel.seasonAnimationFileName}
+              onChange={name => onChange(wheel.id, { seasonAnimationFileName: name })}
+            />
           </div>
+          {wheel.slots.map(slot => (
+            <SlotRow key={slot.id} slot={slot} onUpdate={updates => updateSlot(slot.id, updates)} />
+          ))}
         </div>
       )}
     </div>
@@ -233,28 +290,44 @@ function SeasonalWheelCard({ wheel, onChange }: {
 export default function FortuneWheel() {
   const { toast } = useStore()
   const [segments, setSegments] = useState<WheelSegment[]>(DEFAULT_SEGMENTS)
-  const [wheelEnabled, setWheelEnabled] = useState(true)
   const [rareThreshold, setRareThreshold] = useState(500)
-  const [ultraRareThreshold, setUltraRareThreshold] = useState(1000)
+  const [megaThreshold, setMegaThreshold] = useState(1000)
   const [seasonalWheels, setSeasonalWheels] = useState<SeasonalWheel[]>(mockSeasonalWheels)
+  const [mainWheelAnim, setMainWheelAnim] = useState<string | null>(null)
 
-  const thresholdValid = ultraRareThreshold > rareThreshold
+  const thresholdValid = megaThreshold > rareThreshold
 
-  const updateSegment = (id: string, updates: Partial<WheelSegment>) => {
+  const updateSegment = (id: string, updates: Partial<WheelSegment>) =>
     setSegments(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s))
-  }
 
-  const updateSeasonalWheel = (id: string, updates: Partial<SeasonalWheel>) => {
+  const updateWheel = (id: string, updates: Partial<SeasonalWheel>) =>
     setSeasonalWheels(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w))
+
+  const activateSeason = (id: string) =>
+    setSeasonalWheels(prev => prev.map(w => ({ ...w, active: w.id === id })))
+
+  const deleteSeason = (id: string) =>
+    setSeasonalWheels(prev => prev.filter(w => w.id !== id))
+
+  const addSeason = () => {
+    setSeasonalWheels(prev => [...prev, {
+      id: uid(),
+      name: 'New Season',
+      active: false,
+      seasonAnimationFileName: null,
+      slots: defaultSlots(),
+    }])
   }
 
   const handleSave = () => {
     if (!thresholdValid) {
-      toast('Big Bonus threshold must be greater than Small Bonus threshold', 'error')
+      toast('Mega Bonus threshold must be greater than Small Bonus threshold', 'error')
       return
     }
     toast('Fortune Wheel configuration saved', 'success')
   }
+
+  const activeSeason = seasonalWheels.find(w => w.active)
 
   return (
     <div>
@@ -270,105 +343,57 @@ export default function FortuneWheel() {
         </div>
       </div>
 
-      {/* Global settings */}
-      <div className="table-wrapper" style={{ padding: '16px 20px', marginBottom: 20 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-          Global Settings
-        </div>
-        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <label className="toggle">
-              <input type="checkbox" checked={wheelEnabled} onChange={e => setWheelEnabled(e.target.checked)} />
-              <span className="toggle-track" />
-            </label>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>Wheel Active</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Feature visible to users</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--bg-surface-2)', borderRadius: 8, border: '1px solid var(--border)' }}>
-            <span style={{ fontSize: 16 }}>∞</span>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600 }}>Unlimited Spins</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>No cooldown · 1 spin = 1 donation</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Milestone bonuses */}
+      {/* Milestone Bonuses */}
       <div className="table-wrapper" style={{ padding: '16px 20px', marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
           Milestone Bonuses
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>
-          The outcome is determined purely by the platform-wide spin counter — not random.
-          All other spins are a miss. The viewer who triggers a milestone causes the reward to fire.
+          The outcome is determined by the platform-wide spin counter — not random. The viewer who triggers a milestone causes the reward to fire.
         </div>
 
         <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-          {/* Small Bonus */}
           <div style={{ flex: 1, minWidth: 220, padding: '14px 16px', borderRadius: 10, background: 'rgba(52,152,219,0.07)', border: '1px solid rgba(52,152,219,0.2)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px', background: 'rgba(52,152,219,0.15)', color: '#3498DB', border: '1px solid rgba(52,152,219,0.3)' }}>
-                Small Bonus
-              </span>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>50,000 coins</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px', background: 'rgba(52,152,219,0.15)', color: '#3498DB', border: '1px solid rgba(52,152,219,0.3)', display: 'inline-block', marginBottom: 12 }}>
+              Small Bonus
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Every</span>
               <input className="form-input" type="number" min={1} value={rareThreshold}
                 onChange={e => setRareThreshold(Number(e.target.value))} style={{ width: 90 }} />
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>spins</span>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
               Spin #{rareThreshold}, #{rareThreshold * 2}, #{rareThreshold * 3}, …
             </div>
           </div>
 
-          {/* Big Bonus */}
           <div style={{ flex: 1, minWidth: 220, padding: '14px 16px', borderRadius: 10, background: 'rgba(155,102,204,0.07)', border: `1px solid ${thresholdValid ? 'rgba(155,102,204,0.2)' : 'rgba(231,76,60,0.4)'}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px', background: 'rgba(155,102,204,0.15)', color: '#9B66CC', border: '1px solid rgba(155,102,204,0.3)' }}>
-                Big Bonus
-              </span>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>150,000 coins</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px', background: 'rgba(155,102,204,0.15)', color: '#9B66CC', border: '1px solid rgba(155,102,204,0.3)', display: 'inline-block', marginBottom: 12 }}>
+              Mega Bonus
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Every</span>
-              <input className="form-input" type="number" min={1} value={ultraRareThreshold}
-                onChange={e => setUltraRareThreshold(Number(e.target.value))}
+              <input className="form-input" type="number" min={1} value={megaThreshold}
+                onChange={e => setMegaThreshold(Number(e.target.value))}
                 style={{ width: 90, borderColor: thresholdValid ? undefined : 'rgba(231,76,60,0.6)' }} />
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>spins</span>
             </div>
-            <div style={{ fontSize: 11, marginTop: 8, color: thresholdValid ? 'var(--text-muted)' : '#E74C3C' }}>
+            <div style={{ fontSize: 11, color: thresholdValid ? 'var(--text-muted)' : '#E74C3C' }}>
               {thresholdValid
-                ? `Spin #${ultraRareThreshold}, #${ultraRareThreshold * 2}, #${ultraRareThreshold * 3}, …`
+                ? `Spin #${megaThreshold}, #${megaThreshold * 2}, #${megaThreshold * 3}, …`
                 : 'Must be greater than Small Bonus threshold'}
-            </div>
-          </div>
-
-          {/* Miss info */}
-          <div style={{ flex: 1, minWidth: 220, padding: '14px 16px', borderRadius: 10, background: 'rgba(138,138,142,0.06)', border: '1px solid rgba(138,138,142,0.15)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px', background: 'rgba(138,138,142,0.12)', color: '#8A8A8E', border: '1px solid rgba(138,138,142,0.2)' }}>
-                Miss
-              </span>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>all other spins</span>
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              Spins between milestones land here — the wheel animation plays but no reward is given.
             </div>
           </div>
         </div>
       </div>
 
-      {/* Milestone segments */}
+      {/* Milestone Slots */}
       <div className="table-wrapper" style={{ padding: '16px 20px', marginBottom: 20 }}>
         <div style={{ marginBottom: 16 }}>
           <div className="table-title">Milestone Slots</div>
           <div className="table-subtitle" style={{ marginTop: 2 }}>
-            2 small bonus · 2 big bonus · 1 miss — types are fixed, names and animations are editable
+            2 small bonus · 2 mega bonus — names, amounts and animations are editable
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
@@ -378,21 +403,43 @@ export default function FortuneWheel() {
         </div>
       </div>
 
-      {/* Seasonal wheels */}
+      {/* Seasonal Wheels */}
       <div className="table-wrapper" style={{ padding: '16px 20px' }}>
-        <div style={{ marginBottom: 16 }}>
-          <div className="table-title">Seasonal Wheels</div>
-          <div className="table-subtitle" style={{ marginTop: 2 }}>
-            {seasonalWheels.filter(w => w.active).length} active · only one wheel should be active at a time
+        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <div>
+            <div className="table-title">Seasonal Wheels</div>
+            <div className="table-subtitle" style={{ marginTop: 2 }}>
+              {activeSeason ? `${activeSeason.name} is active` : 'No active season'}
+            </div>
           </div>
+          <button className="btn btn-secondary btn-sm" onClick={addSeason} style={{ gap: 6, flexShrink: 0 }}>
+            <Plus size={13} /> Add Season
+          </button>
         </div>
+
+        <div style={{ marginBottom: 16, padding: '14px 16px', background: 'var(--bg-surface-2)', borderRadius: 10, border: '1px solid var(--border)' }}>
+          <AnimField
+            label="Main Wheel Animation (spinning base)"
+            fileName={mainWheelAnim}
+            onChange={setMainWheelAnim}
+          />
+        </div>
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {seasonalWheels.map(wheel => (
-            <SeasonalWheelCard key={wheel.id} wheel={wheel} onChange={updateSeasonalWheel} />
+            <SeasonalWheelCard
+              key={wheel.id}
+              wheel={wheel}
+              onChange={updateWheel}
+              onDelete={deleteSeason}
+              onActivate={activateSeason}
+            />
           ))}
-        </div>
-        <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(212,175,55,0.04)', border: '1px solid rgba(212,175,55,0.15)', borderRadius: 8, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          Each slot accepts .glb (3D) or .json (2D Lottie) animation assets. Reward slots award 2,500 coins; Small Bonus 50,000; Big Bonus 150,000.
+          {seasonalWheels.length === 0 && (
+            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+              No seasons yet — click "Add Season" to create one.
+            </div>
+          )}
         </div>
       </div>
     </div>
