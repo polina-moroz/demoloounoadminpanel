@@ -719,7 +719,7 @@ export default function Users() {
       {activeSection === 'templates' ? (
         <WarnMessagesEditor />
       ) : activeSection === 'reasons' ? (
-        <ReportReasonsEditor show={['user', 'all']} />
+        <ReportReasonsEditor variant="user" />
       ) : (
         <>
           {/* Search + filter */}

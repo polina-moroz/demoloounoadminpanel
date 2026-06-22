@@ -168,7 +168,7 @@ export default function Streams() {
       ) : activeTab === 'categories' ? (
         <StreamCategoriesEditor />
       ) : activeTab === 'reasons' ? (
-        <ReportReasonsEditor show={['stream', 'all']} />
+        <ReportReasonsEditor variant="stream" />
       ) : (
         <>
           {/* Filters */}

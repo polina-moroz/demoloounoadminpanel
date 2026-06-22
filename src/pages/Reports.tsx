@@ -166,7 +166,7 @@ export default function Reports() {
       {activeSection === 'templates' ? (
         <WarnMessagesEditor />
       ) : activeSection === 'reasons' ? (
-        <ReportReasonsEditor />
+        <ReportReasonsEditor variant="message" />
       ) : (
         <>
           {/* Multi-picker filters */}
