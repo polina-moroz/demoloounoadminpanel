@@ -215,9 +215,6 @@ export default function Settings() {
   const [coinRate, setCoinRate] = useState('0.99')
   const [processingFeeWeb, setProcessingFeeWeb] = useState('3')
   const [processingFeeApp, setProcessingFeeApp] = useState('3')
-  const [autoFlagThreshold, setAutoFlagThreshold] = useState('5')
-  const [maxReports, setMaxReports] = useState('10')
-  const [explicitContent, setExplicitContent] = useState('flag_and_review')
   const [maxStreamDuration, setMaxStreamDuration] = useState('6')
 
   return (
@@ -331,59 +328,6 @@ export default function Settings() {
                 Apply
               </button>
             </div>
-          }
-        />
-      </Section>
-
-      {/* Moderation */}
-      <Section title="Moderation">
-        <Row
-          label="Auto-Flag Threshold"
-          desc="Number of reports needed to automatically flag a user or content for review"
-          control={
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input
-                className="form-input"
-                value={autoFlagThreshold}
-                onChange={e => setAutoFlagThreshold(e.target.value)}
-                type="number"
-                style={{ width: 80 }}
-              />
-              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>reports</span>
-            </div>
-          }
-        />
-        <Row
-          label="Max Reports Before Auto-Review"
-          desc="Threshold to escalate to priority queue"
-          control={
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input
-                className="form-input"
-                value={maxReports}
-                onChange={e => setMaxReports(e.target.value)}
-                type="number"
-                style={{ width: 80 }}
-              />
-              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>reports</span>
-            </div>
-          }
-        />
-        <Row
-          label="Explicit Content Policy"
-          desc="Action taken when explicit content is detected"
-          control={
-            <select
-              className="form-select"
-              value={explicitContent}
-              onChange={e => setExplicitContent(e.target.value)}
-              style={{ width: 200 }}
-            >
-              <option value="allow">Allow (no action)</option>
-              <option value="flag_and_review">Flag and Review</option>
-              <option value="auto_terminate">Auto-Terminate Stream</option>
-              <option value="auto_ban">Auto-Ban User</option>
-            </select>
           }
         />
       </Section>
