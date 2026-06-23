@@ -79,17 +79,17 @@ const MOCK_PAST: PastContest[] = [
 
 /* ── Prize row ────────────────────────────────────────────────── */
 
-function rankColor(rank: string): string {
-  if (rank === 'Rank 1') return '#D4AF37'
-  if (rank === 'Rank 2') return '#A8A9AD'
-  if (rank === 'Rank 3') return '#CD7F32'
+function rankColor(index: number): string {
+  if (index === 0) return '#D4AF37'
+  if (index === 1) return '#A8A9AD'
+  if (index === 2) return '#CD7F32'
   return 'var(--text-secondary)'
 }
 
 function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
   tiers: PrizeTier[]
   editing: boolean
-  onUpdate: (i: number, field: keyof PrizeTier, value: string) => void
+  onUpdate: (i: number, value: string) => void
   onDelete: (i: number) => void
   onAdd: () => void
 }) {
@@ -100,13 +100,13 @@ function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
           display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
           borderBottom: i < tiers.length - 1 ? '1px solid var(--border)' : 'none',
         }}>
+          <span style={{ fontSize: 12, fontWeight: 700, minWidth: 28, color: rankColor(i) }}>
+            {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+          </span>
           {editing ? (
             <>
-              <input className="form-input" value={p.rank}
-                onChange={e => onUpdate(i, 'rank', e.target.value)}
-                style={{ width: 96, padding: '5px 8px', fontSize: 12 }} />
               <input className="form-input" value={p.prize}
-                onChange={e => onUpdate(i, 'prize', e.target.value)}
+                onChange={e => onUpdate(i, e.target.value)}
                 style={{ flex: 1, padding: '5px 8px', fontSize: 12 }} />
               <button className="btn btn-ghost btn-icon" onClick={() => onDelete(i)}
                 style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
@@ -114,10 +114,7 @@ function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
               </button>
             </>
           ) : (
-            <>
-              <span style={{ fontSize: 12, fontWeight: 700, minWidth: 96, color: rankColor(p.rank) }}>{p.rank}</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold)' }}>{p.prize}</span>
-            </>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold)' }}>{p.prize}</span>
           )}
         </div>
       ))}
@@ -176,8 +173,8 @@ export default function Competitions() {
   function saveEdit()  { setTiers(draftTiers); setPrizeEditing(false); toast('Prize configuration saved', 'success') }
   function cancelEdit(){ setDraftTiers(tiers.map(t => ({ ...t }))); setPrizeEditing(false) }
 
-  function updateDraft(i: number, field: keyof PrizeTier, value: string) {
-    setDraftTiers(prev => prev.map((t, idx) => idx === i ? { ...t, [field]: value } : t))
+  function updateDraft(i: number, value: string) {
+    setDraftTiers(prev => prev.map((t, idx) => idx === i ? { prize: value } : t))
   }
 
   function handleRefresh() {
@@ -543,7 +540,7 @@ export default function Competitions() {
                     editing={!prizesApproved}
                     onUpdate={updateDraft}
                     onDelete={i => setDraftTiers(prev => prev.filter((_, idx) => idx !== i))}
-                    onAdd={() => setDraftTiers(prev => [...prev, { rank: `Rank ${prev.length + 1}`, prize: '' }])}
+                    onAdd={() => setDraftTiers(prev => [...prev, { prize: '' }])}
                   />
                 </div>
 

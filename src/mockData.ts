@@ -153,15 +153,15 @@ export const mockLeaderboard: CompetitionEntry[] = [
 ];
 
 export const mockPrizeTiers: PrizeTier[] = [
-  { rank: 'Rank 1',      prize: '750,000 💎' },
-  { rank: 'Rank 2',      prize: '500,000 💎' },
-  { rank: 'Rank 3',      prize: '300,000 💎' },
-  { rank: 'Rank 4',      prize: '200,000 💎' },
-  { rank: 'Rank 5',      prize: '150,000 💎' },
-  { rank: 'Rank 6',      prize: '100,000 💎' },
-  { rank: 'Rank 7',      prize: '75,000 💎' },
-  { rank: 'Ranks 8–10',  prize: '50,000 💎 each' },
-  { rank: 'Ranks 11–20', prize: '25,000 💎 each' },
+  { prize: '750,000 💎' },
+  { prize: '500,000 💎' },
+  { prize: '300,000 💎' },
+  { prize: '200,000 💎' },
+  { prize: '150,000 💎' },
+  { prize: '100,000 💎' },
+  { prize: '75,000 💎' },
+  { prize: '50,000 💎' },
+  { prize: '25,000 💎' },
 ];
 
 // Website: 10 tiers

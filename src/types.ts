@@ -138,7 +138,6 @@ export interface CompetitionEntry {
 }
 
 export interface PrizeTier {
-  rank: string;
   prize: string;
 }
 
