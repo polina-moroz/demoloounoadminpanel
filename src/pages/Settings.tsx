@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Save, Lock, Eye, EyeOff, CheckCircle, ShieldCheck } from 'lucide-react'
+import { Save, Lock, Eye, EyeOff, CheckCircle, ShieldCheck, ChevronDown } from 'lucide-react'
 import { useStore } from '../store'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -46,6 +46,7 @@ function calcStrength(pw: string): { score: number; label: string; color: string
 /* ── Change Password Section ──────────────────────────────────── */
 
 function ChangePasswordSection() {
+  const [open,     setOpen]     = useState(false)
   const [current,  setCurrent]  = useState('')
   const [next,     setNext]     = useState('')
   const [confirm,  setConfirm]  = useState('')
@@ -76,7 +77,11 @@ function ChangePasswordSection() {
 
   return (
     <div className="settings-section">
-      <div className="settings-section-header">
+      <div
+        className="settings-section-header"
+        onClick={() => setOpen(v => !v)}
+        style={{ cursor: 'pointer', userSelect: 'none' }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{
             width: 28, height: 28, borderRadius: 8,
@@ -87,9 +92,14 @@ function ChangePasswordSection() {
           </div>
           <div className="settings-section-title" style={{ marginBottom: 0 }}>Change Password</div>
         </div>
+        <ChevronDown
+          size={16}
+          color="var(--text-muted)"
+          style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        />
       </div>
 
-      <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 420 }}>
+      {open && <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 420 }}>
 
         {/* Current password */}
         <div className="form-group" style={{ marginBottom: 0 }}>
@@ -193,18 +203,17 @@ function ChangePasswordSection() {
             <ShieldCheck size={14} /> Update Password
           </button>
         </div>
-      </div>
+      </div>}
     </div>
   )
 }
 
 export default function Settings() {
   const { setProcessingFee } = useStore()
-  const [appVersion, setAppVersion] = useState('1.0.0')
   const [minWithdrawal, setMinWithdrawal] = useState('10000')
   const [diamondRate, setDiamondRate] = useState('35')
+  const [coinRate, setCoinRate] = useState('0.99')
   const [processingFeeInput, setProcessingFeeInput] = useState('3')
-  const [holdDays, setHoldDays] = useState('7')
   const [autoFlagThreshold, setAutoFlagThreshold] = useState('5')
   const [maxReports, setMaxReports] = useState('10')
   const [explicitContent, setExplicitContent] = useState('flag_and_review')
@@ -220,33 +229,6 @@ export default function Settings() {
       </div>
 
       <ChangePasswordSection />
-
-      {/* Platform */}
-      <Section title="Platform">
-        <Row
-          label="App Version"
-          desc="Current live app version string"
-          control={
-            <input
-              className="form-input"
-              value={appVersion}
-              onChange={e => setAppVersion(e.target.value)}
-              style={{ width: 120 }}
-            />
-          }
-        />
-        <Row
-          label="Phase"
-          desc="Current platform availability phase"
-          control={
-            <select className="form-select" defaultValue="closed_testing" style={{ width: 180 }}>
-              <option value="closed_testing">Closed Testing</option>
-              <option value="open_beta">Open Beta</option>
-              <option value="public">Public</option>
-            </select>
-          }
-        />
-      </Section>
 
       {/* Economy */}
       <Section title="Economy">
@@ -284,6 +266,23 @@ export default function Settings() {
           }
         />
         <Row
+          label="Coin → USD Rate"
+          desc="USD value per 1 coin"
+          control={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>1 🪙 =</span>
+              <input
+                className="form-input"
+                value={coinRate}
+                onChange={e => setCoinRate(e.target.value)}
+                type="number"
+                style={{ width: 80 }}
+              />
+              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>USD</span>
+            </div>
+          }
+        />
+        <Row
           label="Processing Fee"
           desc="Percentage deducted before payout (net = gross × (1 − fee%))"
           control={
@@ -305,22 +304,6 @@ export default function Settings() {
               >
                 Apply
               </button>
-            </div>
-          }
-        />
-        <Row
-          label="Withdrawal Hold Period"
-          desc="Days before a withdrawal can be approved after request"
-          control={
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input
-                className="form-input"
-                value={holdDays}
-                onChange={e => setHoldDays(e.target.value)}
-                type="number"
-                style={{ width: 80 }}
-              />
-              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>days</span>
             </div>
           }
         />
