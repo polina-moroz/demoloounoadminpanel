@@ -213,7 +213,8 @@ export default function Settings() {
   const [minWithdrawal, setMinWithdrawal] = useState('10000')
   const [diamondRate, setDiamondRate] = useState('35')
   const [coinRate, setCoinRate] = useState('0.99')
-  const [processingFeeInput, setProcessingFeeInput] = useState('3')
+  const [processingFeeWeb, setProcessingFeeWeb] = useState('3')
+  const [processingFeeApp, setProcessingFeeApp] = useState('3')
   const [autoFlagThreshold, setAutoFlagThreshold] = useState('5')
   const [maxReports, setMaxReports] = useState('10')
   const [explicitContent, setExplicitContent] = useState('flag_and_review')
@@ -267,10 +268,10 @@ export default function Settings() {
         />
         <Row
           label="Coin → USD Rate"
-          desc="USD value per 1 coin"
+          desc="USD payout per 10,000 coins"
           control={
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>1 🪙 =</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>10,000 🪙 =</span>
               <input
                 className="form-input"
                 value={coinRate}
@@ -283,14 +284,14 @@ export default function Settings() {
           }
         />
         <Row
-          label="Processing Fee"
-          desc="Percentage deducted before payout (net = gross × (1 − fee%))"
+          label="Processing Fee — Website"
+          desc="Percentage deducted before payout for web withdrawals"
           control={
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input
                 className="form-input"
-                value={processingFeeInput}
-                onChange={e => setProcessingFeeInput(e.target.value)}
+                value={processingFeeWeb}
+                onChange={e => setProcessingFeeWeb(e.target.value)}
                 type="number"
                 style={{ width: 80 }}
               />
@@ -298,7 +299,32 @@ export default function Settings() {
               <button
                 className="btn btn-ghost btn-sm"
                 onClick={() => {
-                  const v = Number(processingFeeInput)
+                  const v = Number(processingFeeWeb)
+                  if (!isNaN(v) && v >= 0) setProcessingFee(v)
+                }}
+              >
+                Apply
+              </button>
+            </div>
+          }
+        />
+        <Row
+          label="Processing Fee — In-App"
+          desc="Percentage deducted before payout for in-app withdrawals"
+          control={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                className="form-input"
+                value={processingFeeApp}
+                onChange={e => setProcessingFeeApp(e.target.value)}
+                type="number"
+                style={{ width: 80 }}
+              />
+              <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>%</span>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => {
+                  const v = Number(processingFeeApp)
                   if (!isNaN(v) && v >= 0) setProcessingFee(v)
                 }}
               >
