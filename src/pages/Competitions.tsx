@@ -1,5 +1,5 @@
-﻿import { useState } from 'react'
-import { Trophy, RefreshCw, TrendingUp, TrendingDown, Minus, Play, Square, Plus, Trash2, X, Calendar, Users, Award } from 'lucide-react'
+﻿import { useState, useRef } from 'react'
+import { Trophy, RefreshCw, TrendingUp, TrendingDown, Minus, Play, Square, Plus, Trash2, X, Calendar, Users, Award, ImageIcon } from 'lucide-react'
 import { mockLeaderboard, mockPrizeTiers } from '../mockData'
 import { useStore } from '../store'
 import type { PrizeTier, CompetitionEntry } from '../types'
@@ -29,6 +29,8 @@ interface PastContest {
   id: string
   period: ContestPeriod
   label: string
+  subtitle?: string
+  bannerUrl?: string
   startDate: string
   endDate: string
   participants: number
@@ -40,37 +42,37 @@ const MOCK_PAST: PastContest[] = [
   {
     id: 'past1', period: 'monthly', label: 'May 2026 Competition',
     startDate: 'May 1, 2026', endDate: 'May 31, 2026',
-    participants: 231, prizePool: '$2,500',
+    participants: 231, prizePool: '2,275,000 💎',
     winners: [
-      { rank: 1,  name: 'Sasha Bloom',    handle: 'sashabloom', prize: '$750',              avatarColor: '#9966CC', diamonds: 510400 },
-      { rank: 2,  name: 'Aria Voss',      handle: 'ariavoss',   prize: '$500',              avatarColor: '#9966CC', diamonds: 389200 },
-      { rank: 3,  name: 'Marco Reyes',    handle: 'marcoreyes', prize: '$300',              avatarColor: '#2ECC8A', diamonds: 310100 },
-      { rank: 4,  name: 'Nour Al-Rashid', handle: 'nourar',     prize: '$200',              avatarColor: '#D4AF37', diamonds: 198300 },
-      { rank: 5,  name: 'Luna Star',      handle: 'lunastar',   prize: '$150',              avatarColor: '#9B111E', diamonds: 162400 },
-      { rank: 6,  name: 'Kai Rivers',     handle: 'kairivs',    prize: '$100',              avatarColor: '#2ECC8A', diamonds: 139700 },
-      { rank: 7,  name: 'Zoe Chen',       handle: 'zoechen',    prize: '$75',               avatarColor: '#9966CC', diamonds: 121500 },
-      { rank: 8,  name: 'Dex Volta',      handle: 'dexvolta',   prize: '$50',               avatarColor: '#D4AF37', diamonds: 104200 },
-      { rank: 9,  name: 'Maya Sun',       handle: 'mayasun',    prize: '$50',               avatarColor: '#2ECC8A', diamonds: 91800 },
-      { rank: 10, name: 'Rio Blaze',      handle: 'rioblaze',   prize: '$50',               avatarColor: '#C0392B', diamonds: 79100 },
-      { rank: 11, name: 'Ivy Moon',       handle: 'ivymoon',    prize: '$25',               avatarColor: '#3498DB', diamonds: 67400 },
-      { rank: 12, name: 'Finn Chase',     handle: 'finnchase',  prize: '$25',               avatarColor: '#E67E22', diamonds: 58900 },
+      { rank: 1,  name: 'Sasha Bloom',    handle: 'sashabloom', prize: '750,000 💎', avatarColor: '#9966CC', diamonds: 510400 },
+      { rank: 2,  name: 'Aria Voss',      handle: 'ariavoss',   prize: '500,000 💎', avatarColor: '#9966CC', diamonds: 389200 },
+      { rank: 3,  name: 'Marco Reyes',    handle: 'marcoreyes', prize: '300,000 💎', avatarColor: '#2ECC8A', diamonds: 310100 },
+      { rank: 4,  name: 'Nour Al-Rashid', handle: 'nourar',     prize: '200,000 💎', avatarColor: '#D4AF37', diamonds: 198300 },
+      { rank: 5,  name: 'Luna Star',      handle: 'lunastar',   prize: '150,000 💎', avatarColor: '#9B111E', diamonds: 162400 },
+      { rank: 6,  name: 'Kai Rivers',     handle: 'kairivs',    prize: '100,000 💎', avatarColor: '#2ECC8A', diamonds: 139700 },
+      { rank: 7,  name: 'Zoe Chen',       handle: 'zoechen',    prize: '75,000 💎',  avatarColor: '#9966CC', diamonds: 121500 },
+      { rank: 8,  name: 'Dex Volta',      handle: 'dexvolta',   prize: '50,000 💎',  avatarColor: '#D4AF37', diamonds: 104200 },
+      { rank: 9,  name: 'Maya Sun',       handle: 'mayasun',    prize: '50,000 💎',  avatarColor: '#2ECC8A', diamonds: 91800 },
+      { rank: 10, name: 'Rio Blaze',      handle: 'rioblaze',   prize: '50,000 💎',  avatarColor: '#C0392B', diamonds: 79100 },
+      { rank: 11, name: 'Ivy Moon',       handle: 'ivymoon',    prize: '25,000 💎',  avatarColor: '#3498DB', diamonds: 67400 },
+      { rank: 12, name: 'Finn Chase',     handle: 'finnchase',  prize: '25,000 💎',  avatarColor: '#E67E22', diamonds: 58900 },
     ],
   },
   {
     id: 'past2', period: 'monthly', label: 'April 2026 Competition',
     startDate: 'Apr 1, 2026', endDate: 'Apr 30, 2026',
-    participants: 198, prizePool: '$2,500',
+    participants: 198, prizePool: '2,075,000 💎',
     winners: [
-      { rank: 1,  name: 'Luna Star',      handle: 'lunastar',   prize: '$750',              avatarColor: '#9B111E', diamonds: 475000 },
-      { rank: 2,  name: 'Zoe Chen',       handle: 'zoechen',    prize: '$500',              avatarColor: '#9966CC', diamonds: 362000 },
-      { rank: 3,  name: 'Dex Volta',      handle: 'dexvolta',   prize: '$300',              avatarColor: '#D4AF37', diamonds: 288000 },
-      { rank: 4,  name: 'Sasha Bloom',    handle: 'sashabloom', prize: '$200',              avatarColor: '#9966CC', diamonds: 201400 },
-      { rank: 5,  name: 'Rio Blaze',      handle: 'rioblaze',   prize: '$150',              avatarColor: '#C0392B', diamonds: 173200 },
-      { rank: 6,  name: 'Marco Reyes',    handle: 'marcoreyes', prize: '$100',              avatarColor: '#2ECC8A', diamonds: 144800 },
-      { rank: 7,  name: 'Aria Voss',      handle: 'ariavoss',   prize: '$75',               avatarColor: '#9966CC', diamonds: 118600 },
-      { rank: 8,  name: 'Kai Rivers',     handle: 'kairivs',    prize: '$50',               avatarColor: '#2ECC8A', diamonds: 97300 },
-      { rank: 9,  name: 'Maya Sun',       handle: 'mayasun',    prize: '$50',               avatarColor: '#2ECC8A', diamonds: 84100 },
-      { rank: 10, name: 'Finn Chase',     handle: 'finnchase',  prize: '$50',               avatarColor: '#E67E22', diamonds: 71500 },
+      { rank: 1,  name: 'Luna Star',      handle: 'lunastar',   prize: '750,000 💎', avatarColor: '#9B111E', diamonds: 475000 },
+      { rank: 2,  name: 'Zoe Chen',       handle: 'zoechen',    prize: '500,000 💎', avatarColor: '#9966CC', diamonds: 362000 },
+      { rank: 3,  name: 'Dex Volta',      handle: 'dexvolta',   prize: '300,000 💎', avatarColor: '#D4AF37', diamonds: 288000 },
+      { rank: 4,  name: 'Sasha Bloom',    handle: 'sashabloom', prize: '200,000 💎', avatarColor: '#9966CC', diamonds: 201400 },
+      { rank: 5,  name: 'Rio Blaze',      handle: 'rioblaze',   prize: '150,000 💎', avatarColor: '#C0392B', diamonds: 173200 },
+      { rank: 6,  name: 'Marco Reyes',    handle: 'marcoreyes', prize: '100,000 💎', avatarColor: '#2ECC8A', diamonds: 144800 },
+      { rank: 7,  name: 'Aria Voss',      handle: 'ariavoss',   prize: '75,000 💎',  avatarColor: '#9966CC', diamonds: 118600 },
+      { rank: 8,  name: 'Kai Rivers',     handle: 'kairivs',    prize: '50,000 💎',  avatarColor: '#2ECC8A', diamonds: 97300 },
+      { rank: 9,  name: 'Maya Sun',       handle: 'mayasun',    prize: '50,000 💎',  avatarColor: '#2ECC8A', diamonds: 84100 },
+      { rank: 10, name: 'Finn Chase',     handle: 'finnchase',  prize: '50,000 💎',  avatarColor: '#E67E22', diamonds: 71500 },
     ],
   },
 ]
@@ -95,7 +97,7 @@ function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       {tiers.map((p, i) => (
         <div key={i} style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 16px',
+          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
           borderBottom: i < tiers.length - 1 ? '1px solid var(--border)' : 'none',
         }}>
           {editing ? (
@@ -105,13 +107,7 @@ function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
                 style={{ width: 96, padding: '5px 8px', fontSize: 12 }} />
               <input className="form-input" value={p.prize}
                 onChange={e => onUpdate(i, 'prize', e.target.value)}
-                style={{ width: 120, padding: '5px 8px', fontSize: 12 }} />
-              <select className="form-input" value={p.type}
-                onChange={e => onUpdate(i, 'type', e.target.value as 'cash' | 'cosmetic')}
-                style={{ width: 108, padding: '5px 8px', fontSize: 12 }}>
-                <option value="cash">Cash</option>
-                <option value="cosmetic">Cosmetic</option>
-              </select>
+                style={{ flex: 1, padding: '5px 8px', fontSize: 12 }} />
               <button className="btn btn-ghost btn-icon" onClick={() => onDelete(i)}
                 style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
                 <Trash2 size={13} />
@@ -119,20 +115,8 @@ function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
             </>
           ) : (
             <>
-              <span style={{
-                fontSize: 12, fontWeight: 700, minWidth: 96,
-                color: rankColor(p.rank),
-              }}>{p.rank}</span>
-              <span style={{
-                fontSize: 13, fontWeight: 700,
-                color: p.type === 'cash' ? 'var(--emerald)' : 'var(--amethyst)',
-              }}>{p.prize}</span>
-              <span style={{
-                fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 600, flexShrink: 0,
-                background: p.type === 'cash' ? 'rgba(46,204,138,0.1)' : 'rgba(153,102,204,0.1)',
-                color: p.type === 'cash' ? 'var(--emerald)' : 'var(--amethyst)',
-                border: p.type === 'cash' ? '1px solid rgba(46,204,138,0.2)' : '1px solid rgba(153,102,204,0.2)',
-              }}>{p.type === 'cash' ? 'Cash' : 'Cosmetic'}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, minWidth: 96, color: rankColor(p.rank) }}>{p.rank}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold)' }}>{p.prize}</span>
             </>
           )}
         </div>
@@ -153,21 +137,32 @@ function PrizeList({ tiers, editing, onUpdate, onDelete, onAdd }: {
 
 export default function Competitions() {
   const { toast } = useStore()
+  const bannerRef = useRef<HTMLInputElement>(null)
 
-  const [mainTab,       setMainTab]       = useState<MainTab>('active')
-  const [contestActive, setContestActive] = useState(true)
-  const [period,        setPeriod]        = useState<ContestPeriod>('monthly')
-  const [newPeriod,     setNewPeriod]     = useState<ContestPeriod>('monthly')
-  const [tiers,         setTiers]         = useState<PrizeTier[]>(mockPrizeTiers)
-  const [draftTiers,    setDraftTiers]    = useState<PrizeTier[]>(mockPrizeTiers)
-  const [prizeEditing,  setPrizeEditing]  = useState(false)
-  const [confirmStop,   setConfirmStop]   = useState(false)
-  const [refreshing,    setRefreshing]    = useState(false)
-  const [refreshedAt,   setRefreshedAt]   = useState<string | null>(null)
-  const [innerTab,      setInnerTab]      = useState<'leaderboard' | 'prizes'>('leaderboard')
-  const [pastContests,  setPastContests]  = useState<PastContest[]>(MOCK_PAST)
-  const [prizesApproved, setPrizesApproved] = useState(false)
-  const [expandedIds,   setExpandedIds]   = useState<Set<string>>(new Set())
+  const [mainTab,          setMainTab]          = useState<MainTab>('active')
+  const [contestActive,    setContestActive]    = useState(true)
+  const [period,           setPeriod]           = useState<ContestPeriod>('monthly')
+  const [newPeriod,        setNewPeriod]        = useState<ContestPeriod>('monthly')
+  const [tiers,            setTiers]            = useState<PrizeTier[]>(mockPrizeTiers)
+  const [draftTiers,       setDraftTiers]       = useState<PrizeTier[]>(mockPrizeTiers)
+  const [prizeEditing,     setPrizeEditing]     = useState(false)
+  const [confirmStop,      setConfirmStop]      = useState(false)
+  const [refreshing,       setRefreshing]       = useState(false)
+  const [refreshedAt,      setRefreshedAt]      = useState<string | null>(null)
+  const [innerTab,         setInnerTab]         = useState<'leaderboard' | 'prizes'>('leaderboard')
+  const [pastContests,     setPastContests]     = useState<PastContest[]>(MOCK_PAST)
+  const [prizesApproved,   setPrizesApproved]   = useState(false)
+  const [expandedIds,      setExpandedIds]      = useState<Set<string>>(new Set())
+
+  // New contest identity fields
+  const [newContestName,     setNewContestName]     = useState('')
+  const [newContestSubtitle, setNewContestSubtitle] = useState('')
+  const [newContestBanner,   setNewContestBanner]   = useState('')
+
+  // Active contest identity (stored on start)
+  const [activeContestName,     setActiveContestName]     = useState('June 2026 Competition')
+  const [activeContestSubtitle, setActiveContestSubtitle] = useState('')
+  const [activeContestBanner,   setActiveContestBanner]   = useState('')
 
   function toggleExpand(id: string) {
     setExpandedIds(prev => {
@@ -199,11 +194,13 @@ export default function Competitions() {
     const ended: PastContest = {
       id: `past_${Date.now()}`,
       period,
-      label: `June 2026 ${periodLabels[period]} Competition`,
+      label: activeContestName,
+      subtitle: activeContestSubtitle,
+      bannerUrl: activeContestBanner,
       startDate: 'Jun 1, 2026',
       endDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       participants: 247,
-      prizePool: '$2,500',
+      prizePool: '2,275,000 💎',
       winners: mockLeaderboard.slice(0, 10).map(e => ({
         rank: e.rank, name: e.name, handle: e.handle,
         prize: e.prize, avatarColor: e.avatarColor, diamonds: e.diamondsReceived,
@@ -214,12 +211,18 @@ export default function Competitions() {
     setConfirmStop(false)
     setPrizesApproved(false)
     setDraftTiers(mockPrizeTiers.map(t => ({ ...t })))
+    setNewContestName('')
+    setNewContestSubtitle('')
+    setNewContestBanner('')
     setMainTab('past')
     toast('Contest ended — results archived to Past Contests', 'info')
   }
 
   function handleStartContest() {
     setPeriod(newPeriod)
+    setActiveContestName(newContestName.trim() || `June 2026 ${periodLabels[newPeriod]} Competition`)
+    setActiveContestSubtitle(newContestSubtitle)
+    setActiveContestBanner(newContestBanner)
     setContestActive(true)
     setMainTab('active')
     toast(`${periodLabels[newPeriod]} contest started!`, 'success')
@@ -240,7 +243,7 @@ export default function Competitions() {
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
-                Are you sure you want to end the <strong style={{ color: 'var(--text-primary)' }}>June 2026 {periodLabels[period]} Competition</strong>?
+                Are you sure you want to end the <strong style={{ color: 'var(--text-primary)' }}>{activeContestName}</strong>?
                 Results will be finalized and archived to Past Contests.
               </p>
             </div>
@@ -310,18 +313,26 @@ export default function Competitions() {
           {contestActive ? (
             <>
               {/* Compact meta bar */}
-              <div className="card section">
+              <div className="card section" style={{ overflow: 'hidden' }}>
+                {activeContestBanner && (
+                  <div style={{ height: 120, overflow: 'hidden' }}>
+                    <img src={activeContestBanner} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                )}
                 <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>June 2026 Competition</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{periodLabels[period]} · {periodDuration[period]}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{activeContestName}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                      {activeContestSubtitle && <span>{activeContestSubtitle} · </span>}
+                      {periodLabels[period]} · {periodDuration[period]}
+                    </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: 'rgba(46,204,138,0.12)', color: '#2ECC8A', border: '1px solid rgba(46,204,138,0.2)' }}>
                       <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#2ECC8A', animation: 'pulse 2s infinite', display: 'inline-block' }} />
                       Active
                     </span>
-                    {([['Prize Pool', '$2,500', 'var(--gold)'], ['Competitors', '247', 'var(--text-primary)'], ['Days Left', '27', 'var(--text-primary)']] as [string,string,string][]).map(([label, value, color]) => (
+                    {([['Prize Pool', '2,275,000 💎', 'var(--gold)'], ['Competitors', '247', 'var(--text-primary)'], ['Days Left', '27', 'var(--text-primary)']] as [string,string,string][]).map(([label, value, color]) => (
                       <div key={label} style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>{label}</div>
                         <div style={{ fontSize: 16, fontWeight: 700, color }}>{value}</div>
@@ -394,7 +405,7 @@ export default function Competitions() {
                                 </div>
                               </td>
                               <td><span style={{ color: 'var(--gold)', fontWeight: 700 }}>{entry.diamondsReceived.toLocaleString()} 💎</span></td>
-                              <td><span style={{ color: 'var(--emerald)', fontWeight: 700 }}>{entry.prize}</span></td>
+                              <td><span style={{ color: 'var(--gold)', fontWeight: 700 }}>{entry.prize}</span></td>
                               <td>
                                 <div className={`change-arrow change-${entry.change}`}>
                                   {entry.change === 'up'   && <TrendingUp size={13} />}
@@ -440,6 +451,58 @@ export default function Competitions() {
                   </div>
                 </div>
 
+                {/* Identity section */}
+                <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Identity</div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Name</label>
+                    <input
+                      className="form-input"
+                      placeholder="e.g. Summer Stars Competition"
+                      value={newContestName}
+                      onChange={e => setNewContestName(e.target.value)}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Subtitle</label>
+                    <input
+                      className="form-input"
+                      placeholder="e.g. Top creators win diamond prizes"
+                      value={newContestSubtitle}
+                      onChange={e => setNewContestSubtitle(e.target.value)}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Banner Image</label>
+                    <div
+                      onClick={() => bannerRef.current?.click()}
+                      style={{
+                        height: 96, borderRadius: 8, border: '2px dashed var(--border)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', overflow: 'hidden', background: 'var(--bg-surface-2)',
+                      }}
+                    >
+                      {newContestBanner ? (
+                        <img src={newContestBanner} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ textAlign: 'center', color: 'var(--text-muted)', pointerEvents: 'none' }}>
+                          <ImageIcon size={20} style={{ marginBottom: 6 }} />
+                          <div style={{ fontSize: 12 }}>Click to upload banner</div>
+                          <div style={{ fontSize: 11, marginTop: 2, opacity: 0.7 }}>Recommended: 1200 × 400 px</div>
+                        </div>
+                      )}
+                    </div>
+                    <input ref={bannerRef} type="file" accept="image/*" style={{ display: 'none' }}
+                      onChange={e => {
+                        const f = e.target.files?.[0]
+                        if (f) setNewContestBanner(URL.createObjectURL(f))
+                      }}
+                    />
+                  </div>
+                </div>
+
                 {/* Duration section */}
                 <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Duration</div>
@@ -480,7 +543,7 @@ export default function Competitions() {
                     editing={!prizesApproved}
                     onUpdate={updateDraft}
                     onDelete={i => setDraftTiers(prev => prev.filter((_, idx) => idx !== i))}
-                    onAdd={() => setDraftTiers(prev => [...prev, { rank: `Rank ${prev.length + 1}`, prize: '', type: 'cash' }])}
+                    onAdd={() => setDraftTiers(prev => [...prev, { rank: `Rank ${prev.length + 1}`, prize: '' }])}
                   />
                 </div>
 
@@ -565,7 +628,7 @@ export default function Competitions() {
                         <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.name}</div>
                         <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{w.diamonds.toLocaleString()} 💎</div>
                       </div>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--emerald)', flexShrink: 0 }}>{w.prize}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold)', flexShrink: 0 }}>{w.prize}</span>
                     </div>
                   ))}
                 </div>
@@ -603,7 +666,7 @@ export default function Competitions() {
                               </div>
                             </td>
                             <td><span style={{ color: 'var(--gold)', fontWeight: 700 }}>{w.diamonds.toLocaleString()} 💎</span></td>
-                            <td><span style={{ color: 'var(--emerald)', fontWeight: 700 }}>{w.prize}</span></td>
+                            <td><span style={{ color: 'var(--gold)', fontWeight: 700 }}>{w.prize}</span></td>
                           </tr>
                         ))}
                       </tbody>

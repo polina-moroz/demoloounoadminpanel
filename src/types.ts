@@ -140,7 +140,6 @@ export interface CompetitionEntry {
 export interface PrizeTier {
   rank: string;
   prize: string;
-  type: 'cash' | 'cosmetic';
 }
 
 export interface CoinPackage {

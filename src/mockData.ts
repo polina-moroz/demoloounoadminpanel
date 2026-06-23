@@ -140,29 +140,28 @@ export const mockGifts: Gift[] = [
 ];
 
 export const mockLeaderboard: CompetitionEntry[] = [
-  { rank: 1,  name: 'Sasha Bloom',    handle: 'sashabloom', diamondsReceived: 482000, prize: '$750',  change: 'same', changeAmount: 0, avatarColor: '#9966CC' },
-  { rank: 2,  name: 'Aria Voss',      handle: 'ariavoss',   diamondsReceived: 341200, prize: '$500',  change: 'up',   changeAmount: 1, avatarColor: '#9966CC' },
-  { rank: 3,  name: 'Marco Reyes',    handle: 'marcoreyes', diamondsReceived: 298700, prize: '$300',  change: 'down', changeAmount: 1, avatarColor: '#2ECC8A' },
-  { rank: 4,  name: 'Nour Al-Rashid', handle: 'nourar',     diamondsReceived: 187400, prize: '$200',  change: 'up',   changeAmount: 2, avatarColor: '#D4AF37' },
-  { rank: 5,  name: 'Luna Star',      handle: 'lunastar',   diamondsReceived: 154200, prize: '$150',  change: 'same', changeAmount: 0, avatarColor: '#9B111E' },
-  { rank: 6,  name: 'Kai Rivers',     handle: 'kairivs',    diamondsReceived: 132800, prize: '$100',  change: 'up',   changeAmount: 1, avatarColor: '#2ECC8A' },
-  { rank: 7,  name: 'Zoe Chen',       handle: 'zoechen',    diamondsReceived: 118500, prize: '$75',   change: 'down', changeAmount: 2, avatarColor: '#9966CC' },
-  { rank: 8,  name: 'Dex Volta',      handle: 'dexvolta',   diamondsReceived: 98200,  prize: '$50',   change: 'up',   changeAmount: 3, avatarColor: '#D4AF37' },
-  { rank: 9,  name: 'Maya Sun',       handle: 'mayasun',    diamondsReceived: 87100,  prize: '$50',   change: 'same', changeAmount: 0, avatarColor: '#2ECC8A' },
-  { rank: 10, name: 'Rio Blaze',      handle: 'rioblaze',   diamondsReceived: 76400,  prize: '$25',   change: 'down', changeAmount: 1, avatarColor: '#C0392B' },
+  { rank: 1,  name: 'Sasha Bloom',    handle: 'sashabloom', diamondsReceived: 482000, prize: '750,000 💎',  change: 'same', changeAmount: 0, avatarColor: '#9966CC' },
+  { rank: 2,  name: 'Aria Voss',      handle: 'ariavoss',   diamondsReceived: 341200, prize: '500,000 💎',  change: 'up',   changeAmount: 1, avatarColor: '#9966CC' },
+  { rank: 3,  name: 'Marco Reyes',    handle: 'marcoreyes', diamondsReceived: 298700, prize: '300,000 💎',  change: 'down', changeAmount: 1, avatarColor: '#2ECC8A' },
+  { rank: 4,  name: 'Nour Al-Rashid', handle: 'nourar',     diamondsReceived: 187400, prize: '200,000 💎',  change: 'up',   changeAmount: 2, avatarColor: '#D4AF37' },
+  { rank: 5,  name: 'Luna Star',      handle: 'lunastar',   diamondsReceived: 154200, prize: '150,000 💎',  change: 'same', changeAmount: 0, avatarColor: '#9B111E' },
+  { rank: 6,  name: 'Kai Rivers',     handle: 'kairivs',    diamondsReceived: 132800, prize: '100,000 💎',  change: 'up',   changeAmount: 1, avatarColor: '#2ECC8A' },
+  { rank: 7,  name: 'Zoe Chen',       handle: 'zoechen',    diamondsReceived: 118500, prize: '75,000 💎',   change: 'down', changeAmount: 2, avatarColor: '#9966CC' },
+  { rank: 8,  name: 'Dex Volta',      handle: 'dexvolta',   diamondsReceived: 98200,  prize: '50,000 💎',   change: 'up',   changeAmount: 3, avatarColor: '#D4AF37' },
+  { rank: 9,  name: 'Maya Sun',       handle: 'mayasun',    diamondsReceived: 87100,  prize: '50,000 💎',   change: 'same', changeAmount: 0, avatarColor: '#2ECC8A' },
+  { rank: 10, name: 'Rio Blaze',      handle: 'rioblaze',   diamondsReceived: 76400,  prize: '25,000 💎',   change: 'down', changeAmount: 1, avatarColor: '#C0392B' },
 ];
 
 export const mockPrizeTiers: PrizeTier[] = [
-  { rank: 'Rank 1',      prize: '$750',              type: 'cash' },
-  { rank: 'Rank 2',      prize: '$500',              type: 'cash' },
-  { rank: 'Rank 3',      prize: '$300',              type: 'cash' },
-  { rank: 'Rank 4',      prize: '$200',              type: 'cash' },
-  { rank: 'Rank 5',      prize: '$150',              type: 'cash' },
-  { rank: 'Rank 6',      prize: '$100',              type: 'cash' },
-  { rank: 'Rank 7',      prize: '$75',               type: 'cash' },
-  { rank: 'Ranks 8–10',  prize: '$50 each',          type: 'cash' },
-  { rank: 'Ranks 11–20', prize: '$25 each',          type: 'cash' },
-  { rank: 'Ranks 21–30', prize: 'Exclusive cosmetics', type: 'cosmetic' },
+  { rank: 'Rank 1',      prize: '750,000 💎' },
+  { rank: 'Rank 2',      prize: '500,000 💎' },
+  { rank: 'Rank 3',      prize: '300,000 💎' },
+  { rank: 'Rank 4',      prize: '200,000 💎' },
+  { rank: 'Rank 5',      prize: '150,000 💎' },
+  { rank: 'Rank 6',      prize: '100,000 💎' },
+  { rank: 'Rank 7',      prize: '75,000 💎' },
+  { rank: 'Ranks 8–10',  prize: '50,000 💎 each' },
+  { rank: 'Ranks 11–20', prize: '25,000 💎 each' },
 ];
 
 // Website: 10 tiers
