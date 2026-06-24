@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 import { Send, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '../store'
 import type { NotificationTarget } from '../types'
@@ -57,6 +58,7 @@ function DateTimePicker({ value, onChange }: { value: string; onChange: (v: stri
   const init = value ? new Date(value) : null
 
   const [open, setOpen] = useState(false)
+  const [pos,  setPos]  = useState<CSSProperties>({})
   const [vy, setVy] = useState(init?.getFullYear() ?? now.getFullYear())
   const [vm, setVm] = useState(init?.getMonth()    ?? now.getMonth())
   const [sd, setSd] = useState<number | null>(init?.getDate()     ?? null)
@@ -64,15 +66,26 @@ function DateTimePicker({ value, onChange }: { value: string; onChange: (v: stri
   const [sy, setSy] = useState<number | null>(init?.getFullYear() ?? null)
   const [hr, setHr] = useState(init?.getHours()   ?? 12)
   const [mn, setMn] = useState(init?.getMinutes() ?? 0)
-  const ref = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLDivElement>(null)
+  const popupRef   = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const h = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (
+        triggerRef.current && !triggerRef.current.contains(e.target as Node) &&
+        popupRef.current   && !popupRef.current.contains(e.target as Node)
+      ) setOpen(false)
     }
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
   }, [])
+
+  const openPicker = () => {
+    if (!triggerRef.current) return
+    const r = triggerRef.current.getBoundingClientRect()
+    setPos({ top: r.bottom + 6 + window.scrollY, left: r.left + window.scrollX })
+    setOpen(o => !o)
+  }
 
   const daysInMonth = new Date(vy, vm + 1, 0).getDate()
   const firstDow    = new Date(vy, vm, 1).getDay()
@@ -96,75 +109,78 @@ function DateTimePicker({ value, onChange }: { value: string; onChange: (v: stri
   const isSel   = (day: number) => sd === day && sm === vm && sy === vy
   const isToday = (day: number) => day === now.getDate() && vm === now.getMonth() && vy === now.getFullYear()
 
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <div
-        className="form-input"
-        style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', userSelect: 'none' }}
-        onClick={() => setOpen(o => !o)}
-      >
-        <span style={{ color: value ? 'var(--text-primary)' : 'var(--text-muted)', fontSize: 13 }}>
-          {fmtDisplay(value) || 'Select date & time…'}
-        </span>
-        <Calendar size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+  const popup = (
+    <div ref={popupRef} style={{
+      position: 'absolute', zIndex: 9999, ...pos,
+      background: 'var(--bg-surface-2)', border: '1px solid var(--border)',
+      borderRadius: 12, padding: '14px 16px', width: 280,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    }}>
+      {/* Month navigation */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <button className="btn btn-ghost btn-icon" style={{ width: 28, height: 28 }} onClick={prevM}><ChevronLeft size={14} /></button>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{MONTHS[vm]} {vy}</span>
+        <button className="btn btn-ghost btn-icon" style={{ width: 28, height: 28 }} onClick={nextM}><ChevronRight size={14} /></button>
       </div>
 
-      {open && (
-        <div style={{
-          position: 'absolute', zIndex: 200, top: 'calc(100% + 6px)', left: 0,
-          background: 'var(--bg-surface-2)', border: '1px solid var(--border)',
-          borderRadius: 12, padding: '14px 16px', width: 280,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-        }}>
-          {/* Month navigation */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <button className="btn btn-ghost btn-icon" style={{ width: 28, height: 28 }} onClick={prevM}><ChevronLeft size={14} /></button>
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{MONTHS[vm]} {vy}</span>
-            <button className="btn btn-ghost btn-icon" style={{ width: 28, height: 28 }} onClick={nextM}><ChevronRight size={14} /></button>
-          </div>
+      {/* Weekday headers */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
+        {WEEK_DAYS.map(d => (
+          <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-subtle)', padding: '2px 0' }}>{d}</div>
+        ))}
+      </div>
 
-          {/* Weekday headers */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
-            {WEEK_DAYS.map(d => (
-              <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-subtle)', padding: '2px 0' }}>{d}</div>
-            ))}
-          </div>
+      {/* Day grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 12 }}>
+        {Array.from({ length: firstDow }).map((_, i) => <div key={`g${i}`} />)}
+        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => (
+          <button key={day} onClick={() => pickDay(day)} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            aspectRatio: '1', borderRadius: 6, border: 'none', cursor: 'pointer',
+            fontSize: 12, fontWeight: isSel(day) ? 700 : 400,
+            background: isSel(day) ? 'var(--gold)' : isToday(day) ? 'rgba(212,175,55,0.12)' : 'transparent',
+            color: isSel(day) ? '#000' : isToday(day) ? 'var(--gold)' : 'var(--text-primary)',
+            transition: 'background 0.12s',
+          }}>{day}</button>
+        ))}
+      </div>
 
-          {/* Day grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 12 }}>
-            {Array.from({ length: firstDow }).map((_, i) => <div key={`g${i}`} />)}
-            {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => (
-              <button key={day} onClick={() => pickDay(day)} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                aspectRatio: '1', borderRadius: 6, border: 'none', cursor: 'pointer',
-                fontSize: 12, fontWeight: isSel(day) ? 700 : 400,
-                background: isSel(day) ? 'var(--gold)' : isToday(day) ? 'rgba(212,175,55,0.12)' : 'transparent',
-                color: isSel(day) ? '#000' : isToday(day) ? 'var(--gold)' : 'var(--text-primary)',
-                transition: 'background 0.12s',
-              }}>{day}</button>
-            ))}
-          </div>
-
-          {/* Time selectors */}
-          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', minWidth: 32 }}>Time</span>
-            <select className="form-select" style={{ flex: 1, fontSize: 13 }} value={hr}
-              onChange={e => pickTime(Number(e.target.value), mn)}>
-              {Array.from({ length: 24 }, (_, i) => (
-                <option key={i} value={i}>{pad(i)}</option>
-              ))}
-            </select>
-            <span style={{ color: 'var(--text-muted)', fontWeight: 700 }}>:</span>
-            <select className="form-select" style={{ flex: 1, fontSize: 13 }} value={mn}
-              onChange={e => pickTime(hr, Number(e.target.value))}>
-              {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map(m => (
-                <option key={m} value={m}>{pad(m)}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      )}
+      {/* Time selectors */}
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 12, color: 'var(--text-muted)', minWidth: 32 }}>Time</span>
+        <select className="form-select" style={{ flex: 1, fontSize: 13 }} value={hr}
+          onChange={e => pickTime(Number(e.target.value), mn)}>
+          {Array.from({ length: 24 }, (_, i) => (
+            <option key={i} value={i}>{pad(i)}</option>
+          ))}
+        </select>
+        <span style={{ color: 'var(--text-muted)', fontWeight: 700 }}>:</span>
+        <select className="form-select" style={{ flex: 1, fontSize: 13 }} value={mn}
+          onChange={e => pickTime(hr, Number(e.target.value))}>
+          {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map(m => (
+            <option key={m} value={m}>{pad(m)}</option>
+          ))}
+        </select>
+      </div>
     </div>
+  )
+
+  return (
+    <>
+      <div ref={triggerRef}>
+        <div
+          className="form-input"
+          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', userSelect: 'none' }}
+          onClick={openPicker}
+        >
+          <span style={{ color: value ? 'var(--text-primary)' : 'var(--text-muted)', fontSize: 13 }}>
+            {fmtDisplay(value) || 'Select date & time…'}
+          </span>
+          <Calendar size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+        </div>
+      </div>
+      {open && createPortal(popup, document.body)}
+    </>
   )
 }
 
