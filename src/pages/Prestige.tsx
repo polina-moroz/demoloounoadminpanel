@@ -483,7 +483,7 @@ function CPTab() {
             </table>
             <div style={{ padding: '8px 14px', borderTop: '1px solid var(--border)' }}>
               <button className="btn btn-ghost btn-sm" style={{ gap: 4, fontSize: 11 }} onClick={() => addSubTier(group)}>
-                <Plus size={11} /> Add Roman Level
+                <Plus size={11} /> Add Sub Level
               </button>
             </div>
           </div>
