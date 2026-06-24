@@ -163,30 +163,61 @@ export interface Notification {
   openRate: number;
 }
 
+export type PerkType =
+  | 'discovery_boost'
+  | 'spotlight_slots'
+  | 'exclusive_emote_pack'
+  | 'exclusive_gift'
+  | 'priority_support'
+  | 'featured_on_discover'
+  | 'animated_badge'
+  | 'full_screen_entrance'
+  | 'account_manager'
+  | 'custom_ring_color'
+  | 'other';
+
+export interface Perk {
+  type: PerkType;
+  value?: number;
+  label?: string;
+}
+
 export interface PrestigeXPLevel {
+  id: string;
   level: number;
   levelRange: string;
   name: string;
-  color: string;
+  color: string;           // serves as ring color
   xpRequired: number;
-  perks: string;
+  iconFileName: string | null;
+  entranceAnimationFileName: string | null;
+  perks: Perk[];
 }
 
 export interface PrestigeCPTier {
+  id: string;
   tier: string;
   subTier: string;
-  cpRequired: number;
-  perks: string;
+  cpFrom: number;
+  cpTo: number;
   color: string;
+  ringColor: string;
+  iconFileName: string | null;
+  entranceAnimationFileName: string | null;
+  perks: Perk[];
 }
 
 export interface VIPLevel {
+  id: string;
   level: number;
   name: string;
   minSpend: number;
   maxSpend: number | null;
   badgeColor: string;
-  perks: string;
+  ringColor: string;
+  iconFileName: string | null;
+  entranceAnimationFileName: string | null;
+  perks: Perk[];
 }
 
 export type AdminRole = 'super_admin' | 'admin' | 'moderator' | 'viewer';
