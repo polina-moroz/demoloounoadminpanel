@@ -219,7 +219,7 @@ export default function FortuneWheel() {
         onChange={e => setThreshold(Number(e.target.value))}
         style={{ width: 88, borderColor: invalid ? 'rgba(231,76,60,0.6)' : undefined }}
       />
-      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>gifts platform-wide →</span>
+      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>bonus diamonds</span>
       <input
         className="form-input" type="number" min={0} value={diamonds}
         onChange={e => setDiamonds(Number(e.target.value))}
@@ -263,16 +263,9 @@ export default function FortuneWheel() {
         </div>
 
         {/* Regular × 3 */}
-        <div style={{ marginBottom: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <KindBadge kind="reward" />
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>3 outcomes · no bonus</span>
-          </div>
-          {[1, 2, 3].map(n => (
-            <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 0', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))', color: 'var(--text-muted)', fontSize: 12 }}>
-              Outcome {n}
-            </div>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))', marginBottom: 0 }}>
+          <KindBadge kind="reward" />
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>3 outcomes · no bonus</span>
         </div>
 
         {/* Small Bonus */}
