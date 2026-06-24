@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Save, Upload, X, ChevronDown, ChevronRight, Plus, Trash2, Pencil } from 'lucide-react'
 import { useStore } from '../store'
 import { mockSeasonalWheels } from '../mockData'
@@ -10,68 +10,16 @@ const KIND_META: Record<WheelSlot['kind'], { label: string; color: string; bg: s
   big_bonus:   { label: 'Mega Bonus',  color: '#9B66CC', bg: 'rgba(155,102,204,0.1)' },
 }
 
-const DEFAULT_MILESTONE: WheelSlot[] = [
-  { id: 'ms1', kind: 'reward',      rewardName: '', coins: 2500,   diamonds: 0, animationFileName: null },
-  { id: 'ms2', kind: 'reward',      rewardName: '', coins: 2500,   diamonds: 0, animationFileName: null },
-  { id: 'ms3', kind: 'reward',      rewardName: '', coins: 2500,   diamonds: 0, animationFileName: null },
-  { id: 'ms4', kind: 'small_bonus', rewardName: '', coins: 50000,  diamonds: 0, animationFileName: null },
-  { id: 'ms5', kind: 'big_bonus',   rewardName: '', coins: 150000, diamonds: 0, animationFileName: null },
-]
-
 function uid() { return Math.random().toString(36).slice(2, 9) }
 
 function defaultSlots(): WheelSlot[] {
   return [
-    { id: uid(), kind: 'reward',      rewardName: '', coins: 2500,   diamonds: 0, animationFileName: null },
-    { id: uid(), kind: 'reward',      rewardName: '', coins: 2500,   diamonds: 0, animationFileName: null },
-    { id: uid(), kind: 'reward',      rewardName: '', coins: 2500,   diamonds: 0, animationFileName: null },
-    { id: uid(), kind: 'small_bonus', rewardName: '', coins: 50000,  diamonds: 0, animationFileName: null },
-    { id: uid(), kind: 'big_bonus',   rewardName: '', coins: 150000, diamonds: 0, animationFileName: null },
+    { id: uid(), kind: 'reward',      rewardName: '', coins: 0, diamonds: 0, animationFileName: null },
+    { id: uid(), kind: 'reward',      rewardName: '', coins: 0, diamonds: 0, animationFileName: null },
+    { id: uid(), kind: 'reward',      rewardName: '', coins: 0, diamonds: 0, animationFileName: null },
+    { id: uid(), kind: 'small_bonus', rewardName: '', coins: 0, diamonds: 0, animationFileName: null },
+    { id: uid(), kind: 'big_bonus',   rewardName: '', coins: 0, diamonds: 0, animationFileName: null },
   ]
-}
-
-/* ── Click-to-edit number ────────────────────────────────────── */
-
-function InlineNum({ value, fixed, onChange }: {
-  value: number
-  fixed?: boolean
-  onChange?: (v: number) => void
-}) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState('')
-
-  if (fixed || !onChange) {
-    return <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{value.toLocaleString()}</span>
-  }
-  if (editing) {
-    return (
-      <input
-        className="form-input"
-        type="number" min={0}
-        value={draft}
-        onChange={e => setDraft(e.target.value)}
-        onBlur={() => { onChange(Number(draft) || 0); setEditing(false) }}
-        onKeyDown={e => {
-          if (e.key === 'Enter') { onChange(Number(draft) || 0); setEditing(false) }
-          if (e.key === 'Escape') setEditing(false)
-        }}
-        style={{ width: 76, fontSize: 12, padding: '2px 6px', height: 26 }}
-        autoFocus
-      />
-    )
-  }
-  return (
-    <span
-      onClick={() => { setDraft(String(value)); setEditing(true) }}
-      title="Click to edit"
-      style={{
-        fontSize: 12, color: 'var(--text-primary)', cursor: 'text',
-        borderBottom: '1px dashed rgba(255,255,255,0.2)', paddingBottom: 1,
-      }}
-    >
-      {value.toLocaleString()}
-    </span>
-  )
 }
 
 /* ── Animation upload ────────────────────────────────────────── */
@@ -103,42 +51,7 @@ function AnimField({ label, fileName, onChange }: {
   )
 }
 
-/* ── Milestone slot row ──────────────────────────────────────── */
-
-function MilestoneRow({ slot, fixedCoins, onChange }: {
-  slot: WheelSlot
-  fixedCoins: boolean
-  onChange: (u: Partial<WheelSlot>) => void
-}) {
-  const inputId = `ms-anim-${slot.id}`
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))' }}>
-      {/* anim — label triggers file picker reliably */}
-      {slot.animationFileName ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-          <span style={{ fontSize: 11, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 130 }}>{slot.animationFileName}</span>
-          <button className="btn btn-ghost btn-icon" style={{ width: 18, height: 18, color: 'var(--text-muted)', flexShrink: 0 }} onClick={() => onChange({ animationFileName: null })}><X size={10} /></button>
-        </div>
-      ) : (
-        <label htmlFor={inputId} className="btn btn-ghost btn-sm" style={{ fontSize: 11, gap: 4, cursor: 'pointer', flexShrink: 0 }}>
-          <Upload size={11} /> Anim
-        </label>
-      )}
-      <input id={inputId} type="file" accept=".json" style={{ display: 'none' }}
-        onChange={e => { const f = e.target.files?.[0]; if (f) onChange({ animationFileName: f.name }); e.target.value = '' }} />
-
-      {/* prices — nowrap keeps everything on one line */}
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, whiteSpace: 'nowrap' }}>
-        <span style={{ fontSize: 13, lineHeight: 1 }}>🪙</span>
-        <InlineNum value={slot.coins} fixed={fixedCoins} onChange={fixedCoins ? undefined : v => onChange({ coins: v })} />
-        <span style={{ fontSize: 13, lineHeight: 1, marginLeft: 4 }}>💎</span>
-        <InlineNum value={slot.diamonds} onChange={v => onChange({ diamonds: v })} />
-      </div>
-    </div>
-  )
-}
-
-/* ── Seasonal slot row (name + anim only, no prices) ─────────── */
+/* ── Seasonal slot row ───────────────────────────────────────── */
 
 function SeasonSlotRow({ slot, onUpdate }: {
   slot: WheelSlot
@@ -245,31 +158,41 @@ function SeasonalWheelCard({ wheel, onChange, onDelete, onActivate }: {
   )
 }
 
+/* ── Shared field styles ─────────────────────────────────────── */
+
+function KindBadge({ kind }: { kind: WheelSlot['kind'] }) {
+  const m = KIND_META[kind]
+  return (
+    <span style={{
+      fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+      textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0,
+      background: m.bg, color: m.color, border: `1px solid ${m.color}40`,
+    }}>{m.label}</span>
+  )
+}
+
 /* ── Main page ───────────────────────────────────────────────── */
 
 export default function FortuneWheel() {
   const { toast } = useStore()
-  const [milestoneSlots, setMilestoneSlots] = useState<WheelSlot[]>(DEFAULT_MILESTONE)
-  const [smallThreshold, setSmallThreshold] = useState(500)
-  const [megaThreshold, setMegaThreshold] = useState(1000)
-  const [seasonalWheels, setSeasonalWheels] = useState<SeasonalWheel[]>(mockSeasonalWheels)
-  const [mainWheelAnim, setMainWheelAnim] = useState<string | null>(null)
+
+  const [giftPrice,       setGiftPrice]       = useState(2500)
+  const [smallThreshold,  setSmallThreshold]  = useState(500)
+  const [smallDiamonds,   setSmallDiamonds]   = useState(50000)
+  const [megaThreshold,   setMegaThreshold]   = useState(1000)
+  const [megaDiamonds,    setMegaDiamonds]    = useState(150000)
+  const [seasonalWheels,  setSeasonalWheels]  = useState<SeasonalWheel[]>(mockSeasonalWheels)
+  const [mainWheelAnim,   setMainWheelAnim]   = useState<string | null>(null)
 
   const thresholdValid = megaThreshold > smallThreshold
 
-  const updateMilestone = (id: string, u: Partial<WheelSlot>) =>
-    setMilestoneSlots(prev => prev.map(s => s.id === id ? { ...s, ...u } : s))
-
-  const updateWheel = (id: string, u: Partial<SeasonalWheel>) =>
+  const updateWheel  = (id: string, u: Partial<SeasonalWheel>) =>
     setSeasonalWheels(prev => prev.map(w => w.id === id ? { ...w, ...u } : w))
-
   const activateSeason = (id: string) =>
     setSeasonalWheels(prev => prev.map(w => ({ ...w, active: w.id === id })))
-
   const deleteSeason = (id: string) =>
     setSeasonalWheels(prev => prev.filter(w => w.id !== id))
-
-  const addSeason = () =>
+  const addSeason    = () =>
     setSeasonalWheels(prev => [...prev, { id: uid(), name: 'New Season', active: false, seasonAnimationFileName: null, slots: defaultSlots() }])
 
   const handleSave = () => {
@@ -277,17 +200,42 @@ export default function FortuneWheel() {
     toast('Fortune Wheel configuration saved', 'success')
   }
 
-  const rewardSlots    = milestoneSlots.filter(s => s.kind === 'reward')
-  const smallBonusSlot = milestoneSlots.find(s => s.kind === 'small_bonus')!
-  const megaBonusSlot  = milestoneSlots.find(s => s.kind === 'big_bonus')!
-  const activeSeason   = seasonalWheels.find(w => w.active)
+  const activeSeason = seasonalWheels.find(w => w.active)
+
+  const inputRow = (
+    label: string,
+    kind: WheelSlot['kind'],
+    threshold: number,
+    setThreshold: (v: number) => void,
+    diamonds: number,
+    setDiamonds: (v: number) => void,
+    invalid?: boolean,
+  ) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '12px 0', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))' }}>
+      <KindBadge kind={kind} />
+      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Every</span>
+      <input
+        className="form-input" type="number" min={1} value={threshold}
+        onChange={e => setThreshold(Number(e.target.value))}
+        style={{ width: 88, borderColor: invalid ? 'rgba(231,76,60,0.6)' : undefined }}
+      />
+      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>gifts platform-wide →</span>
+      <input
+        className="form-input" type="number" min={0} value={diamonds}
+        onChange={e => setDiamonds(Number(e.target.value))}
+        style={{ width: 108 }}
+      />
+      <span style={{ fontSize: 14, lineHeight: 1 }}>💎</span>
+      {invalid && <span style={{ fontSize: 11, color: '#E74C3C' }}>must be &gt; Small Bonus</span>}
+    </div>
+  )
 
   return (
     <div>
       <div className="page-header">
         <div className="page-header-text">
           <div className="title">Fortune Wheel</div>
-          <div className="subtitle">Platform-wide counter · milestone bonuses · seasonal wheels</div>
+          <div className="subtitle">Platform-wide gift counter · milestone bonuses · seasonal wheels</div>
         </div>
         <div className="page-header-actions">
           <button className="btn btn-primary" onClick={handleSave}><Save size={13} /> Save Config</button>
@@ -299,50 +247,39 @@ export default function FortuneWheel() {
         <div style={{ marginBottom: 20 }}>
           <div className="table-title">Milestone Slots</div>
           <div className="table-subtitle" style={{ marginTop: 2 }}>
-            Outcome determined by platform-wide spin counter — not random. Click 💎 value to edit inline.
+            Fortune Wheel is one gift with 5 possible outcomes. When the platform-wide gift count hits a milestone, the streamer receives a diamond bonus.
           </div>
         </div>
 
-        {/* Regular */}
-        <div style={{ marginBottom: 20 }}>
+        {/* Gift Price */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', marginBottom: 24, background: 'var(--bg-surface-2)', borderRadius: 10, border: '1px solid var(--border)' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', flex: 1 }}>Gift Price</span>
+          <input
+            className="form-input" type="number" min={0} value={giftPrice}
+            onChange={e => setGiftPrice(Number(e.target.value))}
+            style={{ width: 108 }}
+          />
+          <span style={{ fontSize: 14, lineHeight: 1 }}>🪙</span>
+        </div>
+
+        {/* Regular × 3 */}
+        <div style={{ marginBottom: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px', background: 'rgba(46,204,138,0.1)', color: '#2ECC8A', border: '1px solid rgba(46,204,138,0.25)' }}>Regular</span>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>3 slots · 2,500 coins fixed</span>
+            <KindBadge kind="reward" />
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>3 outcomes · no bonus</span>
           </div>
-          {rewardSlots.map(slot => (
-            <MilestoneRow key={slot.id} slot={slot} fixedCoins onChange={u => updateMilestone(slot.id, u)} />
+          {[1, 2, 3].map(n => (
+            <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 0', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))', color: 'var(--text-muted)', fontSize: 12 }}>
+              Outcome {n}
+            </div>
           ))}
         </div>
 
         {/* Small Bonus */}
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px', background: 'rgba(52,152,219,0.1)', color: '#3498DB', border: '1px solid rgba(52,152,219,0.25)' }}>Small Bonus</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Every</span>
-              <input className="form-input" type="number" min={1} value={smallThreshold}
-                onChange={e => setSmallThreshold(Number(e.target.value))} style={{ width: 80 }} />
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>spins</span>
-            </div>
-          </div>
-          <MilestoneRow slot={smallBonusSlot} fixedCoins={false} onChange={u => updateMilestone(smallBonusSlot.id, u)} />
-        </div>
+        {inputRow('Small Bonus', 'small_bonus', smallThreshold, setSmallThreshold, smallDiamonds, setSmallDiamonds)}
 
         {/* Mega Bonus */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px', background: 'rgba(155,102,204,0.1)', color: '#9B66CC', border: `1px solid ${thresholdValid ? 'rgba(155,102,204,0.25)' : 'rgba(231,76,60,0.5)'}` }}>Mega Bonus</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Every</span>
-              <input className="form-input" type="number" min={1} value={megaThreshold}
-                onChange={e => setMegaThreshold(Number(e.target.value))}
-                style={{ width: 80, borderColor: thresholdValid ? undefined : 'rgba(231,76,60,0.6)' }} />
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>spins</span>
-            </div>
-            {!thresholdValid && <span style={{ fontSize: 11, color: '#E74C3C' }}>must be &gt; Small Bonus</span>}
-          </div>
-          <MilestoneRow slot={megaBonusSlot} fixedCoins={false} onChange={u => updateMilestone(megaBonusSlot.id, u)} />
-        </div>
+        {inputRow('Mega Bonus', 'big_bonus', megaThreshold, setMegaThreshold, megaDiamonds, setMegaDiamonds, !thresholdValid)}
       </div>
 
       {/* ── Seasonal Wheels ── */}
