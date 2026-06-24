@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Info, ExternalLink, Search } from 'lucide-react'
+import { Info, ExternalLink } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import type { KYCStatus } from '../types'
@@ -70,8 +70,17 @@ export default function KYC() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
-        <div className="filter-tabs" style={{ display: 'inline-flex', marginBottom: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div className="search-input-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input
+            className="search-input"
+            placeholder="Search by name..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="filter-tabs">
           {filterTabs.map(t => (
             <button
               key={t.key}
@@ -81,16 +90,6 @@ export default function KYC() {
               {t.label}
             </button>
           ))}
-        </div>
-        <div style={{ position: 'relative', flexShrink: 0 }}>
-          <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
-          <input
-            className="form-input"
-            placeholder="Search by name…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ paddingLeft: 32, width: 220 }}
-          />
         </div>
       </div>
 
