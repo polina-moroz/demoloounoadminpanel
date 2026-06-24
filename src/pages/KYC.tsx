@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Info, ExternalLink } from 'lucide-react'
+import { Info, ExternalLink, Search } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import type { KYCStatus } from '../types'
@@ -17,8 +17,12 @@ const filterTabs: { key: FilterTab; label: string }[] = [
 export default function KYC() {
   const { kyc } = useStore()
   const [filter, setFilter] = useState<FilterTab>('all')
+  const [search, setSearch] = useState('')
 
-  const filtered = kyc.filter(k => filter === 'all' || k.status === filter)
+  const filtered = kyc.filter(k =>
+    (filter === 'all' || k.status === filter) &&
+    (!search.trim() || k.user.toLowerCase().includes(search.toLowerCase()) || k.userHandle.toLowerCase().includes(search.toLowerCase()))
+  )
   const pending = kyc.filter(k => k.status === 'pending').length
 
   return (
@@ -66,16 +70,28 @@ export default function KYC() {
         </div>
       </div>
 
-      <div className="filter-tabs mb-20" style={{ display: 'inline-flex' }}>
-        {filterTabs.map(t => (
-          <button
-            key={t.key}
-            className={`filter-tab${filter === t.key ? ' active' : ''}`}
-            onClick={() => setFilter(t.key)}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
+        <div className="filter-tabs" style={{ display: 'inline-flex', marginBottom: 0 }}>
+          {filterTabs.map(t => (
+            <button
+              key={t.key}
+              className={`filter-tab${filter === t.key ? ' active' : ''}`}
+              onClick={() => setFilter(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+          <input
+            className="form-input"
+            placeholder="Search by name…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ paddingLeft: 32, width: 220 }}
+          />
+        </div>
       </div>
 
       <div className="table-wrapper">
