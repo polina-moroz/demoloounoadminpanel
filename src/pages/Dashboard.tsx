@@ -33,35 +33,6 @@ function RevenueChart() {
   )
 }
 
-/* ── Platform status ─────────────────────────────────────────── */
-
-function PlatformStatus() {
-  return (
-    <div className="section">
-      <div className="platform-status-grid">
-        <div className="platform-status-item">
-          <div className="label">App Version</div>
-          <div className="value">1.0.0</div>
-        </div>
-        <div className="platform-status-item">
-          <div className="label">Phase</div>
-          <div className="value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#E05C6A', display: 'inline-block', animation: 'pulse 2s infinite' }} />
-            Closed Testing
-          </div>
-        </div>
-        <div className="platform-status-item">
-          <div className="label">Min Withdrawal</div>
-          <div className="value">80,000 💎</div>
-        </div>
-        <div className="platform-status-item">
-          <div className="label">Age Gate</div>
-          <div className="value">18+</div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 /* ── Report detail modal ─────────────────────────────────────── */
 
@@ -222,7 +193,6 @@ export default function Dashboard() {
       </div>
 
       <RevenueChart />
-      <PlatformStatus />
 
       {/* Pending reports */}
       <div className="table-wrapper">
