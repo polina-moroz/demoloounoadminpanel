@@ -225,7 +225,7 @@ export default function FortuneWheel() {
         onChange={e => setDiamonds(Number(e.target.value))}
         style={{ width: 108 }}
       />
-      <span style={{ fontSize: 14, lineHeight: 1 }}>💎</span>
+      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>diamonds</span>
       {invalid && <span style={{ fontSize: 11, color: '#E74C3C' }}>must be &gt; Small Bonus</span>}
     </div>
   )
@@ -259,7 +259,7 @@ export default function FortuneWheel() {
             onChange={e => setGiftPrice(Number(e.target.value))}
             style={{ width: 108 }}
           />
-          <span style={{ fontSize: 14, lineHeight: 1 }}>🪙</span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>coins</span>
         </div>
 
         {/* Regular × 3 */}
