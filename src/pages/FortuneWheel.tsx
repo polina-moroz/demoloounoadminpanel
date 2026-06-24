@@ -219,7 +219,7 @@ export default function FortuneWheel() {
         onChange={e => setThreshold(Number(e.target.value))}
         style={{ width: 88, borderColor: invalid ? 'rgba(231,76,60,0.6)' : undefined }}
       />
-      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>bonus diamonds</span>
+      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>spins →</span>
       <input
         className="form-input" type="number" min={0} value={diamonds}
         onChange={e => setDiamonds(Number(e.target.value))}
