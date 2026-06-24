@@ -133,6 +133,8 @@ const PERK_META: Record<PerkType, { label: string; hasValue: boolean; suffix?: s
   full_screen_entrance: { label: 'Full-Screen Entrance',  hasValue: false },
   account_manager:      { label: 'Account Manager',       hasValue: false },
   custom_ring_color:    { label: 'Custom Ring Color',     hasValue: false },
+  chat_effect:          { label: 'Chat Effect',           hasValue: false },
+  nameplate:            { label: 'Nameplate',             hasValue: false },
   other:                { label: 'Other (note)',           hasValue: false },
 }
 
@@ -511,10 +513,14 @@ function VIPTab() {
 
   return (
     <div>
+      {/* OPEN QUESTION: confirm what counts toward VIP — coin purchases (USD), gifting value, or both. */}
       <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
           VIP status is based on monthly eligible spend and resets monthly.
           5 levels — VIP 1 ($500+) through VIP 5 ($10,000+). Click any cell to edit.
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-subtle)', marginTop: 4 }}>
+          Monthly eligible spend in USD — resets monthly
         </div>
       </div>
       <div style={{ overflowX: 'auto' }}>
@@ -525,8 +531,8 @@ function VIPTab() {
               <th>Name</th>
               <th>Badge Color</th>
               <th>Ring Color</th>
-              <th>Min Spend (USD)</th>
-              <th>Max Spend (USD)</th>
+              <th>Min Monthly Spend (USD)</th>
+              <th>Max Monthly Spend (USD)</th>
               <th>Icon</th>
               <th>Entrance Anim</th>
               <th>Perks</th>

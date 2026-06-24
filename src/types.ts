@@ -174,6 +174,8 @@ export type PerkType =
   | 'full_screen_entrance'
   | 'account_manager'
   | 'custom_ring_color'
+  | 'chat_effect'
+  | 'nameplate'
   | 'other';
 
 export interface Perk {
