@@ -208,8 +208,7 @@ function CPModal({ entry, onSave, onClose }: {
         </FieldRow>
       </div>
       <ColorField label="Ring Color" value={draft.ringColor} onChange={v => set({ ringColor: v })} />
-      <FileUpload label="Icon (image)" fileName={draft.iconFileName} accept="image/*" onChange={v => set({ iconFileName: v })} />
-      <FileUpload label="Entrance Animation (.json)" fileName={draft.entranceAnimationFileName} accept=".json" onChange={v => set({ entranceAnimationFileName: v })} />
+      <FileUpload label="Icon (creator badge)" fileName={draft.iconFileName} accept="image/*" onChange={v => set({ iconFileName: v })} />
       <div>
         <div className="form-label" style={{ marginBottom: 8 }}>Perks</div>
         <PerkEditor perks={draft.perks} onChange={p => set({ perks: p })} />
@@ -254,10 +253,8 @@ function VIPModal({ level, onSave, onClose }: {
       </div>
       <ColorField label="Badge Color" value={draft.badgeColor} onChange={v => set({ badgeColor: v })} />
       <ColorField label="Ring Color" value={draft.ringColor} onChange={v => set({ ringColor: v })} />
-      <FileUpload label="Icon (image)" fileName={draft.iconFileName} accept="image/*" onChange={v => set({ iconFileName: v })} />
-      <FileUpload label="Entrance Animation (.json)" fileName={draft.entranceAnimationFileName} accept=".json" onChange={v => set({ entranceAnimationFileName: v })} />
+      <FileUpload label="Icon (VIP badge)" fileName={draft.iconFileName} accept="image/*" onChange={v => set({ iconFileName: v })} />
       <div>
-        {/* OPEN QUESTION: confirm what counts toward VIP — coin purchases (USD), gifting value, or both. */}
         <div className="form-label" style={{ marginBottom: 8 }}>Perks</div>
         <PerkEditor perks={draft.perks} onChange={p => set({ perks: p })} />
       </div>
@@ -409,7 +406,7 @@ function CPTab() {
     const newEntry: PrestigeCPTier = {
       id: uid(), tier: group.tier, subTier: sub,
       cpFrom: 0, cpTo: 0, color: ref.color, ringColor: ref.ringColor,
-      iconFileName: ref.iconFileName, entranceAnimationFileName: ref.entranceAnimationFileName, perks: [],
+      iconFileName: ref.iconFileName, perks: [],
     }
     setTiers(prev => {
       const next = [...prev]
@@ -419,7 +416,7 @@ function CPTab() {
   }
 
   const addTier = () => {
-    const base = { tier: 'New Tier', color: '#94A3B8', ringColor: '#94A3B8', iconFileName: null as null, entranceAnimationFileName: null as null, perks: [] as Perk[] }
+    const base = { tier: 'New Tier', color: '#94A3B8', ringColor: '#94A3B8', iconFileName: null as null, perks: [] as Perk[] }
     setTiers(prev => [...prev, ...['I', 'II', 'III', 'IV'].map(sub => ({ ...base, id: uid(), subTier: sub, cpFrom: 0, cpTo: 0 }))])
   }
 
@@ -557,7 +554,7 @@ function VIPTab() {
   const addLevel = () => setLevels(prev => [...prev, {
     id: uid(), level: prev.length + 1, name: `VIP ${prev.length + 1}`,
     minSpend: 0, maxSpend: null, badgeColor: '#94A3B8', ringColor: '#94A3B8',
-    iconFileName: null, entranceAnimationFileName: null, perks: [],
+    iconFileName: null, perks: [],
   }])
 
   return (

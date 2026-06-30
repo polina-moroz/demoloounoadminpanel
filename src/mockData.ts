@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   User, Stream, Report, WithdrawalRequest, Transaction,
   KYCEntry, Gift, CompetitionEntry, PrizeTier, CoinPackage,
   Notification, PrestigeXPLevel, PrestigeCPTier, VIPLevel, Perk,
@@ -47,9 +47,9 @@ export const mockReports: Report[] = [
   { id: 'r6',  reporter: 'aria@example.com',   reporterHandle: 'ariavoss',   type: 'message', target: "Finn O'Brien",   targetHandle: 'finno',       reason: 'Harassment or Bullying',                description: 'User posted several sexually suggestive comments directed at the streamer in the live chat. The streamer manually deleted some but the user continued posting.',                       reportedAt: '2026-06-02T11:00:00Z', status: 'pending' },
   { id: 'r7',  reporter: 'tyler@example.com',  reporterHandle: 'tylerb',     type: 'stream',  target: 'Sasha Bloom',    targetHandle: 'sashabloom',  reason: 'Misleading Content',                    description: "Reporter believes this report was submitted in bad faith to disrupt a competing streamer's broadcast. The reported stream contained no policy-violating content.",                    reportedAt: '2026-06-01T20:00:00Z', status: 'dismissed' },
   { id: 'r8',  reporter: 'nour@example.com',   reporterHandle: 'nourar',     type: 'user',    target: 'Priya Nair',     targetHandle: 'priyanair',   reason: 'Community Guidelines Violation',        description: 'The account shows unusual activity patterns: 800 follows added within 15 minutes, comment posts at a rate inconsistent with human input. The account was created 4 days ago.',          reportedAt: '2026-06-01T09:30:00Z', status: 'pending' },
-  { id: 'r9',  reporter: 'sasha@example.com',  reporterHandle: 'sashabloom', type: 'message', target: 'Marco Reyes',    targetHandle: 'marcoreyes',  reason: 'Solicitation — Final Warning',          description: 'User posted repeated messages asking viewers to send payments to an external platform in exchange for exclusive content. Included a link to a third-party payment page.',               reportedAt: '2026-05-31T21:15:00Z', status: 'resolved' },
+  { id: 'r9',  reporter: 'sasha@example.com',  reporterHandle: 'sashabloom', type: 'message', target: 'Marco Reyes',    targetHandle: 'marcoreyes',  reason: 'Solicitation â€” Final Warning',          description: 'User posted repeated messages asking viewers to send payments to an external platform in exchange for exclusive content. Included a link to a third-party payment page.',               reportedAt: '2026-05-31T21:15:00Z', status: 'resolved' },
   { id: 'r10', reporter: 'jade@example.com',   reporterHandle: 'jadekim',    type: 'user',    target: 'Elena Popov',    targetHandle: 'elenapopov',  reason: 'Community Guidelines Violation',        description: "The user's profile indicates they are 14 years old. They have been present in 18+ tagged streams. Reporter noted the profile birthday was entered as 2011. KYC has not been completed.", reportedAt: '2026-05-31T18:00:00Z', status: 'pending' },
-  { id: 'r11', reporter: 'carlos@example.com', reporterHandle: 'cduarte',    type: 'stream',  target: 'Nour Al-Rashid', targetHandle: 'nourar',      reason: 'Misleading Content',                    description: 'Stream was titled "GIVEAWAY — 10,000 coins to random viewer!" but no giveaway took place. The streamer dismissed complaints and ended the stream without acknowledgment.',             reportedAt: '2026-05-30T15:45:00Z', status: 'dismissed' },
+  { id: 'r11', reporter: 'carlos@example.com', reporterHandle: 'cduarte',    type: 'stream',  target: 'Nour Al-Rashid', targetHandle: 'nourar',      reason: 'Misleading Content',                    description: 'Stream was titled "GIVEAWAY â€” 10,000 coins to random viewer!" but no giveaway took place. The streamer dismissed complaints and ended the stream without acknowledgment.',             reportedAt: '2026-05-30T15:45:00Z', status: 'dismissed' },
   { id: 'r12', reporter: 'priya@example.com',  reporterHandle: 'priyanair',  type: 'message', target: 'Sasha Bloom',    targetHandle: 'sashabloom',  reason: 'Hate Speech',                           description: 'User combined platform emotes in sequences that formed offensive phrases. The combinations circumvent the standard text filter. Multiple other viewers flagged the same behaviour.',    reportedAt: '2026-05-30T12:20:00Z', status: 'resolved' },
 ];
 
@@ -82,18 +82,18 @@ export const mockTransactions: Transaction[] = [
   { id: 't1',  user: 'Jade Kim',       userHandle: 'jadekim',    type: 'coin_purchase',    amount: 9.99,   currency: 'USD',      date: '2026-06-03T20:10:00Z', note: '2,000 coins via App Store' },
   { id: 't2',  user: 'Elena Popov',    userHandle: 'elenapopov', type: 'coin_purchase',    amount: 9.99,   currency: 'USD',      date: '2026-06-03T19:45:00Z', note: '1,400 coins via Play Store' },
   { id: 't4',  user: 'Sasha Bloom',    userHandle: 'sashabloom', type: 'diamonds_received', amount: 60000,  currency: 'diamonds', date: '2026-06-03T19:30:00Z', note: 'Diamond Storm gift from @priyanair' },
-  { id: 't5',  user: 'Sasha Bloom',    userHandle: 'sashabloom', type: 'withdrawal',        amount: 80000,  currency: 'diamonds', date: '2026-06-03T10:00:00Z', note: 'Withdrawal request · est. $280' },
-  { id: 't6',  user: 'Marco Reyes',    userHandle: 'marcoreyes', type: 'withdrawal',        amount: 30000,  currency: 'diamonds', date: '2026-06-01T09:00:00Z', note: 'Withdrawal approved · $105' },
+  { id: 't5',  user: 'Sasha Bloom',    userHandle: 'sashabloom', type: 'withdrawal',        amount: 80000,  currency: 'diamonds', date: '2026-06-03T10:00:00Z', note: 'Withdrawal request Â· est. $280' },
+  { id: 't6',  user: 'Marco Reyes',    userHandle: 'marcoreyes', type: 'withdrawal',        amount: 30000,  currency: 'diamonds', date: '2026-06-01T09:00:00Z', note: 'Withdrawal approved Â· $105' },
   { id: 't7',  user: "Finn O'Brien",   userHandle: 'finno',      type: 'coin_purchase',    amount: 9.99,   currency: 'USD',      date: '2026-06-01T08:00:00Z', note: '1,400 coins via App Store' },
   { id: 't9',  user: 'Aria Voss',      userHandle: 'ariavoss',   type: 'diamonds_received', amount: 8000,   currency: 'diamonds', date: '2026-05-31T22:10:00Z', note: 'Rocket gift from @jadekim' },
   { id: 'tx1', user: 'Sasha Bloom',    userHandle: 'sashabloom', type: 'diamonds_received', amount: 100000, currency: 'diamonds', date: '2026-05-30T21:00:00Z', note: 'Cosmic Castle gift from @whalekid during Sunday stream' },
   { id: 'tx2', user: 'Sasha Bloom',    userHandle: 'sashabloom', type: 'diamonds_received', amount: 70000,  currency: 'diamonds', date: '2026-05-25T18:30:00Z', note: 'Royal Yacht gift from @topfan99' },
-  { id: 'tx3', user: 'Sasha Bloom',    userHandle: 'sashabloom', type: 'withdrawal',        amount: 200000, currency: 'diamonds', date: '2026-05-20T10:00:00Z', note: 'Withdrawal est. $700 — flagged & rejected' },
-  { id: 'tx4', user: 'Aria Voss',      userHandle: 'ariavoss',   type: 'withdrawal',        amount: 100000, currency: 'diamonds', date: '2026-05-28T11:00:00Z', note: 'Withdrawal est. $350 — flagged & approved' },
+  { id: 'tx3', user: 'Sasha Bloom',    userHandle: 'sashabloom', type: 'withdrawal',        amount: 200000, currency: 'diamonds', date: '2026-05-20T10:00:00Z', note: 'Withdrawal est. $700 â€” flagged & rejected' },
+  { id: 'tx4', user: 'Aria Voss',      userHandle: 'ariavoss',   type: 'withdrawal',        amount: 100000, currency: 'diamonds', date: '2026-05-28T11:00:00Z', note: 'Withdrawal est. $350 â€” flagged & approved' },
   { id: 'tx5', user: 'Aria Voss',      userHandle: 'ariavoss',   type: 'diamonds_received', amount: 55000,  currency: 'diamonds', date: '2026-05-27T20:00:00Z', note: 'Royal Fortress gift during GRWM stream' },
-  { id: 'tx6', user: 'Aria Voss',      userHandle: 'ariavoss',   type: 'diamonds_received', amount: 22100,  currency: 'diamonds', date: '2026-05-20T17:00:00Z', note: 'Multiple gifts — Q&A session' },
+  { id: 'tx6', user: 'Aria Voss',      userHandle: 'ariavoss',   type: 'diamonds_received', amount: 22100,  currency: 'diamonds', date: '2026-05-20T17:00:00Z', note: 'Multiple gifts â€” Q&A session' },
   { id: 'tx7', user: 'Nour Al-Rashid', userHandle: 'nourar',     type: 'diamonds_received', amount: 120000, currency: 'diamonds', date: '2026-06-05T20:00:00Z', note: 'Nebula Nova + Cosmic Castle during cooking stream' },
-  { id: 'tx8', user: 'Nour Al-Rashid', userHandle: 'nourar',     type: 'withdrawal',        amount: 120000, currency: 'diamonds', date: '2026-06-06T09:00:00Z', note: 'Withdrawal est. $420 — flagged' },
+  { id: 'tx8', user: 'Nour Al-Rashid', userHandle: 'nourar',     type: 'withdrawal',        amount: 120000, currency: 'diamonds', date: '2026-06-06T09:00:00Z', note: 'Withdrawal est. $420 â€” flagged' },
   { id: 'tx9', user: 'Nour Al-Rashid', userHandle: 'nourar',     type: 'diamonds_received', amount: 8800,   currency: 'diamonds', date: '2026-06-03T22:10:00Z', note: 'Regular viewer gifts during stream' },
   { id: 'tx10',user: 'Nour Al-Rashid', userHandle: 'nourar',     type: 'diamonds_received', amount: 31400,  currency: 'diamonds', date: '2026-05-30T20:00:00Z', note: 'VS Battle night gifts' },
   { id: 'tx11',user: 'Jade Kim',       userHandle: 'jadekim',    type: 'coin_purchase',    amount: 19.99,  currency: 'USD',      date: '2026-05-28T14:00:00Z', note: '4,000 coins via App Store' },
@@ -112,56 +112,56 @@ export const mockKYC: KYCEntry[] = [
 ];
 
 export const mockGifts: Gift[] = [
-  // 5A — Reaction / Meme / Chat (1–2s, 10–500 coins)
+  // 5A â€” Reaction / Meme / Chat (1â€“2s, 10â€“500 coins)
   { id: 'g1',  animationFileName: 'thumbs_up.json',    name: 'Thumbs Up',     coins: 10,  tier: '5A', tierName: 'Reaction / Meme', durationSec: 1,  enabled: true  },
   { id: 'g2',  animationFileName: 'heart.json',         name: 'Heart',         coins: 25,  tier: '5A', tierName: 'Reaction / Meme', durationSec: 1,  enabled: true  },
   { id: 'g3',  animationFileName: 'clap.json',          name: 'Clap',          coins: 50,  tier: '5A', tierName: 'Reaction / Meme', durationSec: 2,  enabled: true  },
   { id: 'g4',  animationFileName: 'lol.json',           name: 'LOL',           coins: 100, tier: '5A', tierName: 'Reaction / Meme', durationSec: 2,  enabled: true  },
   { id: 'g5',  animationFileName: 'fire.json',          name: 'Fire',          coins: 250, tier: '5A', tierName: 'Reaction / Meme', durationSec: 2,  enabled: true  },
   { id: 'g6',  animationFileName: 'diamond_spark.json', name: 'Diamond Spark', coins: 500, tier: '5A', tierName: 'Reaction / Meme', durationSec: 2,  enabled: true  },
-  // 5B — Mid-Tier (3–5s, 300–3,000 coins)
+  // 5B â€” Mid-Tier (3â€“5s, 300â€“3,000 coins)
   { id: 'g7',  animationFileName: 'rocket.glb',         name: 'Rocket',        coins: 300,  tier: '5B', tierName: 'Mid-Tier', durationSec: 3,  enabled: true  },
   { id: 'g8',  animationFileName: 'confetti.glb',       name: 'Confetti',      coins: 800,  tier: '5B', tierName: 'Mid-Tier', durationSec: 4,  enabled: true  },
   { id: 'g9',  animationFileName: 'shooting_star.glb',  name: 'Shooting Star', coins: 1500, tier: '5B', tierName: 'Mid-Tier', durationSec: 4,  enabled: true  },
   { id: 'g10', animationFileName: 'crystal_ball.glb',   name: 'Crystal Ball',  coins: 3000, tier: '5B', tierName: 'Mid-Tier', durationSec: 5,  enabled: true  },
-  // 5C — Premium 3D (6–10s, 8,000–70,000 coins)
+  // 5C â€” Premium 3D (6â€“10s, 8,000â€“70,000 coins)
   { id: 'g11', animationFileName: 'golden_dragon.glb',  name: 'Golden Dragon',   coins: 8000,  tier: '5C', tierName: 'Premium 3D', durationSec: 6,  enabled: true  },
   { id: 'g12', animationFileName: 'rainbow_phoenix.glb',name: 'Rainbow Phoenix',  coins: 20000, tier: '5C', tierName: 'Premium 3D', durationSec: 8,  enabled: true  },
   { id: 'g13', animationFileName: 'crystal_palace.glb', name: 'Crystal Palace',   coins: 45000, tier: '5C', tierName: 'Premium 3D', durationSec: 9,  enabled: true  },
   { id: 'g14', animationFileName: 'royal_yacht.glb',    name: 'Royal Yacht',      coins: 70000, tier: '5C', tierName: 'Premium 3D', durationSec: 10, enabled: true  },
-  // 5D — Cinematic / Whale (12–15s, 90,000–150,000 coins)
+  // 5D â€” Cinematic / Whale (12â€“15s, 90,000â€“150,000 coins)
   { id: 'g15', animationFileName: 'diamond_storm.glb',  name: 'Diamond Storm',    coins: 90000,  tier: '5D', tierName: 'Cinematic / Whale', durationSec: 12, enabled: true  },
   { id: 'g16', animationFileName: 'galactic_explosion.glb', name: 'Galactic Explosion', coins: 120000, tier: '5D', tierName: 'Cinematic / Whale', durationSec: 14, enabled: true  },
   { id: 'g17', animationFileName: 'cosmic_castle.glb',  name: 'Cosmic Castle',    coins: 150000, tier: '5D', tierName: 'Cinematic / Whale', durationSec: 15, enabled: false },
-  // 5E — VIP / Max Cap (16–20s, 175,000–300,000 coins)
+  // 5E â€” VIP / Max Cap (16â€“20s, 175,000â€“300,000 coins)
   { id: 'g18', animationFileName: 'royal_fortress.glb', name: 'Royal Fortress',   coins: 175000, tier: '5E', tierName: 'VIP / Max Cap', durationSec: 16, enabled: true  },
   { id: 'g19', animationFileName: 'nebula_nova.glb',    name: 'Nebula Nova',      coins: 200000, tier: '5E', tierName: 'VIP / Max Cap', durationSec: 18, enabled: true  },
   { id: 'g20', animationFileName: 'infinity_crown.glb', name: 'Infinity Crown',   coins: 300000, tier: '5E', tierName: 'VIP / Max Cap', durationSec: 20, enabled: true  },
 ];
 
 export const mockLeaderboard: CompetitionEntry[] = [
-  { rank: 1,  name: 'Sasha Bloom',    handle: 'sashabloom', diamondsReceived: 482000, prize: '750,000 💎',  change: 'same', changeAmount: 0, avatarColor: '#9966CC' },
-  { rank: 2,  name: 'Aria Voss',      handle: 'ariavoss',   diamondsReceived: 341200, prize: '500,000 💎',  change: 'up',   changeAmount: 1, avatarColor: '#9966CC' },
-  { rank: 3,  name: 'Marco Reyes',    handle: 'marcoreyes', diamondsReceived: 298700, prize: '300,000 💎',  change: 'down', changeAmount: 1, avatarColor: '#2ECC8A' },
-  { rank: 4,  name: 'Nour Al-Rashid', handle: 'nourar',     diamondsReceived: 187400, prize: '200,000 💎',  change: 'up',   changeAmount: 2, avatarColor: '#D4AF37' },
-  { rank: 5,  name: 'Luna Star',      handle: 'lunastar',   diamondsReceived: 154200, prize: '150,000 💎',  change: 'same', changeAmount: 0, avatarColor: '#9B111E' },
-  { rank: 6,  name: 'Kai Rivers',     handle: 'kairivs',    diamondsReceived: 132800, prize: '100,000 💎',  change: 'up',   changeAmount: 1, avatarColor: '#2ECC8A' },
-  { rank: 7,  name: 'Zoe Chen',       handle: 'zoechen',    diamondsReceived: 118500, prize: '75,000 💎',   change: 'down', changeAmount: 2, avatarColor: '#9966CC' },
-  { rank: 8,  name: 'Dex Volta',      handle: 'dexvolta',   diamondsReceived: 98200,  prize: '50,000 💎',   change: 'up',   changeAmount: 3, avatarColor: '#D4AF37' },
-  { rank: 9,  name: 'Maya Sun',       handle: 'mayasun',    diamondsReceived: 87100,  prize: '50,000 💎',   change: 'same', changeAmount: 0, avatarColor: '#2ECC8A' },
-  { rank: 10, name: 'Rio Blaze',      handle: 'rioblaze',   diamondsReceived: 76400,  prize: '25,000 💎',   change: 'down', changeAmount: 1, avatarColor: '#C0392B' },
+  { rank: 1,  name: 'Sasha Bloom',    handle: 'sashabloom', diamondsReceived: 482000, prize: '750,000 ðŸ’Ž',  change: 'same', changeAmount: 0, avatarColor: '#9966CC' },
+  { rank: 2,  name: 'Aria Voss',      handle: 'ariavoss',   diamondsReceived: 341200, prize: '500,000 ðŸ’Ž',  change: 'up',   changeAmount: 1, avatarColor: '#9966CC' },
+  { rank: 3,  name: 'Marco Reyes',    handle: 'marcoreyes', diamondsReceived: 298700, prize: '300,000 ðŸ’Ž',  change: 'down', changeAmount: 1, avatarColor: '#2ECC8A' },
+  { rank: 4,  name: 'Nour Al-Rashid', handle: 'nourar',     diamondsReceived: 187400, prize: '200,000 ðŸ’Ž',  change: 'up',   changeAmount: 2, avatarColor: '#D4AF37' },
+  { rank: 5,  name: 'Luna Star',      handle: 'lunastar',   diamondsReceived: 154200, prize: '150,000 ðŸ’Ž',  change: 'same', changeAmount: 0, avatarColor: '#9B111E' },
+  { rank: 6,  name: 'Kai Rivers',     handle: 'kairivs',    diamondsReceived: 132800, prize: '100,000 ðŸ’Ž',  change: 'up',   changeAmount: 1, avatarColor: '#2ECC8A' },
+  { rank: 7,  name: 'Zoe Chen',       handle: 'zoechen',    diamondsReceived: 118500, prize: '75,000 ðŸ’Ž',   change: 'down', changeAmount: 2, avatarColor: '#9966CC' },
+  { rank: 8,  name: 'Dex Volta',      handle: 'dexvolta',   diamondsReceived: 98200,  prize: '50,000 ðŸ’Ž',   change: 'up',   changeAmount: 3, avatarColor: '#D4AF37' },
+  { rank: 9,  name: 'Maya Sun',       handle: 'mayasun',    diamondsReceived: 87100,  prize: '50,000 ðŸ’Ž',   change: 'same', changeAmount: 0, avatarColor: '#2ECC8A' },
+  { rank: 10, name: 'Rio Blaze',      handle: 'rioblaze',   diamondsReceived: 76400,  prize: '25,000 ðŸ’Ž',   change: 'down', changeAmount: 1, avatarColor: '#C0392B' },
 ];
 
 export const mockPrizeTiers: PrizeTier[] = [
-  { prize: '750,000 💎' },
-  { prize: '500,000 💎' },
-  { prize: '300,000 💎' },
-  { prize: '200,000 💎' },
-  { prize: '150,000 💎' },
-  { prize: '100,000 💎' },
-  { prize: '75,000 💎' },
-  { prize: '50,000 💎' },
-  { prize: '25,000 💎' },
+  { prize: '750,000 ðŸ’Ž' },
+  { prize: '500,000 ðŸ’Ž' },
+  { prize: '300,000 ðŸ’Ž' },
+  { prize: '200,000 ðŸ’Ž' },
+  { prize: '150,000 ðŸ’Ž' },
+  { prize: '100,000 ðŸ’Ž' },
+  { prize: '75,000 ðŸ’Ž' },
+  { prize: '50,000 ðŸ’Ž' },
+  { prize: '25,000 ðŸ’Ž' },
 ];
 
 // Website: 10 tiers
@@ -194,94 +194,94 @@ export const mockNotifications: Notification[] = [
 ];
 
 export const mockXPLevels: PrestigeXPLevel[] = [
-  { id: 'xp1',  level: 1,   levelRange: '1–20',    name: 'Beginner',  color: '#94A3B8', xpRequired: 0,        iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Basic chat reactions and viewer badge' }] },
-  { id: 'xp2',  level: 21,  levelRange: '21–39',   name: 'Rising',    color: '#22C55E', xpRequired: 25000,    iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Custom username color' }] },
-  { id: 'xp3',  level: 40,  levelRange: '40–59',   name: 'Active',    color: '#3B82F6', xpRequired: 100000,   iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Fan badge on profile' }] },
-  { id: 'xp4',  level: 60,  levelRange: '60–79',   name: 'Popular',   color: '#8B5CF6', xpRequired: 300000,   iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Priority in creator Q&A queue' }] },
-  { id: 'xp5',  level: 80,  levelRange: '80–99',   name: 'Elite',     color: '#EF4444', xpRequired: 750000,   iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Animated chat name' }] },
-  { id: 'xp6',  level: 100, levelRange: '100–129', name: 'Star',      color: '#F97316', xpRequired: 2000000,  iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Exclusive Star chat effect on gifts' }] },
-  { id: 'xp7',  level: 130, levelRange: '130–159', name: 'Icon',      color: '#EC4899', xpRequired: 4000000,  iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Icon badge frame' }] },
-  { id: 'xp8',  level: 160, levelRange: '160–199', name: 'Legend',    color: '#FACC15', xpRequired: 8000000,  iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
-  { id: 'xp9',  level: 200, levelRange: '200–249', name: 'Prestige',  color: '#14B8A6', xpRequired: 14000000, iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'animated_badge' }] },
-  { id: 'xp10', level: 250, levelRange: '250–299', name: 'Superstar', color: '#111827', xpRequired: 25000000, iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
-  { id: 'xp11', level: 300, levelRange: '300–349', name: 'Royal',     color: '#00E5FF', xpRequired: 38000000, iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Royal cosmic chat effect' }] },
-  { id: 'xp12', level: 350, levelRange: '350–400', name: 'Infinity',  color: '#7C3AED', xpRequired: 60000000, iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'animated_badge' }, { type: 'other', label: 'Negotiated perks' }] },
+  { id: 'xp1',  level: 1,   levelRange: '1â€“20',    name: 'Beginner',  color: '#94A3B8', xpRequired: 0,        iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Basic chat reactions and viewer badge' }] },
+  { id: 'xp2',  level: 21,  levelRange: '21â€“39',   name: 'Rising',    color: '#22C55E', xpRequired: 25000,    iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Custom username color' }] },
+  { id: 'xp3',  level: 40,  levelRange: '40â€“59',   name: 'Active',    color: '#3B82F6', xpRequired: 100000,   iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Fan badge on profile' }] },
+  { id: 'xp4',  level: 60,  levelRange: '60â€“79',   name: 'Popular',   color: '#8B5CF6', xpRequired: 300000,   iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Priority in creator Q&A queue' }] },
+  { id: 'xp5',  level: 80,  levelRange: '80â€“99',   name: 'Elite',     color: '#EF4444', xpRequired: 750000,   iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Animated chat name' }] },
+  { id: 'xp6',  level: 100, levelRange: '100â€“129', name: 'Star',      color: '#F97316', xpRequired: 2000000,  iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Exclusive Star chat effect on gifts' }] },
+  { id: 'xp7',  level: 130, levelRange: '130â€“159', name: 'Icon',      color: '#EC4899', xpRequired: 4000000,  iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Icon badge frame' }] },
+  { id: 'xp8',  level: 160, levelRange: '160â€“199', name: 'Legend',    color: '#FACC15', xpRequired: 8000000,  iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
+  { id: 'xp9',  level: 200, levelRange: '200â€“249', name: 'Prestige',  color: '#14B8A6', xpRequired: 14000000, iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'animated_badge' }] },
+  { id: 'xp10', level: 250, levelRange: '250â€“299', name: 'Superstar', color: '#111827', xpRequired: 25000000, iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
+  { id: 'xp11', level: 300, levelRange: '300â€“349', name: 'Royal',     color: '#00E5FF', xpRequired: 38000000, iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Royal cosmic chat effect' }] },
+  { id: 'xp12', level: 350, levelRange: '350â€“400', name: 'Infinity',  color: '#7C3AED', xpRequired: 60000000, iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'animated_badge' }, { type: 'other', label: 'Negotiated perks' }] },
 ];
 
 export const mockCPTiers: PrestigeCPTier[] = [
   // Bronze
-  { id: 'cp1',  tier: 'Bronze',          subTier: 'I',   cpFrom: 0,           cpTo: 18750,       color: '#CD7F32', ringColor: '#CD7F32', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Basic streamer badge on profile' }] },
-  { id: 'cp2',  tier: 'Bronze',          subTier: 'II',  cpFrom: 18751,       cpTo: 37500,       color: '#CD7F32', ringColor: '#CD7F32', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'animated_badge' }, { type: 'other', label: 'Tier badge on stream overlay' }] },
-  { id: 'cp3',  tier: 'Bronze',          subTier: 'III', cpFrom: 37501,       cpTo: 56250,       color: '#CD7F32', ringColor: '#CD7F32', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Access to animated overlays Tier 1' }] },
-  { id: 'cp4',  tier: 'Bronze',          subTier: 'IV',  cpFrom: 56251,       cpTo: 75000,       color: '#CD7F32', ringColor: '#CD7F32', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'discovery_boost', value: 2 }] },
+  { id: 'cp1',  tier: 'Bronze',          subTier: 'I',   cpFrom: 0,           cpTo: 18750,       color: '#CD7F32', ringColor: '#CD7F32', iconFileName: null, perks: [{ type: 'other', label: 'Basic streamer badge on profile' }] },
+  { id: 'cp2',  tier: 'Bronze',          subTier: 'II',  cpFrom: 18751,       cpTo: 37500,       color: '#CD7F32', ringColor: '#CD7F32', iconFileName: null, perks: [{ type: 'animated_badge' }, { type: 'other', label: 'Tier badge on stream overlay' }] },
+  { id: 'cp3',  tier: 'Bronze',          subTier: 'III', cpFrom: 37501,       cpTo: 56250,       color: '#CD7F32', ringColor: '#CD7F32', iconFileName: null, perks: [{ type: 'other', label: 'Access to animated overlays Tier 1' }] },
+  { id: 'cp4',  tier: 'Bronze',          subTier: 'IV',  cpFrom: 56251,       cpTo: 75000,       color: '#CD7F32', ringColor: '#CD7F32', iconFileName: null, perks: [{ type: 'discovery_boost', value: 2 }] },
   // Silver
-  { id: 'cp5',  tier: 'Silver',          subTier: 'I',   cpFrom: 75001,       cpTo: 143750,      color: '#C0C0C0', ringColor: '#C0C0C0', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Silver ring on profile' }] },
-  { id: 'cp6',  tier: 'Silver',          subTier: 'II',  cpFrom: 143751,      cpTo: 212500,      color: '#C0C0C0', ringColor: '#C0C0C0', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'discovery_boost', value: 5 }] },
-  { id: 'cp7',  tier: 'Silver',          subTier: 'III', cpFrom: 212501,      cpTo: 281250,      color: '#C0C0C0', ringColor: '#C0C0C0', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Priority in search results' }] },
-  { id: 'cp8',  tier: 'Silver',          subTier: 'IV',  cpFrom: 281251,      cpTo: 350000,      color: '#C0C0C0', ringColor: '#C0C0C0', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_emote_pack' }] },
+  { id: 'cp5',  tier: 'Silver',          subTier: 'I',   cpFrom: 75001,       cpTo: 143750,      color: '#C0C0C0', ringColor: '#C0C0C0', iconFileName: null, perks: [{ type: 'other', label: 'Silver ring on profile' }] },
+  { id: 'cp6',  tier: 'Silver',          subTier: 'II',  cpFrom: 143751,      cpTo: 212500,      color: '#C0C0C0', ringColor: '#C0C0C0', iconFileName: null, perks: [{ type: 'discovery_boost', value: 5 }] },
+  { id: 'cp7',  tier: 'Silver',          subTier: 'III', cpFrom: 212501,      cpTo: 281250,      color: '#C0C0C0', ringColor: '#C0C0C0', iconFileName: null, perks: [{ type: 'other', label: 'Priority in search results' }] },
+  { id: 'cp8',  tier: 'Silver',          subTier: 'IV',  cpFrom: 281251,      cpTo: 350000,      color: '#C0C0C0', ringColor: '#C0C0C0', iconFileName: null, perks: [{ type: 'exclusive_emote_pack' }] },
   // Gold
-  { id: 'cp9',  tier: 'Gold',            subTier: 'I',   cpFrom: 350001,      cpTo: 512500,      color: '#D4AF37', ringColor: '#D4AF37', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'animated_badge' }] },
-  { id: 'cp10', tier: 'Gold',            subTier: 'II',  cpFrom: 512501,      cpTo: 675000,      color: '#D4AF37', ringColor: '#D4AF37', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'discovery_boost', value: 15 }] },
-  { id: 'cp11', tier: 'Gold',            subTier: 'III', cpFrom: 675001,      cpTo: 837500,      color: '#D4AF37', ringColor: '#D4AF37', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'featured_on_discover' }] },
-  { id: 'cp12', tier: 'Gold',            subTier: 'IV',  cpFrom: 837501,      cpTo: 1000000,     color: '#D4AF37', ringColor: '#D4AF37', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_emote_pack' }] },
+  { id: 'cp9',  tier: 'Gold',            subTier: 'I',   cpFrom: 350001,      cpTo: 512500,      color: '#D4AF37', ringColor: '#D4AF37', iconFileName: null, perks: [{ type: 'animated_badge' }] },
+  { id: 'cp10', tier: 'Gold',            subTier: 'II',  cpFrom: 512501,      cpTo: 675000,      color: '#D4AF37', ringColor: '#D4AF37', iconFileName: null, perks: [{ type: 'discovery_boost', value: 15 }] },
+  { id: 'cp11', tier: 'Gold',            subTier: 'III', cpFrom: 675001,      cpTo: 837500,      color: '#D4AF37', ringColor: '#D4AF37', iconFileName: null, perks: [{ type: 'featured_on_discover' }] },
+  { id: 'cp12', tier: 'Gold',            subTier: 'IV',  cpFrom: 837501,      cpTo: 1000000,     color: '#D4AF37', ringColor: '#D4AF37', iconFileName: null, perks: [{ type: 'exclusive_emote_pack' }] },
   // Platinum
-  { id: 'cp13', tier: 'Platinum',        subTier: 'I',   cpFrom: 1000001,     cpTo: 1500000,     color: '#E5E4E2', ringColor: '#E5E4E2', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'animated_badge' }] },
-  { id: 'cp14', tier: 'Platinum',        subTier: 'II',  cpFrom: 1500001,     cpTo: 2000000,     color: '#E5E4E2', ringColor: '#E5E4E2', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'spotlight_slots', value: 1 }] },
-  { id: 'cp15', tier: 'Platinum',        subTier: 'III', cpFrom: 2000001,     cpTo: 2500000,     color: '#E5E4E2', ringColor: '#E5E4E2', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_emote_pack' }] },
-  { id: 'cp16', tier: 'Platinum',        subTier: 'IV',  cpFrom: 2500001,     cpTo: 3000000,     color: '#E5E4E2', ringColor: '#E5E4E2', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'discovery_boost', value: 25 }] },
+  { id: 'cp13', tier: 'Platinum',        subTier: 'I',   cpFrom: 1000001,     cpTo: 1500000,     color: '#E5E4E2', ringColor: '#E5E4E2', iconFileName: null, perks: [{ type: 'animated_badge' }] },
+  { id: 'cp14', tier: 'Platinum',        subTier: 'II',  cpFrom: 1500001,     cpTo: 2000000,     color: '#E5E4E2', ringColor: '#E5E4E2', iconFileName: null, perks: [{ type: 'spotlight_slots', value: 1 }] },
+  { id: 'cp15', tier: 'Platinum',        subTier: 'III', cpFrom: 2000001,     cpTo: 2500000,     color: '#E5E4E2', ringColor: '#E5E4E2', iconFileName: null, perks: [{ type: 'exclusive_emote_pack' }] },
+  { id: 'cp16', tier: 'Platinum',        subTier: 'IV',  cpFrom: 2500001,     cpTo: 3000000,     color: '#E5E4E2', ringColor: '#E5E4E2', iconFileName: null, perks: [{ type: 'discovery_boost', value: 25 }] },
   // Sapphire
-  { id: 'cp17', tier: 'Sapphire',        subTier: 'I',   cpFrom: 3000001,     cpTo: 4750000,     color: '#0F52BA', ringColor: '#0F52BA', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
-  { id: 'cp18', tier: 'Sapphire',        subTier: 'II',  cpFrom: 4750001,     cpTo: 6500000,     color: '#0F52BA', ringColor: '#0F52BA', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'priority_support' }, { type: 'spotlight_slots', value: 2 }] },
-  { id: 'cp19', tier: 'Sapphire',        subTier: 'III', cpFrom: 6500001,     cpTo: 8250000,     color: '#0F52BA', ringColor: '#0F52BA', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_gift' }] },
-  { id: 'cp20', tier: 'Sapphire',        subTier: 'IV',  cpFrom: 8250001,     cpTo: 10000000,    color: '#0F52BA', ringColor: '#0F52BA', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Co-branded merch drop eligibility' }] },
+  { id: 'cp17', tier: 'Sapphire',        subTier: 'I',   cpFrom: 3000001,     cpTo: 4750000,     color: '#0F52BA', ringColor: '#0F52BA', iconFileName: null, perks: [{ type: 'full_screen_entrance' }] },
+  { id: 'cp18', tier: 'Sapphire',        subTier: 'II',  cpFrom: 4750001,     cpTo: 6500000,     color: '#0F52BA', ringColor: '#0F52BA', iconFileName: null, perks: [{ type: 'priority_support' }, { type: 'spotlight_slots', value: 2 }] },
+  { id: 'cp19', tier: 'Sapphire',        subTier: 'III', cpFrom: 6500001,     cpTo: 8250000,     color: '#0F52BA', ringColor: '#0F52BA', iconFileName: null, perks: [{ type: 'exclusive_gift' }] },
+  { id: 'cp20', tier: 'Sapphire',        subTier: 'IV',  cpFrom: 8250001,     cpTo: 10000000,    color: '#0F52BA', ringColor: '#0F52BA', iconFileName: null, perks: [{ type: 'other', label: 'Co-branded merch drop eligibility' }] },
   // Ruby
-  { id: 'cp21', tier: 'Ruby',            subTier: 'I',   cpFrom: 10000001,    cpTo: 13750000,    color: '#E0115F', ringColor: '#E0115F', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }, { type: 'other', label: 'Cinematic stream intro' }] },
-  { id: 'cp22', tier: 'Ruby',            subTier: 'II',  cpFrom: 13750001,    cpTo: 17500000,    color: '#E0115F', ringColor: '#E0115F', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_gift' }] },
-  { id: 'cp23', tier: 'Ruby',            subTier: 'III', cpFrom: 17500001,    cpTo: 21250000,    color: '#E0115F', ringColor: '#E0115F', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Monthly admin interview feature' }] },
-  { id: 'cp24', tier: 'Ruby',            subTier: 'IV',  cpFrom: 21250001,    cpTo: 25000000,    color: '#E0115F', ringColor: '#E0115F', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'account_manager' }] },
+  { id: 'cp21', tier: 'Ruby',            subTier: 'I',   cpFrom: 10000001,    cpTo: 13750000,    color: '#E0115F', ringColor: '#E0115F', iconFileName: null, perks: [{ type: 'full_screen_entrance' }, { type: 'other', label: 'Cinematic stream intro' }] },
+  { id: 'cp22', tier: 'Ruby',            subTier: 'II',  cpFrom: 13750001,    cpTo: 17500000,    color: '#E0115F', ringColor: '#E0115F', iconFileName: null, perks: [{ type: 'exclusive_gift' }] },
+  { id: 'cp23', tier: 'Ruby',            subTier: 'III', cpFrom: 17500001,    cpTo: 21250000,    color: '#E0115F', ringColor: '#E0115F', iconFileName: null, perks: [{ type: 'other', label: 'Monthly admin interview feature' }] },
+  { id: 'cp24', tier: 'Ruby',            subTier: 'IV',  cpFrom: 21250001,    cpTo: 25000000,    color: '#E0115F', ringColor: '#E0115F', iconFileName: null, perks: [{ type: 'account_manager' }] },
   // Amethyst
-  { id: 'cp25', tier: 'Amethyst',        subTier: 'I',   cpFrom: 25000001,    cpTo: 31250000,    color: '#9966CC', ringColor: '#9966CC', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
-  { id: 'cp26', tier: 'Amethyst',        subTier: 'II',  cpFrom: 31250001,    cpTo: 37500000,    color: '#9966CC', ringColor: '#9966CC', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'discovery_boost', value: 40 }] },
-  { id: 'cp27', tier: 'Amethyst',        subTier: 'III', cpFrom: 37500001,    cpTo: 43750000,    color: '#9966CC', ringColor: '#9966CC', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_gift' }] },
-  { id: 'cp28', tier: 'Amethyst',        subTier: 'IV',  cpFrom: 43750001,    cpTo: 50000000,    color: '#9966CC', ringColor: '#9966CC', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_emote_pack' }, { type: 'other', label: 'VIP lounge access' }] },
+  { id: 'cp25', tier: 'Amethyst',        subTier: 'I',   cpFrom: 25000001,    cpTo: 31250000,    color: '#9966CC', ringColor: '#9966CC', iconFileName: null, perks: [{ type: 'full_screen_entrance' }] },
+  { id: 'cp26', tier: 'Amethyst',        subTier: 'II',  cpFrom: 31250001,    cpTo: 37500000,    color: '#9966CC', ringColor: '#9966CC', iconFileName: null, perks: [{ type: 'discovery_boost', value: 40 }] },
+  { id: 'cp27', tier: 'Amethyst',        subTier: 'III', cpFrom: 37500001,    cpTo: 43750000,    color: '#9966CC', ringColor: '#9966CC', iconFileName: null, perks: [{ type: 'exclusive_gift' }] },
+  { id: 'cp28', tier: 'Amethyst',        subTier: 'IV',  cpFrom: 43750001,    cpTo: 50000000,    color: '#9966CC', ringColor: '#9966CC', iconFileName: null, perks: [{ type: 'exclusive_emote_pack' }, { type: 'other', label: 'VIP lounge access' }] },
   // Diamond
-  { id: 'cp29', tier: 'Diamond',         subTier: 'I',   cpFrom: 50000001,    cpTo: 58750000,    color: '#B9F2FF', ringColor: '#B9F2FF', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
-  { id: 'cp30', tier: 'Diamond',         subTier: 'II',  cpFrom: 58750001,    cpTo: 67500000,    color: '#B9F2FF', ringColor: '#B9F2FF', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'spotlight_slots', value: 3 }, { type: 'priority_support' }] },
-  { id: 'cp31', tier: 'Diamond',         subTier: 'III', cpFrom: 67500001,    cpTo: 76250000,    color: '#B9F2FF', ringColor: '#B9F2FF', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_gift' }] },
-  { id: 'cp32', tier: 'Diamond',         subTier: 'IV',  cpFrom: 76250001,    cpTo: 85000000,    color: '#B9F2FF', ringColor: '#B9F2FF', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Co-branded platform feature' }] },
+  { id: 'cp29', tier: 'Diamond',         subTier: 'I',   cpFrom: 50000001,    cpTo: 58750000,    color: '#B9F2FF', ringColor: '#B9F2FF', iconFileName: null, perks: [{ type: 'full_screen_entrance' }] },
+  { id: 'cp30', tier: 'Diamond',         subTier: 'II',  cpFrom: 58750001,    cpTo: 67500000,    color: '#B9F2FF', ringColor: '#B9F2FF', iconFileName: null, perks: [{ type: 'spotlight_slots', value: 3 }, { type: 'priority_support' }] },
+  { id: 'cp31', tier: 'Diamond',         subTier: 'III', cpFrom: 67500001,    cpTo: 76250000,    color: '#B9F2FF', ringColor: '#B9F2FF', iconFileName: null, perks: [{ type: 'exclusive_gift' }] },
+  { id: 'cp32', tier: 'Diamond',         subTier: 'IV',  cpFrom: 76250001,    cpTo: 85000000,    color: '#B9F2FF', ringColor: '#B9F2FF', iconFileName: null, perks: [{ type: 'other', label: 'Co-branded platform feature' }] },
   // Black Diamond
-  { id: 'cp33', tier: 'Black Diamond',   subTier: 'I',   cpFrom: 85000001,    cpTo: 95000000,    color: '#1E293B', ringColor: '#1E293B', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
-  { id: 'cp34', tier: 'Black Diamond',   subTier: 'II',  cpFrom: 95000001,    cpTo: 105000000,   color: '#1E293B', ringColor: '#1E293B', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'account_manager' }] },
-  { id: 'cp35', tier: 'Black Diamond',   subTier: 'III', cpFrom: 105000001,   cpTo: 115000000,   color: '#1E293B', ringColor: '#1E293B', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Platform billboard feature' }] },
-  { id: 'cp36', tier: 'Black Diamond',   subTier: 'IV',  cpFrom: 115000001,   cpTo: 125000000,   color: '#1E293B', ringColor: '#1E293B', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_gift' }] },
+  { id: 'cp33', tier: 'Black Diamond',   subTier: 'I',   cpFrom: 85000001,    cpTo: 95000000,    color: '#1E293B', ringColor: '#1E293B', iconFileName: null, perks: [{ type: 'full_screen_entrance' }] },
+  { id: 'cp34', tier: 'Black Diamond',   subTier: 'II',  cpFrom: 95000001,    cpTo: 105000000,   color: '#1E293B', ringColor: '#1E293B', iconFileName: null, perks: [{ type: 'account_manager' }] },
+  { id: 'cp35', tier: 'Black Diamond',   subTier: 'III', cpFrom: 105000001,   cpTo: 115000000,   color: '#1E293B', ringColor: '#1E293B', iconFileName: null, perks: [{ type: 'other', label: 'Platform billboard feature' }] },
+  { id: 'cp36', tier: 'Black Diamond',   subTier: 'IV',  cpFrom: 115000001,   cpTo: 125000000,   color: '#1E293B', ringColor: '#1E293B', iconFileName: null, perks: [{ type: 'exclusive_gift' }] },
   // Crown Gold
-  { id: 'cp37', tier: 'Crown Gold',      subTier: 'I',   cpFrom: 125000001,   cpTo: 137500000,   color: '#C99700', ringColor: '#C99700', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
-  { id: 'cp38', tier: 'Crown Gold',      subTier: 'II',  cpFrom: 137500001,   cpTo: 150000000,   color: '#C99700', ringColor: '#C99700', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'featured_on_discover' }, { type: 'other', label: 'Lifetime featured placement' }] },
-  { id: 'cp39', tier: 'Crown Gold',      subTier: 'III', cpFrom: 150000001,   cpTo: 162500000,   color: '#C99700', ringColor: '#C99700', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Crown Gold exclusive merch collaboration' }] },
-  { id: 'cp40', tier: 'Crown Gold',      subTier: 'IV',  cpFrom: 162500001,   cpTo: 175000000,   color: '#C99700', ringColor: '#C99700', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'account_manager' }, { type: 'spotlight_slots', value: 1 }] },
+  { id: 'cp37', tier: 'Crown Gold',      subTier: 'I',   cpFrom: 125000001,   cpTo: 137500000,   color: '#C99700', ringColor: '#C99700', iconFileName: null, perks: [{ type: 'full_screen_entrance' }] },
+  { id: 'cp38', tier: 'Crown Gold',      subTier: 'II',  cpFrom: 137500001,   cpTo: 150000000,   color: '#C99700', ringColor: '#C99700', iconFileName: null, perks: [{ type: 'featured_on_discover' }, { type: 'other', label: 'Lifetime featured placement' }] },
+  { id: 'cp39', tier: 'Crown Gold',      subTier: 'III', cpFrom: 150000001,   cpTo: 162500000,   color: '#C99700', ringColor: '#C99700', iconFileName: null, perks: [{ type: 'other', label: 'Crown Gold exclusive merch collaboration' }] },
+  { id: 'cp40', tier: 'Crown Gold',      subTier: 'IV',  cpFrom: 162500001,   cpTo: 175000000,   color: '#C99700', ringColor: '#C99700', iconFileName: null, perks: [{ type: 'account_manager' }, { type: 'spotlight_slots', value: 1 }] },
   // Imperial Opal
-  { id: 'cp41', tier: 'Imperial Opal',   subTier: 'I',   cpFrom: 175000001,   cpTo: 193750000,   color: '#A78BFA', ringColor: '#A78BFA', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
-  { id: 'cp42', tier: 'Imperial Opal',   subTier: 'II',  cpFrom: 193750001,   cpTo: 212500000,   color: '#A78BFA', ringColor: '#A78BFA', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Co-branded platform events' }] },
-  { id: 'cp43', tier: 'Imperial Opal',   subTier: 'III', cpFrom: 212500001,   cpTo: 231250000,   color: '#A78BFA', ringColor: '#A78BFA', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_gift' }] },
-  { id: 'cp44', tier: 'Imperial Opal',   subTier: 'IV',  cpFrom: 231250001,   cpTo: 250000000,   color: '#A78BFA', ringColor: '#A78BFA', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'custom_ring_color' }] },
+  { id: 'cp41', tier: 'Imperial Opal',   subTier: 'I',   cpFrom: 175000001,   cpTo: 193750000,   color: '#A78BFA', ringColor: '#A78BFA', iconFileName: null, perks: [{ type: 'full_screen_entrance' }] },
+  { id: 'cp42', tier: 'Imperial Opal',   subTier: 'II',  cpFrom: 193750001,   cpTo: 212500000,   color: '#A78BFA', ringColor: '#A78BFA', iconFileName: null, perks: [{ type: 'other', label: 'Co-branded platform events' }] },
+  { id: 'cp43', tier: 'Imperial Opal',   subTier: 'III', cpFrom: 212500001,   cpTo: 231250000,   color: '#A78BFA', ringColor: '#A78BFA', iconFileName: null, perks: [{ type: 'exclusive_gift' }] },
+  { id: 'cp44', tier: 'Imperial Opal',   subTier: 'IV',  cpFrom: 231250001,   cpTo: 250000000,   color: '#A78BFA', ringColor: '#A78BFA', iconFileName: null, perks: [{ type: 'custom_ring_color' }] },
   // Eclipse Diamond
-  { id: 'cp45', tier: 'Eclipse Diamond', subTier: 'I',   cpFrom: 250000001,   cpTo: 275000000,   color: '#4B5563', ringColor: '#4B5563', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
-  { id: 'cp46', tier: 'Eclipse Diamond', subTier: 'II',  cpFrom: 275000001,   cpTo: 300000000,   color: '#4B5563', ringColor: '#4B5563', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Lifetime VIP platform partner status' }] },
-  { id: 'cp47', tier: 'Eclipse Diamond', subTier: 'III', cpFrom: 300000001,   cpTo: 325000000,   color: '#4B5563', ringColor: '#4B5563', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_gift' }] },
-  { id: 'cp48', tier: 'Eclipse Diamond', subTier: 'IV',  cpFrom: 325000001,   cpTo: 350000000,   color: '#4B5563', ringColor: '#4B5563', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'featured_on_discover' }, { type: 'other', label: 'Dedicated creator page on homepage' }] },
+  { id: 'cp45', tier: 'Eclipse Diamond', subTier: 'I',   cpFrom: 250000001,   cpTo: 275000000,   color: '#4B5563', ringColor: '#4B5563', iconFileName: null, perks: [{ type: 'full_screen_entrance' }] },
+  { id: 'cp46', tier: 'Eclipse Diamond', subTier: 'II',  cpFrom: 275000001,   cpTo: 300000000,   color: '#4B5563', ringColor: '#4B5563', iconFileName: null, perks: [{ type: 'other', label: 'Lifetime VIP platform partner status' }] },
+  { id: 'cp47', tier: 'Eclipse Diamond', subTier: 'III', cpFrom: 300000001,   cpTo: 325000000,   color: '#4B5563', ringColor: '#4B5563', iconFileName: null, perks: [{ type: 'exclusive_gift' }] },
+  { id: 'cp48', tier: 'Eclipse Diamond', subTier: 'IV',  cpFrom: 325000001,   cpTo: 350000000,   color: '#4B5563', ringColor: '#4B5563', iconFileName: null, perks: [{ type: 'featured_on_discover' }, { type: 'other', label: 'Dedicated creator page on homepage' }] },
   // Loouno Crown
-  { id: 'cp49', tier: 'Loouno Crown',    subTier: 'I',   cpFrom: 350000001,   cpTo: 450000000,   color: '#FACC15', ringColor: '#FACC15', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }] },
-  { id: 'cp50', tier: 'Loouno Crown',    subTier: 'II',  cpFrom: 450000001,   cpTo: 550000000,   color: '#FACC15', ringColor: '#FACC15', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'custom_ring_color' }] },
-  { id: 'cp51', tier: 'Loouno Crown',    subTier: 'III', cpFrom: 550000001,   cpTo: 650000000,   color: '#FACC15', ringColor: '#FACC15', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Lifetime VIP Boss + fully negotiated perks' }] },
-  { id: 'cp52', tier: 'Loouno Crown',    subTier: 'IV',  cpFrom: 650000001,   cpTo: 750000000,   color: '#FACC15', ringColor: '#FACC15', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'other', label: 'Unique on the platform — maximum recognition' }] },
+  { id: 'cp49', tier: 'Loouno Crown',    subTier: 'I',   cpFrom: 350000001,   cpTo: 450000000,   color: '#FACC15', ringColor: '#FACC15', iconFileName: null, perks: [{ type: 'full_screen_entrance' }] },
+  { id: 'cp50', tier: 'Loouno Crown',    subTier: 'II',  cpFrom: 450000001,   cpTo: 550000000,   color: '#FACC15', ringColor: '#FACC15', iconFileName: null, perks: [{ type: 'custom_ring_color' }] },
+  { id: 'cp51', tier: 'Loouno Crown',    subTier: 'III', cpFrom: 550000001,   cpTo: 650000000,   color: '#FACC15', ringColor: '#FACC15', iconFileName: null, perks: [{ type: 'other', label: 'Lifetime VIP Boss + fully negotiated perks' }] },
+  { id: 'cp52', tier: 'Loouno Crown',    subTier: 'IV',  cpFrom: 650000001,   cpTo: 750000000,   color: '#FACC15', ringColor: '#FACC15', iconFileName: null, perks: [{ type: 'other', label: 'Unique on the platform â€” maximum recognition' }] },
 ];
 
 export const mockVIPLevels: VIPLevel[] = [
-  { id: 'vip1', level: 1, name: 'VIP 1', minSpend: 500,   maxSpend: 999,  badgeColor: '#94A3B8', ringColor: '#94A3B8', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_emote_pack' }, { type: 'other', label: 'VIP badge, priority chat' }] },
-  { id: 'vip2', level: 2, name: 'VIP 2', minSpend: 1000,  maxSpend: 2499, badgeColor: '#FACC15', ringColor: '#FACC15', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'exclusive_gift' }, { type: 'animated_badge' }] },
-  { id: 'vip3', level: 3, name: 'VIP 3', minSpend: 2500,  maxSpend: 4999, badgeColor: '#E5E7EB', ringColor: '#E5E7EB', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'animated_badge' }, { type: 'full_screen_entrance' }, { type: 'other', label: 'Chat sparkles' }] },
-  { id: 'vip4', level: 4, name: 'VIP 4', minSpend: 5000,  maxSpend: 9999, badgeColor: '#22D3EE', ringColor: '#22D3EE', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }, { type: 'other', label: 'Private lounge access' }] },
-  { id: 'vip5', level: 5, name: 'VIP 5', minSpend: 10000, maxSpend: null, badgeColor: '#111827', ringColor: '#111827', iconFileName: null, entranceAnimationFileName: null, perks: [{ type: 'full_screen_entrance' }, { type: 'custom_ring_color' }, { type: 'other', label: 'Custom platform recognition' }] },
+  { id: 'vip1', level: 1, name: 'VIP 1', minSpend: 500,   maxSpend: 999,  badgeColor: '#94A3B8', ringColor: '#94A3B8', iconFileName: null, perks: [{ type: 'exclusive_emote_pack' }, { type: 'other', label: 'VIP badge, priority chat' }] },
+  { id: 'vip2', level: 2, name: 'VIP 2', minSpend: 1000,  maxSpend: 2499, badgeColor: '#FACC15', ringColor: '#FACC15', iconFileName: null, perks: [{ type: 'exclusive_gift' }, { type: 'animated_badge' }] },
+  { id: 'vip3', level: 3, name: 'VIP 3', minSpend: 2500,  maxSpend: 4999, badgeColor: '#E5E7EB', ringColor: '#E5E7EB', iconFileName: null, perks: [{ type: 'animated_badge' }, { type: 'full_screen_entrance' }, { type: 'other', label: 'Chat sparkles' }] },
+  { id: 'vip4', level: 4, name: 'VIP 4', minSpend: 5000,  maxSpend: 9999, badgeColor: '#22D3EE', ringColor: '#22D3EE', iconFileName: null, perks: [{ type: 'full_screen_entrance' }, { type: 'other', label: 'Private lounge access' }] },
+  { id: 'vip5', level: 5, name: 'VIP 5', minSpend: 10000, maxSpend: null, badgeColor: '#111827', ringColor: '#111827', iconFileName: null, perks: [{ type: 'full_screen_entrance' }, { type: 'custom_ring_color' }, { type: 'other', label: 'Custom platform recognition' }] },
 ];
 
 export const mockReportReasons: ReportReason[] = [
@@ -304,7 +304,7 @@ export const mockAdminTeam: AdminMember[] = [
   { id: 'a2', displayName: 'Polina',      email: 'polina_m@dataforest.ai',    role: 'admin',       status: 'active',  invitedAt: '2026-01-15T10:00:00Z', joinedAt: '2026-01-16T09:30:00Z', avatarColor: '#9966CC' },
   { id: 'a3', displayName: 'Alex Chen',   email: 'alex.chen@loouno.com',      role: 'moderator',   status: 'active',  invitedAt: '2026-02-10T08:00:00Z', joinedAt: '2026-02-11T14:00:00Z', avatarColor: '#2ECC8A' },
   { id: 'a4', displayName: 'Sofia Romano',email: 'sofia.r@loouno.com',        role: 'viewer',      status: 'active',  invitedAt: '2026-03-01T11:00:00Z', joinedAt: '2026-03-01T15:00:00Z', avatarColor: '#3498DB' },
-  { id: 'a5', displayName: '—',           email: 'new.mod@example.com',       role: 'moderator',   status: 'invited', invitedAt: '2026-06-04T09:00:00Z', inviteCode: 'LOOO-X4R2-9KPW',     avatarColor: '#48484A' },
+  { id: 'a5', displayName: 'â€”',           email: 'new.mod@example.com',       role: 'moderator',   status: 'invited', invitedAt: '2026-06-04T09:00:00Z', inviteCode: 'LOOO-X4R2-9KPW',     avatarColor: '#48484A' },
 ];
 
 export const mockSeasonalWheels: SeasonalWheel[] = [
@@ -454,5 +454,5 @@ export const mockWarnMessages: WarnMessage[] = [
   { id: 'wm4', title: 'Misleading Content', message: 'Your stream title or description was found to be misleading. Please ensure accuracy.' },
   { id: 'wm5', title: 'Spam in Chat', message: 'Spam or self-promotional content in chat is not allowed.' },
   { id: 'wm6', title: 'Hate Speech', message: 'Hate speech or discriminatory language will not be tolerated on this platform.' },
-  { id: 'wm7', title: 'Solicitation — Final Warning', message: 'Soliciting other users is prohibited. This is your final warning before account action.' },
+  { id: 'wm7', title: 'Solicitation â€” Final Warning', message: 'Soliciting other users is prohibited. This is your final warning before account action.' },
 ];

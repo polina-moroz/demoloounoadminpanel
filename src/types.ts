@@ -205,7 +205,6 @@ export interface PrestigeCPTier {
   color: string;
   ringColor: string;
   iconFileName: string | null;
-  entranceAnimationFileName: string | null;
   perks: Perk[];
 }
 
@@ -218,7 +217,6 @@ export interface VIPLevel {
   badgeColor: string;
   ringColor: string;
   iconFileName: string | null;
-  entranceAnimationFileName: string | null;
   perks: Perk[];
 }
 
