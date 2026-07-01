@@ -117,12 +117,12 @@ function GiftModal({ initial, tierId, tierName, onSave, onClose }: GiftModalProp
             ) : (
               <button className="btn btn-secondary btn-sm" style={{ width: '100%', justifyContent: 'center' }}
                 onClick={() => fileRef.current?.click()}>
-                <Upload size={13} /> Upload .glb or .json (Lottie)
+                <Upload size={13} /> Upload .json (Lottie)
               </button>
             )}
-            <input ref={fileRef} type="file" accept=".glb,.json" style={{ display: 'none' }}
+            <input ref={fileRef} type="file" accept=".json" style={{ display: 'none' }}
               onChange={e => { const f = e.target.files?.[0]; if (f) setAnimationFileName(f.name); e.target.value = '' }} />
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>.glb or .json (Lottie)</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>.json (2D Lottie)</div>
           </div>
 
           <div className="form-group">
@@ -172,7 +172,7 @@ function GiftCard({ gift, onToggle, onEdit }: {
   onEdit: (gift: Gift) => void
 }) {
   const ext        = gift.animationFileName?.split('.').pop()?.toLowerCase()
-  const assetLabel = ext === 'glb' ? 'GLB' : ext === 'json' ? 'Lottie' : null
+  const assetLabel = ext === 'json' ? 'Lottie' : null
 
   return (
     <div style={{
