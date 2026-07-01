@@ -1,19 +1,23 @@
 import { useState } from 'react'
 import { X, AlertTriangle } from 'lucide-react'
 import { useStore } from '../store'
+import type { WarnMessageType } from '../types'
 
 interface Props {
   targetLabel: string
+  context: Exclude<WarnMessageType, 'all'>
   onConfirm: (warnTitle: string) => void
   onClose: () => void
 }
 
-export default function WarnModal({ targetLabel, onConfirm, onClose }: Props) {
+export default function WarnModal({ targetLabel, context, onConfirm, onClose }: Props) {
   const { warnMessages } = useStore()
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
+  const applicableMessages = warnMessages.filter(m => m.appliesTo === context || m.appliesTo === 'all')
+
   const handleSend = () => {
-    const msg = warnMessages.find(m => m.id === selectedId)
+    const msg = applicableMessages.find(m => m.id === selectedId)
     if (!msg) return
     onConfirm(msg.title)
     onClose()
@@ -38,7 +42,11 @@ export default function WarnModal({ targetLabel, onConfirm, onClose }: Props) {
         <div className="modal-body">
           <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>Select a warning template to send:</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {warnMessages.map(msg => (
+            {applicableMessages.length === 0 ? (
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '12px 0' }}>
+                No warning templates available for this type yet.
+              </div>
+            ) : applicableMessages.map(msg => (
               <button
                 key={msg.id}
                 onClick={() => setSelectedId(msg.id)}

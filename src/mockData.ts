@@ -449,11 +449,11 @@ export const mockFraudAlerts: FraudAlert[] = [
 ];
 
 export const mockWarnMessages: WarnMessage[] = [
-  { id: 'wm1', title: 'Community Guidelines Violation', message: 'Your content violates our community guidelines. Please review them before streaming again.' },
-  { id: 'wm2', title: 'Explicit Content', message: 'Explicit or adult content is not permitted on this platform.' },
-  { id: 'wm3', title: 'Harassment or Bullying', message: 'Harassment and bullying are strictly prohibited. Further violations may result in a ban.' },
-  { id: 'wm4', title: 'Misleading Content', message: 'Your stream title or description was found to be misleading. Please ensure accuracy.' },
-  { id: 'wm5', title: 'Spam in Chat', message: 'Spam or self-promotional content in chat is not allowed.' },
-  { id: 'wm6', title: 'Hate Speech', message: 'Hate speech or discriminatory language will not be tolerated on this platform.' },
-  { id: 'wm7', title: 'Solicitation â€” Final Warning', message: 'Soliciting other users is prohibited. This is your final warning before account action.' },
+  { id: 'wm1', title: 'Community Guidelines Violation', message: 'Your content violates our community guidelines. Please review them before streaming again.', appliesTo: 'all' },
+  { id: 'wm2', title: 'Explicit Content', message: 'Explicit or adult content is not permitted on this platform.', appliesTo: 'stream' },
+  { id: 'wm3', title: 'Harassment or Bullying', message: 'Harassment and bullying are strictly prohibited. Further violations may result in a ban.', appliesTo: 'user' },
+  { id: 'wm4', title: 'Misleading Content', message: 'Your stream title or description was found to be misleading. Please ensure accuracy.', appliesTo: 'stream' },
+  { id: 'wm5', title: 'Spam in Chat', message: 'Spam or self-promotional content in chat is not allowed.', appliesTo: 'message' },
+  { id: 'wm6', title: 'Hate Speech', message: 'Hate speech or discriminatory language will not be tolerated on this platform.', appliesTo: 'all' },
+  { id: 'wm7', title: 'Solicitation â€” Final Warning', message: 'Soliciting other users is prohibited. This is your final warning before account action.', appliesTo: 'user' },
 ];

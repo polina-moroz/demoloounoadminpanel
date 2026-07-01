@@ -256,6 +256,7 @@ function UserSlideOver({ user, onClose, onWarn, onSuspend, onReinstate, onPromot
       {warnOpen && (
         <WarnModal
           targetLabel={`@${user.handle}`}
+          context="user"
           onConfirm={msg => onWarn(user.id, msg)}
           onClose={() => setWarnOpen(false)}
         />
@@ -669,6 +670,7 @@ export default function Users() {
       {warnTarget && (
         <WarnModal
           targetLabel={`@${warnTarget.handle}`}
+          context="user"
           onConfirm={msg => warnUser(warnTarget.id, msg)}
           onClose={() => setWarnTarget(null)}
         />

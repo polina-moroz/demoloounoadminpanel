@@ -50,6 +50,7 @@ export default function Streams() {
       {warnTarget && (
         <WarnModal
           targetLabel={`@${warnTarget.streamerHandle} — ${warnTarget.title}`}
+          context="stream"
           onConfirm={msg => warnStreamer(warnTarget.id, msg)}
           onClose={() => setWarnTarget(null)}
         />

@@ -110,7 +110,7 @@ export default function Reports() {
   const [activeSection, setActiveSection] = useState<'reports' | 'templates'>('reports')
   const [selectedTypes,    setSelectedTypes]    = useState<ReportType[]>([])
   const [selectedStatuses, setSelectedStatuses] = useState<ReportStatus[]>([])
-  const [warnPickerReport, setWarnPickerReport] = useState<{ id: string; targetHandle: string } | null>(null)
+  const [warnPickerReport, setWarnPickerReport] = useState<{ id: string; targetHandle: string; type: ReportType } | null>(null)
   const [logReport, setLogReport] = useState<{ id: string; log: ReportLogEntry[] } | null>(null)
 
   const filtered = reports.filter(r => {
@@ -274,7 +274,7 @@ export default function Reports() {
                               <button className="btn btn-ghost btn-sm" title="Dismiss" onClick={() => dismissReport(r.id)}>
                                 <X size={12} /> Dismiss
                               </button>
-                              <button className="btn btn-warn btn-sm" title="Warn target" onClick={() => setWarnPickerReport({ id: r.id, targetHandle: r.targetHandle })}>
+                              <button className="btn btn-warn btn-sm" title="Warn target" onClick={() => setWarnPickerReport({ id: r.id, targetHandle: r.targetHandle, type: r.type })}>
                                 <AlertTriangle size={12} />
                               </button>
                               <button className="btn btn-danger btn-sm" title="Ban target" onClick={() => banReportTarget(r.id)}>
@@ -298,6 +298,7 @@ export default function Reports() {
           {warnPickerReport && (
             <WarnModal
               targetLabel={`@${warnPickerReport.targetHandle}`}
+              context={warnPickerReport.type}
               onConfirm={msg => {
                 warnReportTarget(warnPickerReport.id, msg)
                 setWarnPickerReport(null)

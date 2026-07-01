@@ -6,7 +6,7 @@ import {
 import type {
   User, Stream, Report, WithdrawalRequest, KYCEntry,
   Notification, UserStatus, WithdrawalStatus, KYCStatus, NotificationTarget,
-  AdminMember, AdminRole, ReportReason, ReportType, FraudAlert, WarnMessage, ReportLogEntry, ActionLogEntry, StreamCategory,
+  AdminMember, AdminRole, ReportReason, ReportType, FraudAlert, WarnMessage, WarnMessageType, ReportLogEntry, ActionLogEntry, StreamCategory,
 } from './types'
 
 // Processing fee default (%)
@@ -60,8 +60,8 @@ interface StoreCtx {
 
   // warn messages
   warnMessages: WarnMessage[]
-  addWarnMessage: (title: string, message: string) => void
-  updateWarnMessage: (id: string, updates: Partial<Pick<WarnMessage, 'title' | 'message'>>) => void
+  addWarnMessage: (title: string, message: string, appliesTo: WarnMessageType) => void
+  updateWarnMessage: (id: string, updates: Partial<Pick<WarnMessage, 'title' | 'message' | 'appliesTo'>>) => void
   removeWarnMessage: (id: string) => void
 
   // stream categories
@@ -327,14 +327,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [reportReasons, toast])
 
   /* ── warn message helpers ── */
-  const addWarnMessage = useCallback((title: string, message: string) => {
+  const addWarnMessage = useCallback((title: string, message: string, appliesTo: WarnMessageType) => {
     const t = title.trim(); const m = message.trim()
     if (!t || !m) return
-    setWarnMessages(prev => [...prev, { id: `wm${Date.now()}`, title: t, message: m }])
+    setWarnMessages(prev => [...prev, { id: `wm${Date.now()}`, title: t, message: m, appliesTo }])
     toast(`Warning template "${t}" added`, 'success')
   }, [toast])
 
-  const updateWarnMessage = useCallback((id: string, updates: Partial<Pick<WarnMessage, 'title' | 'message'>>) => {
+  const updateWarnMessage = useCallback((id: string, updates: Partial<Pick<WarnMessage, 'title' | 'message' | 'appliesTo'>>) => {
     setWarnMessages(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w))
   }, [])
 

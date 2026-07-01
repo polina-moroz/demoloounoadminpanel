@@ -244,10 +244,13 @@ export interface ReportReason {
   enabled: boolean;
 }
 
+export type WarnMessageType = 'message' | 'user' | 'stream' | 'all';
+
 export interface WarnMessage {
   id: string;
   title: string;
   message: string;
+  appliesTo: WarnMessageType;
 }
 
 export interface StreamCategory {

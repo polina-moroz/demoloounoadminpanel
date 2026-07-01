@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { Trash2, Plus, Check, X, Video, UserRound, MessageSquare } from 'lucide-react'
 import { useStore } from '../store'
+import type { WarnMessageType } from '../types'
+
+const TYPE_LABELS: Record<WarnMessageType, string> = {
+  message: 'Message',
+  user:    'User',
+  stream:  'Stream',
+  all:     'All',
+}
 
 const VARIANT = {
   stream: {
@@ -11,6 +19,7 @@ const VARIANT = {
     rowBg: 'rgba(59,158,232,0.03)',
     icon: <Video size={14} />,
     subtitle: 'Warning templates for streamers — sent as a notification when a stream is flagged',
+    typeOptions: ['stream', 'all'] as WarnMessageType[],
   },
   user: {
     color: '#9B59B6',
@@ -20,6 +29,7 @@ const VARIANT = {
     rowBg: 'rgba(155,89,182,0.03)',
     icon: <UserRound size={14} />,
     subtitle: 'Warning templates for users — sent as a notification when a profile is actioned',
+    typeOptions: ['user', 'all'] as WarnMessageType[],
   },
   report: {
     color: '#F97316',
@@ -28,9 +38,14 @@ const VARIANT = {
     bg: 'rgba(249,115,22,0.05)',
     rowBg: 'rgba(249,115,22,0.03)',
     icon: <MessageSquare size={14} />,
-    subtitle: 'Warning templates for report targets — sent as a notification when a report is actioned',
+    subtitle: 'All warning templates across every type — sent as a notification when a report is actioned',
+    typeOptions: ['message', 'user', 'stream', 'all'] as WarnMessageType[],
   },
 } as const
+
+function toggleValue<T>(arr: T[], value: T): T[] {
+  return arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value]
+}
 
 interface Props {
   variant: keyof typeof VARIANT
@@ -38,17 +53,25 @@ interface Props {
 
 export default function WarnMessagesEditor({ variant }: Props) {
   const { warnMessages, addWarnMessage, updateWarnMessage, removeWarnMessage } = useStore()
-  const [adding, setAdding] = useState(false)
+  const [adding, setAdding]     = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newMessage, setNewMessage] = useState('')
 
   const cfg = VARIANT[variant]
+  const [newType, setNewType] = useState<WarnMessageType>(cfg.typeOptions[0])
+  const [typeFilter, setTypeFilter] = useState<WarnMessageType[]>([])
+
+  const filterable = cfg.typeOptions.length > 2
+  const visibleMessages = filterable
+    ? (typeFilter.length === 0 ? warnMessages : warnMessages.filter(m => typeFilter.includes(m.appliesTo)))
+    : warnMessages.filter(m => cfg.typeOptions.includes(m.appliesTo))
 
   const handleAdd = () => {
     if (!newTitle.trim() || !newMessage.trim()) return
-    addWarnMessage(newTitle.trim(), newMessage.trim())
+    addWarnMessage(newTitle.trim(), newMessage.trim(), newType)
     setNewTitle('')
     setNewMessage('')
+    setNewType(cfg.typeOptions[0])
     setAdding(false)
   }
 
@@ -81,17 +104,38 @@ export default function WarnMessagesEditor({ variant }: Props) {
         </button>
       </div>
 
+      {filterable && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', borderBottom: `1px solid ${cfg.border}` }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Type</span>
+          <div className="filter-tabs" style={{ display: 'inline-flex' }}>
+            {cfg.typeOptions.map(type => (
+              <button
+                key={type}
+                className={`filter-tab${typeFilter.includes(type) ? ' active' : ''}`}
+                onClick={() => setTypeFilter(prev => toggleValue(prev, type))}
+              >
+                {TYPE_LABELS[type]}
+              </button>
+            ))}
+          </div>
+          {typeFilter.length > 0 && (
+            <button className="btn btn-ghost btn-sm" onClick={() => setTypeFilter([])}>Clear</button>
+          )}
+        </div>
+      )}
+
       <div style={{ overflowX: 'auto' }}>
         <table>
           <thead>
             <tr>
               <th style={{ width: 220 }}>Title</th>
               <th>Message (user notification)</th>
+              <th style={{ width: 110 }}>Type</th>
               <th style={{ width: 40 }}></th>
             </tr>
           </thead>
           <tbody>
-            {warnMessages.map(msg => (
+            {visibleMessages.map(msg => (
               <tr key={msg.id} style={{ borderLeft: `3px solid ${cfg.color}` }}>
                 <td>
                   <input
@@ -113,6 +157,18 @@ export default function WarnMessagesEditor({ variant }: Props) {
                     onFocus={e => (e.target.style.borderColor = cfg.border)}
                     onBlur={e => (e.target.style.borderColor = 'transparent')}
                   />
+                </td>
+                <td>
+                  <select
+                    className="form-select"
+                    value={msg.appliesTo}
+                    onChange={e => updateWarnMessage(msg.id, { appliesTo: e.target.value as WarnMessageType })}
+                    style={{ fontSize: 12, padding: '5px 26px 5px 8px', width: '100%' }}
+                  >
+                    {cfg.typeOptions.map(type => (
+                      <option key={type} value={type}>{TYPE_LABELS[type]}</option>
+                    ))}
+                  </select>
                 </td>
                 <td>
                   <button className="btn btn-ghost btn-icon" onClick={() => removeWarnMessage(msg.id)} title="Delete template" style={{ color: 'var(--text-muted)' }}>
@@ -145,6 +201,18 @@ export default function WarnMessagesEditor({ variant }: Props) {
                   />
                 </td>
                 <td>
+                  <select
+                    className="form-select"
+                    value={newType}
+                    onChange={e => setNewType(e.target.value as WarnMessageType)}
+                    style={{ fontSize: 12, padding: '5px 26px 5px 8px', width: '100%' }}
+                  >
+                    {cfg.typeOptions.map(type => (
+                      <option key={type} value={type}>{TYPE_LABELS[type]}</option>
+                    ))}
+                  </select>
+                </td>
+                <td>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <button
                       className="btn btn-icon"
@@ -155,7 +223,7 @@ export default function WarnMessagesEditor({ variant }: Props) {
                     >
                       <Check size={11} />
                     </button>
-                    <button className="btn btn-ghost btn-icon" style={{ width: 24, height: 24 }} onClick={() => { setAdding(false); setNewTitle(''); setNewMessage('') }} title="Cancel">
+                    <button className="btn btn-ghost btn-icon" style={{ width: 24, height: 24 }} onClick={() => { setAdding(false); setNewTitle(''); setNewMessage(''); setNewType(cfg.typeOptions[0]) }} title="Cancel">
                       <X size={11} />
                     </button>
                   </div>
@@ -167,7 +235,7 @@ export default function WarnMessagesEditor({ variant }: Props) {
       </div>
 
       <div style={{ padding: '10px 20px', borderTop: `1px solid ${cfg.border}`, fontSize: 12, color: 'var(--text-subtle)' }}>
-        Title and message fields are editable inline. Changes apply immediately.
+        Title, message, and type are editable inline. Changes apply immediately.
       </div>
     </div>
   )
