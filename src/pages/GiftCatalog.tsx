@@ -15,7 +15,7 @@ interface CustomTier {
 const INITIAL_TIERS: CustomTier[] = [
   { id: '5A', name: 'Reaction / Meme',   minCoins: 10     },
   { id: '5B', name: 'Mid-Tier Animated', minCoins: 300    },
-  { id: '5C', name: 'Premium 3D',        minCoins: 8000   },
+  { id: '5C', name: 'Premium',           minCoins: 8000   },
   { id: '5D', name: 'Cinematic',         minCoins: 90000  },
   { id: '5E', name: 'VIP / Max Cap',     minCoins: 175000 },
 ]
@@ -44,7 +44,7 @@ function TierModal({ initial, onSave, onClose }: {
 
           <div className="form-group">
             <label className="form-label">Tier Name</label>
-            <input className="form-input" placeholder="e.g. Premium 3D" value={name}
+            <input className="form-input" placeholder="e.g. Premium" value={name}
               onChange={e => setName(e.target.value)} autoFocus />
           </div>
 
@@ -117,12 +117,12 @@ function GiftModal({ initial, tierId, tierName, onSave, onClose }: GiftModalProp
             ) : (
               <button className="btn btn-secondary btn-sm" style={{ width: '100%', justifyContent: 'center' }}
                 onClick={() => fileRef.current?.click()}>
-                <Upload size={13} /> Upload .glb (3D) or .json (2D Lottie)
+                <Upload size={13} /> Upload .glb or .json (Lottie)
               </button>
             )}
             <input ref={fileRef} type="file" accept=".glb,.json" style={{ display: 'none' }}
               onChange={e => { const f = e.target.files?.[0]; if (f) setAnimationFileName(f.name); e.target.value = '' }} />
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>.glb for 3D, .json for 2D Lottie</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>.glb or .json (Lottie)</div>
           </div>
 
           <div className="form-group">
@@ -172,7 +172,7 @@ function GiftCard({ gift, onToggle, onEdit }: {
   onEdit: (gift: Gift) => void
 }) {
   const ext        = gift.animationFileName?.split('.').pop()?.toLowerCase()
-  const assetLabel = ext === 'glb' ? '3D' : ext === 'json' ? '2D' : null
+  const assetLabel = ext === 'glb' ? 'GLB' : ext === 'json' ? 'Lottie' : null
 
   return (
     <div style={{

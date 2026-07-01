@@ -124,11 +124,11 @@ export const mockGifts: Gift[] = [
   { id: 'g8',  animationFileName: 'confetti.glb',       name: 'Confetti',      coins: 800,  tier: '5B', tierName: 'Mid-Tier', durationSec: 4,  enabled: true  },
   { id: 'g9',  animationFileName: 'shooting_star.glb',  name: 'Shooting Star', coins: 1500, tier: '5B', tierName: 'Mid-Tier', durationSec: 4,  enabled: true  },
   { id: 'g10', animationFileName: 'crystal_ball.glb',   name: 'Crystal Ball',  coins: 3000, tier: '5B', tierName: 'Mid-Tier', durationSec: 5,  enabled: true  },
-  // 5C â€” Premium 3D (6â€“10s, 8,000â€“70,000 coins)
-  { id: 'g11', animationFileName: 'golden_dragon.glb',  name: 'Golden Dragon',   coins: 8000,  tier: '5C', tierName: 'Premium 3D', durationSec: 6,  enabled: true  },
-  { id: 'g12', animationFileName: 'rainbow_phoenix.glb',name: 'Rainbow Phoenix',  coins: 20000, tier: '5C', tierName: 'Premium 3D', durationSec: 8,  enabled: true  },
-  { id: 'g13', animationFileName: 'crystal_palace.glb', name: 'Crystal Palace',   coins: 45000, tier: '5C', tierName: 'Premium 3D', durationSec: 9,  enabled: true  },
-  { id: 'g14', animationFileName: 'royal_yacht.glb',    name: 'Royal Yacht',      coins: 70000, tier: '5C', tierName: 'Premium 3D', durationSec: 10, enabled: true  },
+  // 5C â€” Premium (6â€“10s, 8,000â€“70,000 coins)
+  { id: 'g11', animationFileName: 'golden_dragon.glb',  name: 'Golden Dragon',   coins: 8000,  tier: '5C', tierName: 'Premium', durationSec: 6,  enabled: true  },
+  { id: 'g12', animationFileName: 'rainbow_phoenix.glb',name: 'Rainbow Phoenix',  coins: 20000, tier: '5C', tierName: 'Premium', durationSec: 8,  enabled: true  },
+  { id: 'g13', animationFileName: 'crystal_palace.glb', name: 'Crystal Palace',   coins: 45000, tier: '5C', tierName: 'Premium', durationSec: 9,  enabled: true  },
+  { id: 'g14', animationFileName: 'royal_yacht.glb',    name: 'Royal Yacht',      coins: 70000, tier: '5C', tierName: 'Premium', durationSec: 10, enabled: true  },
   // 5D â€” Cinematic / Whale (12â€“15s, 90,000â€“150,000 coins)
   { id: 'g15', animationFileName: 'diamond_storm.glb',  name: 'Diamond Storm',    coins: 90000,  tier: '5D', tierName: 'Cinematic / Whale', durationSec: 12, enabled: true  },
   { id: 'g16', animationFileName: 'galactic_explosion.glb', name: 'Galactic Explosion', coins: 120000, tier: '5D', tierName: 'Cinematic / Whale', durationSec: 14, enabled: true  },
