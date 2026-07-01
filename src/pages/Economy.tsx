@@ -197,7 +197,7 @@ export default function Economy() {
   }
 
   /* ── View switcher ── */
-  const [activeView, setActiveView] = useState<'withdrawals' | 'transactions' | 'reason-templates'>('withdrawals')
+  const [activeView, setActiveView] = useState<'withdrawals' | 'transactions' | 'donations' | 'reason-templates'>('withdrawals')
 
   /* ── Threshold filter — only requests above fraudThresholdUSD need manual review ── */
   const manualWithdrawals = withdrawals.filter(w => w.estimatedUSD >= fraudThresholdUSD)
@@ -215,6 +215,10 @@ export default function Economy() {
   const [tType, setTType]     = useState<'all' | TransactionType>('all')
   const [tPage, setTPage]     = useState(1)
 
+  /* ── Donation (gift) log filters ── */
+  const [dSearch, setDSearch] = useState('')
+  const [dPage, setDPage]     = useState(1)
+
   /* ── Apply withdrawal filters ── */
   const filteredWithdrawals = manualWithdrawals.filter(w => {
     const q = wSearch.toLowerCase()
@@ -229,8 +233,9 @@ export default function Economy() {
   const wPageSafe   = Math.min(wPage, Math.max(1, wTotalPages))
   const pagedWithdrawals = filteredWithdrawals.slice((wPageSafe - 1) * W_PAGE_SIZE, wPageSafe * W_PAGE_SIZE)
 
-  /* ── Apply transaction filters ── */
+  /* ── Apply transaction filters (gift donations live in their own tab) ── */
   const filteredTransactions = mockTransactions.filter(t => {
+    if (t.type === 'diamonds_received') return false
     const q = tSearch.toLowerCase()
     if (q && !t.user.toLowerCase().includes(q) && !t.userHandle.toLowerCase().includes(q)) return false
     if (tType !== 'all' && t.type !== tType) return false
@@ -241,8 +246,21 @@ export default function Economy() {
   const tPageSafe   = Math.min(tPage, Math.max(1, tTotalPages))
   const pagedTransactions = filteredTransactions.slice((tPageSafe - 1) * T_PAGE_SIZE, tPageSafe * T_PAGE_SIZE)
 
+  /* ── Apply donation (gift) log filters ── */
+  const filteredDonations = mockTransactions.filter(t => {
+    if (t.type !== 'diamonds_received') return false
+    const q = dSearch.toLowerCase()
+    if (q && !t.user.toLowerCase().includes(q) && !t.userHandle.toLowerCase().includes(q)) return false
+    return true
+  })
+
+  const dTotalPages = Math.ceil(filteredDonations.length / T_PAGE_SIZE)
+  const dPageSafe   = Math.min(dPage, Math.max(1, dTotalPages))
+  const pagedDonations = filteredDonations.slice((dPageSafe - 1) * T_PAGE_SIZE, dPageSafe * T_PAGE_SIZE)
+
   function resetWPage() { setWPage(1) }
   function resetTPage() { setTPage(1) }
+  function resetDPage() { setDPage(1) }
 
   /* ── Modals data ── */
   const approveW = approveTarget ? withdrawals.find(w => w.id === approveTarget) : null
@@ -381,6 +399,17 @@ export default function Economy() {
           }}
         >
           Transaction Log
+        </button>
+        <button
+          onClick={() => setActiveView('donations')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: 14, fontWeight: 500,
+            color: activeView === 'donations' ? 'var(--text-primary)' : 'var(--text-muted)',
+            borderBottom: activeView === 'donations' ? '2px solid var(--gold)' : '2px solid transparent',
+            marginBottom: -1, transition: 'color 0.15s',
+          }}
+        >
+          Donation Log
         </button>
         <button
           onClick={() => setActiveView('reason-templates')}
@@ -580,7 +609,6 @@ export default function Economy() {
               value={tType} onChange={e => { setTType(e.target.value as 'all' | TransactionType); resetTPage() }}>
               <option value="all">All Types</option>
               <option value="coin_purchase">Coin Purchase</option>
-              <option value="diamonds_received">Diamonds Received</option>
               <option value="withdrawal">Withdrawal</option>
             </select>
           </div>
@@ -646,6 +674,70 @@ export default function Economy() {
         </div>
 
         <Pagination page={tPageSafe} total={filteredTransactions.length} pageSize={T_PAGE_SIZE} onChange={setTPage} />
+      </div>}
+
+      {/* ── Donation Log ── */}
+      {activeView === 'donations' && <div className="table-wrapper">
+        <div className="table-header">
+          <div>
+            <div className="table-title">Donation Log</div>
+            <div className="table-subtitle">All gift transactions sent across the platform</div>
+          </div>
+        </div>
+
+        {/* Donation filters */}
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div className="search-input-wrapper">
+            <Search size={14} />
+            <input className="search-input" placeholder="Search user…" value={dSearch}
+              onChange={e => { setDSearch(e.target.value); resetDPage() }} />
+          </div>
+
+          {dSearch && (
+            <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-end', fontSize: 12 }}
+              onClick={() => { setDSearch(''); setDPage(1) }}>
+              Clear filters
+            </button>
+          )}
+        </div>
+
+        <div style={{ overflowX: 'auto' }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Recipient</th>
+                <th>Diamonds</th>
+                <th>Gift / Note</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pagedDonations.length === 0 ? (
+                <tr>
+                  <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0', fontSize: 13 }}>
+                    No donations match the current filters.
+                  </td>
+                </tr>
+              ) : pagedDonations.map(t => (
+                <tr key={t.id}>
+                  <td>
+                    <div style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 13 }}>{t.user}</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>@{t.userHandle}</div>
+                  </td>
+                  <td>
+                    <span style={{ fontWeight: 700, color: 'var(--gold)' }}>{t.amount.toLocaleString()} 💎</span>
+                  </td>
+                  <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{t.note ?? '—'}</td>
+                  <td style={{ color: 'var(--text-muted)', fontSize: 12, whiteSpace: 'nowrap' }}>
+                    {new Date(t.date).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <Pagination page={dPageSafe} total={filteredDonations.length} pageSize={T_PAGE_SIZE} onChange={setDPage} />
       </div>}
 
       {/* ── Reason Templates ── */}
