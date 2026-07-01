@@ -3,7 +3,7 @@ import { CheckCircle, XCircle, Search, ChevronLeft, ChevronRight, Trash2, Plus, 
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
 import { mockTransactions } from '../mockData'
-import type { WithdrawalStatus, TransactionType } from '../types'
+import type { WithdrawalStatus, TransactionType, TransactionStatus } from '../types'
 
 /* ── Types ────────────────────────────────────────────────────── */
 
@@ -213,6 +213,7 @@ export default function Economy() {
   /* ── Transaction filters ── */
   const [tSearch, setTSearch] = useState('')
   const [tType, setTType]     = useState<'all' | TransactionType>('all')
+  const [tStatus, setTStatus] = useState<'all' | TransactionStatus>('all')
   const [tPage, setTPage]     = useState(1)
 
   /* ── Donation (gift) log filters ── */
@@ -239,6 +240,7 @@ export default function Economy() {
     const q = tSearch.toLowerCase()
     if (q && !t.user.toLowerCase().includes(q) && !t.userHandle.toLowerCase().includes(q)) return false
     if (tType !== 'all' && t.type !== tType) return false
+    if (tStatus !== 'all' && t.status !== tStatus) return false
     return true
   })
 
@@ -613,9 +615,21 @@ export default function Economy() {
             </select>
           </div>
 
-          {(tSearch || tType !== 'all') && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <label style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</label>
+            <select className="form-select" style={{ width: 150, padding: '7px 30px 7px 10px' }}
+              value={tStatus} onChange={e => { setTStatus(e.target.value as 'all' | TransactionStatus); resetTPage() }}>
+              <option value="all">All Statuses</option>
+              <option value="approved">Approved</option>
+              <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+
+          {(tSearch || tType !== 'all' || tStatus !== 'all') && (
             <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-end', fontSize: 12 }}
-              onClick={() => { setTSearch(''); setTType('all'); setTPage(1) }}>
+              onClick={() => { setTSearch(''); setTType('all'); setTStatus('all'); setTPage(1) }}>
               Clear filters
             </button>
           )}
@@ -630,12 +644,13 @@ export default function Economy() {
                 <th>Amount</th>
                 <th>Note</th>
                 <th>Date</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {pagedTransactions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0', fontSize: 13 }}>
+                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0', fontSize: 13 }}>
                     No transactions match the current filters.
                   </td>
                 </tr>
@@ -667,6 +682,7 @@ export default function Economy() {
                   <td style={{ color: 'var(--text-muted)', fontSize: 12, whiteSpace: 'nowrap' }}>
                     {new Date(t.date).toLocaleDateString()}
                   </td>
+                  <td><Badge variant={t.status} dot>{statusLabel(t.status)}</Badge></td>
                 </tr>
               ))}
             </tbody>

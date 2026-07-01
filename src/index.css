@@ -541,6 +541,9 @@ tbody td {
 .badge-rejected  { background: rgba(192, 57, 43, 0.12); color: #C0392B; border: 1px solid rgba(192, 57, 43, 0.2); }
 .badge-rejected .badge-dot { background: #C0392B; }
 
+.badge-failed    { background: rgba(224, 92, 106, 0.12); color: #E05C6A; border: 1px solid rgba(224, 92, 106, 0.2); }
+.badge-failed .badge-dot { background: #E05C6A; }
+
 .badge-live      { background: rgba(192, 57, 43, 0.15); color: #E05C6A; border: 1px solid rgba(192, 57, 43, 0.3); }
 .badge-live .badge-dot { background: #E05C6A; animation: pulse 1.5s infinite; }
 

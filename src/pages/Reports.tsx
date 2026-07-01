@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react'
-import { X, AlertTriangle, Ban, RotateCcw, ExternalLink, ScrollText } from 'lucide-react'
+import { X, Check, AlertTriangle, Ban, RotateCcw, ExternalLink, ScrollText } from 'lucide-react'
 import Badge, { statusLabel } from '../components/Badge'
 import WarnModal from '../components/WarnModal'
 import WarnMessagesEditor from '../components/WarnMessagesEditor'
@@ -104,7 +104,7 @@ function ReportLogModal({ log, reportId, onClose }: { log: ReportLogEntry[]; rep
 
 export default function Reports() {
   const {
-    reports, dismissReport, reopenReport, banReportTarget, warnReportTarget,
+    reports, resolveReport, dismissReport, reopenReport, banReportTarget, warnReportTarget,
   } = useStore()
 
   const [activeSection, setActiveSection] = useState<'reports' | 'templates'>('reports')
@@ -268,6 +268,9 @@ export default function Reports() {
                           )}
                           {r.status === 'pending' ? (
                             <>
+                              <button className="btn btn-success btn-sm" title="Resolve" onClick={() => resolveReport(r.id)}>
+                                <Check size={12} /> Resolve
+                              </button>
                               <button className="btn btn-ghost btn-sm" title="Dismiss" onClick={() => dismissReport(r.id)}>
                                 <X size={12} /> Dismiss
                               </button>

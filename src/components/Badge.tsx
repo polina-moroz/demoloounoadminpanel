@@ -24,6 +24,7 @@ export function statusLabel(status: string): string {
     pending: 'Pending',
     approved: 'Approved',
     rejected: 'Rejected',
+    failed: 'Failed',
     not_submitted: 'Not Submitted',
     live: 'Live',
     ended: 'Ended',

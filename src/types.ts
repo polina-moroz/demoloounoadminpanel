@@ -6,6 +6,7 @@ export type ReportStatus = 'pending' | 'resolved' | 'dismissed';
 export type StreamStatus = 'live' | 'ended' | 'terminated';
 export type WithdrawalStatus = 'pending' | 'approved' | 'rejected' | 'on_hold';
 export type TransactionType = 'coin_purchase' | 'diamonds_received' | 'withdrawal';
+export type TransactionStatus = 'pending' | 'approved' | 'rejected' | 'failed';
 export type CompetitionStatus = 'active' | 'upcoming' | 'ended';
 export type NotificationTarget = 'all' | 'creators' | 'viewers' | 'specific';
 
@@ -100,6 +101,7 @@ export interface Transaction {
   currency: 'USD' | 'coins' | 'diamonds';
   date: string;
   note?: string;
+  status: TransactionStatus;
 }
 
 export interface KYCEntry {
