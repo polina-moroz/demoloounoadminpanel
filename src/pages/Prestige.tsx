@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Edit2, X, Plus, Trash2, Upload } from 'lucide-react'
 import { mockXPLevels, mockCPTiers, mockVIPLevels } from '../mockData'
 import { useStore } from '../store'
-import type { PrestigeXPLevel, PrestigeCPTier, VIPLevel, Perk, PerkType } from '../types'
+import type { PrestigeXPLevel, PrestigeCPTier, VIPLevel, Perk } from '../types'
 
 type Tab = 'xp' | 'cp' | 'vip'
 
@@ -30,74 +30,6 @@ function FileUpload({ label, fileName, accept, onChange }: {
       )}
       <input id={id} type="file" accept={accept} style={{ display: 'none' }}
         onChange={e => { const f = e.target.files?.[0]; if (f) onChange(f.name); e.target.value = '' }} />
-    </div>
-  )
-}
-
-/* ── PerkEditor ───────────────────────────────────────────────── */
-
-const PERK_META: Record<PerkType, { label: string; hasValue: boolean }> = {
-  discovery_boost:      { label: 'Discovery Boost (%)',    hasValue: true  },
-  spotlight_slots:      { label: 'Spotlight Slots / mo',   hasValue: true  },
-  exclusive_emote_pack: { label: 'Exclusive Emote Pack',   hasValue: false },
-  exclusive_gift:       { label: 'Exclusive Gift',         hasValue: false },
-  priority_support:     { label: 'Priority Support',       hasValue: false },
-  featured_on_discover: { label: 'Featured on Discover',   hasValue: false },
-  animated_badge:       { label: 'Animated Badge',         hasValue: false },
-  full_screen_entrance: { label: 'Full-Screen Entrance',   hasValue: false },
-  account_manager:      { label: 'Account Manager',        hasValue: false },
-  custom_ring_color:    { label: 'Custom Ring Color',      hasValue: false },
-  chat_effect:          { label: 'Chat Effect',            hasValue: false },
-  nameplate:            { label: 'Nameplate',              hasValue: false },
-  other:                { label: 'Other (note)',            hasValue: false },
-}
-
-function PerkEditor({ perks, onChange }: { perks: Perk[]; onChange: (p: Perk[]) => void }) {
-  const add = () => onChange([...perks, { type: 'other' as PerkType }])
-  const remove = (i: number) => onChange(perks.filter((_, idx) => idx !== i))
-  const upd = (i: number, patch: Partial<Perk>) =>
-    onChange(perks.map((p, idx) => idx === i ? { ...p, ...patch } : p))
-
-  return (
-    <div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {perks.map((p, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: 'var(--bg-surface-2)', border: '1px solid var(--border)' }}>
-            <select
-              value={p.type}
-              className="form-select"
-              style={{ flex: 1, fontSize: 13 }}
-              onChange={e => upd(i, { type: e.target.value as PerkType, value: undefined, label: undefined })}
-            >
-              {(Object.keys(PERK_META) as PerkType[]).map(k => (
-                <option key={k} value={k}>{PERK_META[k].label}</option>
-              ))}
-            </select>
-            {PERK_META[p.type].hasValue && (
-              <input
-                type="number" value={p.value ?? ''} placeholder="0"
-                className="form-input" style={{ width: 70, fontSize: 13 }}
-                onChange={e => upd(i, { value: Number(e.target.value) })}
-              />
-            )}
-            {p.type === 'other' && (
-              <input
-                type="text" value={p.label ?? ''} placeholder="note…"
-                className="form-input" style={{ flex: 1, fontSize: 13 }}
-                onChange={e => upd(i, { label: e.target.value })}
-              />
-            )}
-            <button
-              className="btn btn-ghost btn-icon"
-              style={{ width: 24, height: 24, color: '#E74C3C', flexShrink: 0 }}
-              onClick={() => remove(i)}
-            ><X size={12} /></button>
-          </div>
-        ))}
-      </div>
-      <button className="btn btn-ghost btn-sm" style={{ marginTop: 8, gap: 5 }} onClick={add}>
-        <Plus size={13} /> Add Perk
-      </button>
     </div>
   )
 }
@@ -175,10 +107,6 @@ function XPModal({ level, onSave, onClose }: {
       <ColorField label="Ring Color" value={draft.color} onChange={v => set({ color: v })} />
       <FileUpload label="Icon (image)" fileName={draft.iconFileName} accept="image/*" onChange={v => set({ iconFileName: v })} />
       <FileUpload label="Entrance Animation (.json)" fileName={draft.entranceAnimationFileName} accept=".json" onChange={v => set({ entranceAnimationFileName: v })} />
-      <div>
-        <div className="form-label" style={{ marginBottom: 8 }}>Perks</div>
-        <PerkEditor perks={draft.perks} onChange={p => set({ perks: p })} />
-      </div>
     </Modal>
   )
 }
@@ -209,10 +137,6 @@ function CPModal({ entry, onSave, onClose }: {
       </div>
       <ColorField label="Ring Color" value={draft.ringColor} onChange={v => set({ ringColor: v })} />
       <FileUpload label="Icon (creator badge)" fileName={draft.iconFileName} accept="image/*" onChange={v => set({ iconFileName: v })} />
-      <div>
-        <div className="form-label" style={{ marginBottom: 8 }}>Perks</div>
-        <PerkEditor perks={draft.perks} onChange={p => set({ perks: p })} />
-      </div>
     </Modal>
   )
 }
@@ -254,10 +178,6 @@ function VIPModal({ level, onSave, onClose }: {
       <ColorField label="Badge Color" value={draft.badgeColor} onChange={v => set({ badgeColor: v })} />
       <ColorField label="Ring Color" value={draft.ringColor} onChange={v => set({ ringColor: v })} />
       <FileUpload label="Icon (VIP badge)" fileName={draft.iconFileName} accept="image/*" onChange={v => set({ iconFileName: v })} />
-      <div>
-        <div className="form-label" style={{ marginBottom: 8 }}>Perks</div>
-        <PerkEditor perks={draft.perks} onChange={p => set({ perks: p })} />
-      </div>
     </Modal>
   )
 }
