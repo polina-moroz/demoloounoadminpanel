@@ -1,10 +1,27 @@
 import { useState } from 'react'
-import { Radio, Users, DollarSign, Flag, X, AlertTriangle, Ban, CheckCircle } from 'lucide-react'
+import {
+  Radio, Users, UserPlus, Activity, Gift, Coins, DollarSign, TrendingUp, Wallet,
+  Flag, X, AlertTriangle, Ban, CheckCircle, RefreshCw,
+} from 'lucide-react'
 import StatCard from '../components/StatCard'
 import Badge, { statusLabel } from '../components/Badge'
 import { useStore } from '../store'
-import { revenueData } from '../mockData'
+import { revenueData, dashboardStats } from '../mockData'
 import type { Report } from '../types'
+
+const fmtNum = (n: number) => n.toLocaleString()
+const fmtUSD = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      padding: '4px 2px 12px', fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
+      textTransform: 'uppercase', letterSpacing: '0.06em',
+    }}>
+      {children}
+    </div>
+  )
+}
 
 /* ── Revenue chart ───────────────────────────────────────────── */
 
@@ -17,7 +34,7 @@ function RevenueChart() {
           <div className="card-title">Revenue — Last 7 Days</div>
           <div className="card-subtitle">Coin purchases (gross)</div>
         </div>
-        <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--gold)' }}>$3,140</span>
+        <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--gold)' }}>{fmtUSD(dashboardStats.coinPurchasesDaily)}</span>
       </div>
       <div className="card-body">
         <div className="revenue-chart">
@@ -177,22 +194,65 @@ function ReportModal({ report, onClose }: { report: Report; onClose: () => void 
 /* ── Page ────────────────────────────────────────────────────── */
 
 export default function Dashboard() {
-  const { reports } = useStore()
+  const { reports, currentAdmin } = useStore()
   const [reviewingReport, setReviewingReport] = useState<Report | null>(null)
+  const [lastUpdated, setLastUpdated] = useState(() => new Date(dashboardStats.lastUpdated))
 
   const pendingReports = reports.filter(r => r.status === 'pending').slice(0, 5)
+  const canViewFinancial = currentAdmin?.role === 'super_admin' || currentAdmin?.role === 'admin'
+  const netRevenueYTD = dashboardStats.totalRevenueYTD - dashboardStats.creatorPayoutsYTD
+  const marginPercent = Math.round((netRevenueYTD / dashboardStats.totalRevenueYTD) * 100)
 
   return (
     <div>
-      {/* KPI cards */}
-      <div className="stat-grid">
-        <StatCard label="Active Live Streams" value="47"      sub="4 more than yesterday"     icon={<Radio size={20} />} />
-        <StatCard label="Total Users"          value="12,841"  sub="+38 this week"             icon={<Users size={20} />} />
-        <StatCard label="Revenue Today"        value="$2,140"  sub="Coin purchases (gross)"    icon={<DollarSign size={20} />} />
-        <StatCard label="Open Reports"         value={String(reports.filter(r => r.status === 'pending').length)} sub="8 require urgent review" icon={<Flag size={20} />} />
+      {/* Header: refresh + last updated */}
+      <div className="page-header">
+        <div className="page-header-text">
+          <div className="title">Dashboard</div>
+          <div className="subtitle">Platform activity overview</div>
+        </div>
+        <div className="page-header-actions">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+              Last updated {lastUpdated.toLocaleTimeString()}
+            </span>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => setLastUpdated(new Date())}
+              title="Refresh dashboard metrics"
+            >
+              <RefreshCw size={13} /> Refresh
+            </button>
+          </div>
+        </div>
       </div>
 
-      <RevenueChart />
+      {/* General activity */}
+      <SectionLabel>General activity</SectionLabel>
+      <div className="stat-grid">
+        <StatCard label="New Signups Today"   value={fmtNum(dashboardStats.newSignupsToday)}      sub="Users joined the app"        icon={<UserPlus size={20} />} />
+        <StatCard label="Daily Active Users"  value={fmtNum(dashboardStats.dailyActiveUsers)}      sub="Unique users, last 24h"      icon={<Activity size={20} />} />
+        <StatCard label="Monthly Active Users" value={fmtNum(dashboardStats.monthlyActiveUsers)}   sub="Unique users, last 30d"      icon={<Users size={20} />} />
+        <StatCard label="Live Streams Today"  value={fmtNum(dashboardStats.liveStreamsToday)}      sub="Streams started today"       icon={<Radio size={20} />} />
+        <StatCard label="Total Gifts Sent"    value={`${fmtNum(dashboardStats.totalGiftsSentDiamonds)} 💎`} sub="Gift value, today" icon={<Gift size={20} />} />
+      </div>
+
+      {/* Financial — Super Admin & Admin only */}
+      {canViewFinancial && (
+        <>
+          <SectionLabel>Financial</SectionLabel>
+          <div className="stat-grid">
+            <StatCard label="Coin Purchases — Daily"   value={fmtUSD(dashboardStats.coinPurchasesDaily)}   sub="Gross, today"          icon={<Coins size={20} />} />
+            <StatCard label="Coin Purchases — Monthly" value={fmtUSD(dashboardStats.coinPurchasesMonthly)} sub="Gross, last 30d"       icon={<Coins size={20} />} />
+            <StatCard label="Coin Purchases — YTD"     value={fmtUSD(dashboardStats.coinPurchasesYTD)}     sub="Gross, year to date"   icon={<Coins size={20} />} />
+            <StatCard label="Total Revenue (YTD)"      value={fmtUSD(dashboardStats.totalRevenueYTD)}      sub="Gross, year to date"   icon={<DollarSign size={20} />} />
+            <StatCard label="Net Revenue (YTD)"        value={fmtUSD(netRevenueYTD)}                       sub={`${marginPercent}% margin — after creator payouts`} icon={<TrendingUp size={20} />} />
+            <StatCard label="Pending Withdrawals"      value={fmtNum(dashboardStats.pendingWithdrawalsCount)} sub={`${fmtUSD(dashboardStats.pendingWithdrawalsValue)} awaiting review`} icon={<Wallet size={20} />} />
+          </div>
+
+          <RevenueChart />
+        </>
+      )}
 
       {/* Pending reports */}
       <div className="table-wrapper">

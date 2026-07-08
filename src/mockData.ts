@@ -421,6 +421,24 @@ export const revenueData = [
   { day: 'Sun', amount: 340 },
 ];
 
+export const dashboardStats = {
+  // General activity
+  newSignupsToday: 214,
+  dailyActiveUsers: 8420,
+  monthlyActiveUsers: 61300,
+  liveStreamsToday: 132,
+  totalGiftsSentDiamonds: 1284500,
+  // Financial (super admin / admin only)
+  coinPurchasesDaily: 3140,
+  coinPurchasesMonthly: 86200,
+  coinPurchasesYTD: 512400,
+  totalRevenueYTD: 512400,
+  creatorPayoutsYTD: 183500,
+  pendingWithdrawalsCount: 7,
+  pendingWithdrawalsValue: 1042,
+  lastUpdated: '2026-06-03T22:15:00Z',
+};
+
 export const mockFraudAlerts: FraudAlert[] = [
   {
     id: 'fa1', withdrawalId: 'w1',  userId: 'u7',
