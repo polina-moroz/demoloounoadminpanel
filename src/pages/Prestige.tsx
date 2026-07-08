@@ -135,7 +135,7 @@ function CPModal({ entry, onSave, onClose }: {
           <input className="form-input" type="number" min={0} value={draft.cpTo} onChange={e => set({ cpTo: Number(e.target.value) })} />
         </FieldRow>
       </div>
-      <ColorField label="Ring Color" value={draft.ringColor} onChange={v => set({ ringColor: v })} />
+      <ColorField label="Badge Color" value={draft.badgeColor} onChange={v => set({ badgeColor: v })} />
       <FileUpload label="Icon (creator badge)" fileName={draft.iconFileName} accept="image/*" onChange={v => set({ iconFileName: v })} />
     </Modal>
   )
@@ -176,7 +176,6 @@ function VIPModal({ level, onSave, onClose }: {
         </div>
       </div>
       <ColorField label="Badge Color" value={draft.badgeColor} onChange={v => set({ badgeColor: v })} />
-      <ColorField label="Ring Color" value={draft.ringColor} onChange={v => set({ ringColor: v })} />
       <FileUpload label="Icon (VIP badge)" fileName={draft.iconFileName} accept="image/*" onChange={v => set({ iconFileName: v })} />
     </Modal>
   )
@@ -325,7 +324,7 @@ function CPTab() {
     const ref = group.entries[group.entries.length - 1]
     const newEntry: PrestigeCPTier = {
       id: uid(), tier: group.tier, subTier: sub,
-      cpFrom: 0, cpTo: 0, color: ref.color, ringColor: ref.ringColor,
+      cpFrom: 0, cpTo: 0, color: ref.color, badgeColor: ref.badgeColor,
       iconFileName: ref.iconFileName, perks: [],
     }
     setTiers(prev => {
@@ -336,7 +335,7 @@ function CPTab() {
   }
 
   const addTier = () => {
-    const base = { tier: 'New Tier', color: '#94A3B8', ringColor: '#94A3B8', iconFileName: null as null, perks: [] as Perk[] }
+    const base = { tier: 'New Tier', color: '#94A3B8', badgeColor: '#94A3B8', iconFileName: null as null, perks: [] as Perk[] }
     setTiers(prev => [...prev, ...['I', 'II', 'III', 'IV'].map(sub => ({ ...base, id: uid(), subTier: sub, cpFrom: 0, cpTo: 0 }))])
   }
 
@@ -368,7 +367,7 @@ function CPTab() {
                 <tr>
                   <th style={{ fontSize: 11, padding: '6px 14px', width: 60 }}>Sub-Tier</th>
                   <th style={{ fontSize: 11, padding: '6px 14px' }}>CP Range</th>
-                  <th style={{ fontSize: 11, padding: '6px 14px', width: 40 }}>Ring</th>
+                  <th style={{ fontSize: 11, padding: '6px 14px', width: 40 }}>Badge</th>
                   <th style={{ fontSize: 11, padding: '6px 14px', width: 100 }}></th>
                 </tr>
               </thead>
@@ -381,7 +380,7 @@ function CPTab() {
                     <td style={{ padding: '8px 14px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap' }}>
                       {entry.cpFrom.toLocaleString()} – {entry.cpTo.toLocaleString()}
                     </td>
-                    <td style={{ padding: '8px 14px' }}><Swatch color={entry.ringColor} /></td>
+                    <td style={{ padding: '8px 14px' }}><Swatch color={entry.badgeColor} /></td>
                     <td style={{ padding: '8px 14px' }}>
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="btn btn-ghost btn-sm" style={{ gap: 4, fontSize: 12 }}
@@ -473,7 +472,7 @@ function VIPTab() {
 
   const addLevel = () => setLevels(prev => [...prev, {
     id: uid(), level: prev.length + 1, name: `VIP ${prev.length + 1}`,
-    minSpend: 0, maxSpend: null, badgeColor: '#94A3B8', ringColor: '#94A3B8',
+    minSpend: 0, maxSpend: null, badgeColor: '#94A3B8',
     iconFileName: null, perks: [],
   }])
 

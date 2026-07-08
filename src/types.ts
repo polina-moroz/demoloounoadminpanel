@@ -205,7 +205,7 @@ export interface PrestigeCPTier {
   cpFrom: number;
   cpTo: number;
   color: string;
-  ringColor: string;
+  badgeColor: string;
   iconFileName: string | null;
   perks: Perk[];
 }
@@ -217,7 +217,6 @@ export interface VIPLevel {
   minSpend: number;
   maxSpend: number | null;
   badgeColor: string;
-  ringColor: string;
   iconFileName: string | null;
   perks: Perk[];
 }
