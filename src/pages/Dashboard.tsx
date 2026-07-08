@@ -12,14 +12,21 @@ import type { Report } from '../types'
 const fmtNum = (n: number) => n.toLocaleString()
 const fmtUSD = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+type DashTab = 'general' | 'financial'
+
+function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <div style={{
-      padding: '4px 2px 12px', fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
-      textTransform: 'uppercase', letterSpacing: '0.06em',
-    }}>
+    <button
+      onClick={onClick}
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: 14, fontWeight: 500,
+        color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+        borderBottom: active ? '2px solid var(--gold)' : '2px solid transparent',
+        marginBottom: -1, transition: 'color 0.15s',
+      }}
+    >
       {children}
-    </div>
+    </button>
   )
 }
 
@@ -197,9 +204,11 @@ export default function Dashboard() {
   const { reports, currentAdmin } = useStore()
   const [reviewingReport, setReviewingReport] = useState<Report | null>(null)
   const [lastUpdated, setLastUpdated] = useState(() => new Date(dashboardStats.lastUpdated))
+  const canViewFinancial = currentAdmin?.role === 'super_admin' || currentAdmin?.role === 'admin'
+  const [tab, setTab] = useState<DashTab>('general')
 
   const pendingReports = reports.filter(r => r.status === 'pending').slice(0, 5)
-  const canViewFinancial = currentAdmin?.role === 'super_admin' || currentAdmin?.role === 'admin'
+  const activeTab: DashTab = tab === 'financial' && !canViewFinancial ? 'general' : tab
   const netRevenueYTD = dashboardStats.totalRevenueYTD - dashboardStats.creatorPayoutsYTD
   const marginPercent = Math.round((netRevenueYTD / dashboardStats.totalRevenueYTD) * 100)
 
@@ -227,20 +236,27 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* General activity */}
-      <SectionLabel>General activity</SectionLabel>
-      <div className="stat-grid">
-        <StatCard label="New Signups Today"   value={fmtNum(dashboardStats.newSignupsToday)}      sub="Users joined the app"        icon={<UserPlus size={20} />} />
-        <StatCard label="Daily Active Users"  value={fmtNum(dashboardStats.dailyActiveUsers)}      sub="Unique users, last 24h"      icon={<Activity size={20} />} />
-        <StatCard label="Monthly Active Users" value={fmtNum(dashboardStats.monthlyActiveUsers)}   sub="Unique users, last 30d"      icon={<Users size={20} />} />
-        <StatCard label="Live Streams Today"  value={fmtNum(dashboardStats.liveStreamsToday)}      sub="Streams started today"       icon={<Radio size={20} />} />
-        <StatCard label="Total Gifts Sent"    value={`${fmtNum(dashboardStats.totalGiftsSentDiamonds)} 💎`} sub="Gift value, today" icon={<Gift size={20} />} />
+      {/* Tab switcher — Financial tab only offered to Super Admin / Admin */}
+      <div style={{ display: 'flex', gap: 2, marginBottom: 20, borderBottom: '1px solid var(--border)' }}>
+        <TabButton active={activeTab === 'general'} onClick={() => setTab('general')}>General Activity</TabButton>
+        {canViewFinancial && (
+          <TabButton active={activeTab === 'financial'} onClick={() => setTab('financial')}>Financial</TabButton>
+        )}
       </div>
 
+      {activeTab === 'general' && (
+        <div className="stat-grid">
+          <StatCard label="New Signups Today"   value={fmtNum(dashboardStats.newSignupsToday)}      sub="Users joined the app"        icon={<UserPlus size={20} />} />
+          <StatCard label="Daily Active Users"  value={fmtNum(dashboardStats.dailyActiveUsers)}      sub="Unique users, last 24h"      icon={<Activity size={20} />} />
+          <StatCard label="Monthly Active Users" value={fmtNum(dashboardStats.monthlyActiveUsers)}   sub="Unique users, last 30d"      icon={<Users size={20} />} />
+          <StatCard label="Live Streams Today"  value={fmtNum(dashboardStats.liveStreamsToday)}      sub="Streams started today"       icon={<Radio size={20} />} />
+          <StatCard label="Total Gifts Sent"    value={`${fmtNum(dashboardStats.totalGiftsSentDiamonds)} 💎`} sub="Gift value, today" icon={<Gift size={20} />} />
+        </div>
+      )}
+
       {/* Financial — Super Admin & Admin only */}
-      {canViewFinancial && (
+      {activeTab === 'financial' && canViewFinancial && (
         <>
-          <SectionLabel>Financial</SectionLabel>
           <div className="stat-grid">
             <StatCard label="Coin Purchases — Daily"   value={fmtUSD(dashboardStats.coinPurchasesDaily)}   sub="Gross, today"          icon={<Coins size={20} />} />
             <StatCard label="Coin Purchases — Monthly" value={fmtUSD(dashboardStats.coinPurchasesMonthly)} sub="Gross, last 30d"       icon={<Coins size={20} />} />
