@@ -1,6 +1,6 @@
 ﻿import { useState, useRef } from 'react'
-import { Edit2, X, Upload, Search, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
-import { mockGifts } from '../mockData'
+import { Edit2, X, Upload, Search, ChevronLeft, ChevronRight, Plus, Trash2, Crown } from 'lucide-react'
+import { mockGifts, mockVIPGifts, mockVIPLevels } from '../mockData'
 import { useStore } from '../store'
 import type { Gift } from '../types'
 
@@ -77,17 +77,19 @@ function TierModal({ initial, onSave, onClose }: {
 
 interface GiftModalProps {
   initial?: Gift | null
-  tierId: string
-  tierName: string
+  mode: 'regular' | 'vip'
+  tierId?: string
+  tierName?: string
   onSave: (g: Omit<Gift, 'id'>) => void
   onClose: () => void
 }
 
-function GiftModal({ initial, tierId, tierName, onSave, onClose }: GiftModalProps) {
+function GiftModal({ initial, mode, tierId, tierName, onSave, onClose }: GiftModalProps) {
   const [animationFileName, setAnimationFileName] = useState<string | null>(initial?.animationFileName ?? null)
   const [name,    setName]    = useState(initial?.name ?? '')
   const [coins,   setCoins]   = useState(initial?.coins ?? 0)
   const [enabled, setEnabled] = useState(initial?.enabled ?? true)
+  const [minVipLevel, setMinVipLevel] = useState<number>(initial?.minVipLevel ?? mockVIPLevels[0]?.level ?? 1)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const valid = name.trim() !== '' && coins > 0
@@ -97,7 +99,7 @@ function GiftModal({ initial, tierId, tierName, onSave, onClose }: GiftModalProp
       <div className="modal-backdrop" onClick={onClose} />
       <div className="modal-dialog" style={{ maxWidth: 480 }}>
         <div className="modal-header">
-          <span className="modal-title">{initial ? 'Edit Gift' : 'Add Gift'}</span>
+          <span className="modal-title">{initial ? `Edit ${mode === 'vip' ? 'VIP ' : ''}Gift` : `Add ${mode === 'vip' ? 'VIP ' : ''}Gift`}</span>
           <button className="modal-close" onClick={onClose}><X size={14} /></button>
         </div>
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -148,12 +150,30 @@ function GiftModal({ initial, tierId, tierName, onSave, onClose }: GiftModalProp
             </label>
           </div>
 
+          {mode === 'vip' && (
+            <div className="form-group">
+              <label className="form-label">Minimum VIP Rank</label>
+              <select className="form-select" value={minVipLevel} onChange={e => setMinVipLevel(Number(e.target.value))}>
+                {mockVIPLevels.map(v => (
+                  <option key={v.id} value={v.level}>{v.name}</option>
+                ))}
+              </select>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, display: 'block' }}>
+                Only members at or above this VIP rank can see and send this gift
+              </span>
+            </div>
+          )}
+
         </div>
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" disabled={!valid} style={{ opacity: valid ? 1 : 0.45 }}
             onClick={() => {
-              onSave({ animationFileName, name, coins, durationSec: initial?.durationSec ?? 3, tier: tierId, tierName, enabled })
+              onSave(
+                mode === 'vip'
+                  ? { animationFileName, name, coins, durationSec: initial?.durationSec ?? 3, tier: 'vip', tierName: 'VIP Gifts', enabled, vipExclusive: true, minVipLevel }
+                  : { animationFileName, name, coins, durationSec: initial?.durationSec ?? 3, tier: tierId!, tierName: tierName!, enabled, vipExclusive: false, minVipLevel: null }
+              )
               onClose()
             }}>
             {initial ? 'Save Changes' : 'Add Gift'}
@@ -166,18 +186,20 @@ function GiftModal({ initial, tierId, tierName, onSave, onClose }: GiftModalProp
 
 /* ── Gift card ────────────────────────────────────────────────── */
 
-function GiftCard({ gift, onToggle, onEdit }: {
+function GiftCard({ gift, onToggle, onEdit, onDelete }: {
   gift: Gift
   onToggle: (id: string) => void
   onEdit: (gift: Gift) => void
+  onDelete?: (gift: Gift) => void
 }) {
-  const ext        = gift.animationFileName?.split('.').pop()?.toLowerCase()
-  const assetLabel = ext === 'json' ? 'Lottie' : null
+  const ext         = gift.animationFileName?.split('.').pop()?.toLowerCase()
+  const assetLabel  = ext === 'json' ? 'Lottie' : null
+  const vipLevel    = gift.vipExclusive ? mockVIPLevels.find(v => v.level === gift.minVipLevel) : null
 
   return (
     <div style={{
       background: 'var(--surface)', border: '1px solid var(--border)',
-      borderTop: '3px solid var(--border)', borderRadius: 12, overflow: 'hidden',
+      borderTop: `3px solid ${gift.vipExclusive ? 'var(--gold)' : 'var(--border)'}`, borderRadius: 12, overflow: 'hidden',
       display: 'flex', flexDirection: 'column', transition: 'box-shadow 0.15s',
       opacity: gift.enabled ? 1 : 0.45,
     }}
@@ -204,6 +226,15 @@ function GiftCard({ gift, onToggle, onEdit }: {
       </div>
 
       <div style={{ padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {vipLevel && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 3, alignSelf: 'flex-start',
+            fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 20, letterSpacing: '0.02em',
+            background: 'rgba(212,175,55,0.12)', color: 'var(--gold)', border: '1px solid rgba(212,175,55,0.35)',
+          }}>
+            <Crown size={9} /> {vipLevel.name}+
+          </span>
+        )}
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>{gift.name}</div>
         <div style={{ fontSize: 12, color: 'var(--gold)', fontWeight: 600 }}>🪙 {gift.coins.toLocaleString()}</div>
         <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{gift.durationSec}s</div>
@@ -214,40 +245,52 @@ function GiftCard({ gift, onToggle, onEdit }: {
           <input type="checkbox" checked={gift.enabled} onChange={() => onToggle(gift.id)} />
           <span className="toggle-track" />
         </label>
-        <button className="btn btn-ghost btn-icon" title="Edit" onClick={() => onEdit(gift)}>
-          <Edit2 size={12} />
-        </button>
+        <div style={{ display: 'flex', gap: 2 }}>
+          <button className="btn btn-ghost btn-icon" title="Edit" onClick={() => onEdit(gift)}>
+            <Edit2 size={12} />
+          </button>
+          {onDelete && (
+            <button className="btn btn-ghost btn-icon" title="Delete" style={{ color: 'var(--text-muted)' }} onClick={() => onDelete(gift)}>
+              <Trash2 size={12} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
 const PAGE_SIZE = 8
+const VIP_TAB_ID = '__vip__'
 
 /* ── Main page ────────────────────────────────────────────────── */
 
 export default function GiftCatalog() {
   const { toast } = useStore()
   const [gifts,        setGifts]        = useState<Gift[]>(mockGifts)
+  const [vipGifts,     setVipGifts]     = useState<Gift[]>(mockVIPGifts)
   const [tiers,        setTiers]        = useState<CustomTier[]>(INITIAL_TIERS)
   const [activeTierId, setActiveTierId] = useState<string>(INITIAL_TIERS[0].id)
   const [search,       setSearch]       = useState('')
   const [page,         setPage]         = useState(1)
   const [addGiftOpen,  setAddGiftOpen]  = useState(false)
   const [editGift,     setEditGift]     = useState<Gift | null>(null)
+  const [confirmDeleteGift, setConfirmDeleteGift] = useState<Gift | null>(null)
   const [addTierOpen,  setAddTierOpen]  = useState(false)
   const [editTier,     setEditTier]     = useState<CustomTier | null>(null)
   const [confirmDeleteTier, setConfirmDeleteTier] = useState<CustomTier | null>(null)
 
+  const isVipTab    = activeTierId === VIP_TAB_ID
   const activeTier  = tiers.find(t => t.id === activeTierId)
-  const tierGifts   = gifts.filter(g => g.tier === activeTierId)
+  const tierGifts   = isVipTab ? vipGifts : gifts.filter(g => g.tier === activeTierId)
   const filtered    = search.trim()
     ? tierGifts.filter(g => g.name.toLowerCase().includes(search.toLowerCase().trim()))
     : tierGifts
   const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const pageSafe    = Math.min(page, totalPages)
   const paged       = filtered.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE)
-  const totalEnabled = gifts.filter(g => g.enabled).length
+  const allGifts     = [...gifts, ...vipGifts]
+  const totalEnabled = allGifts.filter(g => g.enabled).length
 
   const toggleGift = (id: string) =>
     setGifts(prev => prev.map(g => g.id === id ? { ...g, enabled: !g.enabled } : g))
@@ -260,6 +303,25 @@ export default function GiftCatalog() {
   const handleEditGift = (id: string, data: Omit<Gift, 'id'>) => {
     setGifts(prev => prev.map(g => g.id === id ? { ...g, ...data } : g))
     toast(`Gift "${data.name}" updated`, 'success')
+  }
+
+  const toggleVipGift = (id: string) =>
+    setVipGifts(prev => prev.map(g => g.id === id ? { ...g, enabled: !g.enabled } : g))
+
+  const handleAddVipGift = (data: Omit<Gift, 'id'>) => {
+    setVipGifts(prev => [...prev, { ...data, id: `gv${Date.now()}` }])
+    toast(`VIP gift "${data.name}" added`, 'success')
+  }
+
+  const handleEditVipGift = (id: string, data: Omit<Gift, 'id'>) => {
+    setVipGifts(prev => prev.map(g => g.id === id ? { ...g, ...data } : g))
+    toast(`VIP gift "${data.name}" updated`, 'success')
+  }
+
+  const handleDeleteVipGift = (gift: Gift) => {
+    setVipGifts(prev => prev.filter(g => g.id !== gift.id))
+    toast(`VIP gift "${gift.name}" deleted`, 'info')
+    setConfirmDeleteGift(null)
   }
 
   const handleAddTier = (data: Omit<CustomTier, 'id'>) => {
@@ -330,7 +392,7 @@ export default function GiftCatalog() {
           <div className="subtitle">Manage virtual gifts, tiers, prices, and animations</div>
         </div>
         <div className="page-header-actions">
-          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{totalEnabled}/{gifts.length} enabled</span>
+          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{totalEnabled}/{allGifts.length} enabled</span>
         </div>
       </div>
 
@@ -369,6 +431,36 @@ export default function GiftCatalog() {
           )
         })}
 
+        <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--border)', flexShrink: 0, margin: '2px 2px' }} />
+
+        {/* Fixed VIP Gifts tab — not a custom tier, cannot be renamed or removed */}
+        <button onClick={() => switchTier(VIP_TAB_ID)} style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '10px 16px', borderRadius: 10, cursor: 'pointer',
+          whiteSpace: 'nowrap', flexShrink: 0,
+          background: isVipTab ? 'rgba(212,175,55,0.08)' : 'var(--surface)',
+          border: `1.5px solid ${isVipTab ? 'var(--gold)' : 'var(--border)'}`,
+          transition: 'all 0.15s',
+        }}
+          onMouseEnter={e => { if (!isVipTab) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-muted)' }}
+          onMouseLeave={e => { if (!isVipTab) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)' }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Crown size={12} /> VIP Gifts
+            </span>
+            <span style={{ fontSize: 11, color: isVipTab ? 'var(--gold)' : 'var(--text-muted)', opacity: 0.85 }}>
+              Rank-gated
+            </span>
+          </div>
+          <span style={{
+            fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 10, marginLeft: 2,
+            background: isVipTab ? 'rgba(212,175,55,0.15)' : 'var(--bg)',
+            color: isVipTab ? 'var(--gold)' : 'var(--text-muted)',
+            border: `1px solid ${isVipTab ? 'rgba(212,175,55,0.3)' : 'var(--border)'}`,
+          }}>{vipGifts.length}</span>
+        </button>
+
         <button onClick={() => setAddTierOpen(true)} style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '10px 14px', borderRadius: 10, cursor: 'pointer',
@@ -383,7 +475,25 @@ export default function GiftCatalog() {
         </button>
       </div>
 
-      {tiers.length === 0 ? (
+      {isVipTab ? (
+        <>
+          {/* ── VIP header — fixed category, no rename/delete ── */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '12px 16px', borderRadius: 10, marginBottom: 20,
+            background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.3)',
+          }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Crown size={13} /> VIP Gifts
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                Rank-gated by minimum VIP level · fixed category — cannot be renamed or removed
+              </div>
+            </div>
+          </div>
+        </>
+      ) : tiers.length === 0 ? (
         <div style={{ padding: '64px 24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
           No tiers yet. Click <strong>Add Tier</strong> to create your first tier.
         </div>
@@ -411,12 +521,16 @@ export default function GiftCatalog() {
               </button>
             </div>
           </div>
+        </>
+      ) : null}
 
+      {(isVipTab || activeTier) && (
+        <>
           {/* ── Search ── */}
           <div style={{ marginBottom: 16 }}>
             <div className="search-input-wrapper" style={{ maxWidth: 280 }}>
               <Search size={14} />
-              <input className="search-input" placeholder={`Search in ${activeTier.name}…`}
+              <input className="search-input" placeholder={`Search in ${isVipTab ? 'VIP Gifts' : activeTier?.name}…`}
                 value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} />
               {search && (
                 <button onClick={() => { setSearch(''); setPage(1) }}
@@ -434,7 +548,7 @@ export default function GiftCatalog() {
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-subtle)' }}>
                 <span style={{ fontSize: 22 }}>+</span>
-                <span>Add Gift</span>
+                <span>Add {isVipTab ? 'VIP ' : ''}Gift</span>
               </button>
             </div>
           ) : filtered.length === 0 ? (
@@ -449,13 +563,14 @@ export default function GiftCatalog() {
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-subtle)' }}>
                     <span style={{ fontSize: 22 }}>+</span>
-                    <span>Add Gift</span>
+                    <span>Add {isVipTab ? 'VIP ' : ''}Gift</span>
                   </button>
                 )}
                 {paged.map(g => (
                   <GiftCard key={g.id} gift={g}
-                    onToggle={toggleGift}
-                    onEdit={g => setEditGift(g)} />
+                    onToggle={isVipTab ? toggleVipGift : toggleGift}
+                    onEdit={g => setEditGift(g)}
+                    onDelete={isVipTab ? gift => setConfirmDeleteGift(gift) : undefined} />
                 ))}
               </div>
 
@@ -488,14 +603,41 @@ export default function GiftCatalog() {
             </>
           )}
         </>
-      ) : null}
+      )}
+
+      {/* ── Delete VIP gift confirm ── */}
+      {confirmDeleteGift && (
+        <>
+          <div className="modal-backdrop" onClick={() => setConfirmDeleteGift(null)} />
+          <div className="modal-dialog" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <span className="modal-title">Delete VIP Gift</span>
+              <button className="modal-close" onClick={() => setConfirmDeleteGift(null)}><X size={14} /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
+                Delete VIP gift <strong style={{ color: 'var(--text-primary)' }}>{confirmDeleteGift.name}</strong>? This cannot be undone.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={() => setConfirmDeleteGift(null)}>Cancel</button>
+              <button className="btn btn-danger" onClick={() => handleDeleteVipGift(confirmDeleteGift)}>
+                <Trash2 size={13} /> Delete
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ── Modals ── */}
       {addGiftOpen && (
-        <GiftModal tierId={activeTierId} tierName={activeTier?.name ?? ''} onSave={handleAddGift} onClose={() => setAddGiftOpen(false)} />
+        <GiftModal mode={isVipTab ? 'vip' : 'regular'} tierId={activeTierId} tierName={activeTier?.name ?? ''}
+          onSave={isVipTab ? handleAddVipGift : handleAddGift} onClose={() => setAddGiftOpen(false)} />
       )}
       {editGift && (
-        <GiftModal tierId={editGift.tier} tierName={editGift.tierName} initial={editGift} onSave={data => handleEditGift(editGift.id, data)} onClose={() => setEditGift(null)} />
+        <GiftModal mode={editGift.tier === 'vip' ? 'vip' : 'regular'} tierId={editGift.tier} tierName={editGift.tierName} initial={editGift}
+          onSave={data => editGift.tier === 'vip' ? handleEditVipGift(editGift.id, data) : handleEditGift(editGift.id, data)}
+          onClose={() => setEditGift(null)} />
       )}
       {addTierOpen && (
         <TierModal onSave={handleAddTier} onClose={() => setAddTierOpen(false)} />

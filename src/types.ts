@@ -126,6 +126,8 @@ export interface Gift {
   tierName: string;
   durationSec: number;
   enabled: boolean;
+  vipExclusive: boolean;
+  minVipLevel: number | null;
 }
 
 export interface CompetitionEntry {
@@ -264,7 +266,6 @@ export interface WheelSlot {
   rewardName: string;
   coins: number;
   diamonds: number;
-  animationFileName: string | null;
 }
 
 export interface SeasonalWheel {

@@ -5,20 +5,20 @@ import { mockSeasonalWheels } from '../mockData'
 import type { SeasonalWheel, WheelSlot } from '../types'
 
 const KIND_META: Record<WheelSlot['kind'], { label: string; color: string; bg: string }> = {
-  reward:      { label: 'Regular',     color: '#2ECC8A', bg: 'rgba(46,204,138,0.1)'  },
-  small_bonus: { label: 'Small Bonus', color: '#3498DB', bg: 'rgba(52,152,219,0.1)'  },
-  big_bonus:   { label: 'Mega Bonus',  color: '#9B66CC', bg: 'rgba(155,102,204,0.1)' },
+  reward:      { label: 'Regular',    color: '#2ECC8A', bg: 'rgba(46,204,138,0.1)'  },
+  small_bonus: { label: 'Rare',       color: '#3498DB', bg: 'rgba(52,152,219,0.1)'  },
+  big_bonus:   { label: 'Super Rare', color: '#9B66CC', bg: 'rgba(155,102,204,0.1)' },
 }
 
 function uid() { return Math.random().toString(36).slice(2, 9) }
 
 function defaultSlots(): WheelSlot[] {
   return [
-    { id: uid(), kind: 'reward',      rewardName: '', coins: 0, diamonds: 0, animationFileName: null },
-    { id: uid(), kind: 'reward',      rewardName: '', coins: 0, diamonds: 0, animationFileName: null },
-    { id: uid(), kind: 'reward',      rewardName: '', coins: 0, diamonds: 0, animationFileName: null },
-    { id: uid(), kind: 'small_bonus', rewardName: '', coins: 0, diamonds: 0, animationFileName: null },
-    { id: uid(), kind: 'big_bonus',   rewardName: '', coins: 0, diamonds: 0, animationFileName: null },
+    { id: uid(), kind: 'reward',      rewardName: '', coins: 0, diamonds: 0 },
+    { id: uid(), kind: 'reward',      rewardName: '', coins: 0, diamonds: 0 },
+    { id: uid(), kind: 'reward',      rewardName: '', coins: 0, diamonds: 0 },
+    { id: uid(), kind: 'small_bonus', rewardName: '', coins: 0, diamonds: 0 },
+    { id: uid(), kind: 'big_bonus',   rewardName: '', coins: 0, diamonds: 0 },
   ]
 }
 
@@ -58,7 +58,6 @@ function SeasonSlotRow({ slot, onUpdate }: {
   onUpdate: (u: Partial<WheelSlot>) => void
 }) {
   const meta = KIND_META[slot.kind]
-  const inputId = `ss-anim-${slot.id}`
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.05))' }}>
       <span style={{
@@ -73,20 +72,6 @@ function SeasonSlotRow({ slot, onUpdate }: {
         style={{ flex: 1, fontSize: 12 }}
         placeholder="Gift name"
       />
-      <div style={{ flexShrink: 0 }}>
-        {slot.animationFileName ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-secondary)', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{slot.animationFileName}</span>
-            <button className="btn btn-ghost btn-icon" style={{ width: 18, height: 18, color: 'var(--text-muted)' }} onClick={() => onUpdate({ animationFileName: null })}><X size={10} /></button>
-          </div>
-        ) : (
-          <label htmlFor={inputId} className="btn btn-ghost btn-sm" style={{ fontSize: 11, gap: 4, cursor: 'pointer' }}>
-            <Upload size={11} /> Anim
-          </label>
-        )}
-        <input id={inputId} type="file" accept=".json" style={{ display: 'none' }}
-          onChange={e => { const f = e.target.files?.[0]; if (f) onUpdate({ animationFileName: f.name }); e.target.value = '' }} />
-      </div>
     </div>
   )
 }
@@ -146,7 +131,7 @@ function SeasonalWheelCard({ wheel, onChange, onDelete, onActivate }: {
       {expanded && (
         <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--border)' }}>
           <div style={{ paddingTop: 12, marginBottom: 14 }}>
-            <AnimField label="Season Animation" fileName={wheel.seasonAnimationFileName}
+            <AnimField label="Wheel Animation (full wheel, gifts included)" fileName={wheel.seasonAnimationFileName}
               onChange={name => onChange(wheel.id, { seasonAnimationFileName: name })} />
           </div>
           {wheel.slots.map(slot => (
